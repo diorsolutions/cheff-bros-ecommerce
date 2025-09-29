@@ -5,16 +5,21 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  image_url: string | null;
+  image_url: string | null; // 'image' ustuniga mos keladi
+  category: string;
+  stock: number;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ProductFormData {
   name: string;
   description: string;
   price: number;
-  image?: File | null; // For new uploads
-  image_url?: string | null; // For existing images
+  category: string;
+  stock: number;
+  image?: File | null; // Yangi yuklash uchun
+  image_url?: string | null; // Mavjud rasmlar uchun
 }
 
 const BUCKET_NAME = 'product-images';
@@ -36,7 +41,7 @@ export const addProduct = async (formData: ProductFormData): Promise<Product> =>
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { error: uploadError, data: uploadData } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -56,6 +61,8 @@ export const addProduct = async (formData: ProductFormData): Promise<Product> =>
       description: formData.description,
       price: formData.price,
       image_url: imageUrl,
+      category: formData.category,
+      stock: formData.stock,
     })
     .select()
     .single();
@@ -86,7 +93,7 @@ export const updateProduct = async (id: string, formData: ProductFormData): Prom
       .from(BUCKET_NAME)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: true, // Use upsert to overwrite if file name is the same (though we use UUID)
+        upsert: true,
       });
 
     if (uploadError) throw uploadError;
@@ -111,6 +118,8 @@ export const updateProduct = async (id: string, formData: ProductFormData): Prom
       description: formData.description,
       price: formData.price,
       image_url: imageUrl,
+      category: formData.category,
+      stock: formData.stock,
     })
     .eq('id', id)
     .select()
