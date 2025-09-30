@@ -7,6 +7,8 @@ const CurierStatistics = ({ curierId, orders }) => {
   const [stats, setStats] = useState({
     totalDelivered: 0,
     todayDelivered: 0,
+    totalCancelled: 0, // Yangi: Jami bekor qilinganlar
+    todayCancelled: 0, // Yangi: Bugungi bekor qilinganlar
   });
   const [loading, setLoading] = useState(true);
 
@@ -20,16 +22,24 @@ const CurierStatistics = ({ curierId, orders }) => {
 
       let totalDelivered = 0;
       let todayDelivered = 0;
+      let totalCancelled = 0;
+      let todayCancelled = 0;
 
       orders.forEach(order => {
-        // Faqat joriy kuryer tomonidan yetkazilgan buyurtmalarni hisoblaymiz
-        if (order.curier_id === curierId && order.status === "confirmed") {
-          totalDelivered++;
+        if (order.curier_id === curierId) { // Faqat joriy kuryerga tegishli buyurtmalar
           const orderDate = new Date(order.created_at);
           orderDate.setHours(0, 0, 0, 0);
 
-          if (orderDate.getTime() === now.getTime()) {
-            todayDelivered++;
+          if (order.status === "confirmed") {
+            totalDelivered++;
+            if (orderDate.getTime() === now.getTime()) {
+              todayDelivered++;
+            }
+          } else if (order.status === "cancelled") {
+            totalCancelled++;
+            if (orderDate.getTime() === now.getTime()) {
+              todayCancelled++;
+            }
           }
         }
       });
@@ -37,6 +47,8 @@ const CurierStatistics = ({ curierId, orders }) => {
       setStats({
         totalDelivered: totalDelivered,
         todayDelivered: todayDelivered,
+        totalCancelled: totalCancelled,
+        todayCancelled: todayCancelled,
       });
       setLoading(false);
     };
@@ -53,7 +65,8 @@ const CurierStatistics = ({ curierId, orders }) => {
       <Card className="bg-white/10 border-white/20">
         <CardContent className="p-4">
           <h4 className="font-semibold text-white mb-2">Bugungi buyurtmalar</h4>
-          <p className="text-gray-300">Bugun yetkazilgan: <span className="font-bold text-green-400">{stats.todayDelivered}</span></p>
+          <p className="text-gray-300">Yetkazilgan: <span className="font-bold text-green-400">{stats.todayDelivered}</span></p>
+          <p className="text-gray-300">Bekor qilingan: <span className="font-bold text-red-400">{stats.todayCancelled}</span></p>
         </CardContent>
       </Card>
 
@@ -61,6 +74,7 @@ const CurierStatistics = ({ curierId, orders }) => {
         <CardContent className="p-4">
           <h4 className="font-semibold text-white mb-2">Jami yetkazilganlar</h4>
           <p className="text-gray-300">Jami yetkazilgan buyurtmalar: <span className="font-bold text-orange-400">{stats.totalDelivered}</span></p>
+          <p className="text-gray-300">Jami bekor qilingan buyurtmalar: <span className="font-bold text-red-400">{stats.totalCancelled}</span></p>
         </CardContent>
       </Card>
     </div>

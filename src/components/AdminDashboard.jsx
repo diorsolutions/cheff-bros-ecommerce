@@ -80,7 +80,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
       case "confirmed":
         return `${getCurierName(curierId)} mijozga yetkazdi`;
       case "cancelled":
-        return "Bekor qilingan";
+        return `${getCurierName(curierId)} buyurtmani bekor qildi`; // Yangilangan qism
       default:
         return "Noma'lum";
     }
