@@ -7,12 +7,14 @@ import {
   PanelLeftClose,
   PanelRightClose,
   BarChart2, // Yangi icon
+  Users, // Kuryerlar uchun icon
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminProducts from "@/components/AdminProducts";
 import AdminStatistics from "@/components/AdminStatistics"; // Yangi import
+import AdminCouriers from "@/components/AdminCouriers"; // Yangi import
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -90,6 +92,14 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
               <BarChart2 className="mr-3 h-5 w-5" />
               {isSidebarOpen && "Statistika"}
             </Button>
+            <Button
+              variant={adminView === "couriers" ? "secondary" : "ghost"}
+              className="min-w-full justify-start"
+              onClick={() => setAdminView("couriers")}
+            >
+              <Users className="mr-3 h-5 w-5" />
+              {isSidebarOpen && "Kuryerlar"}
+            </Button>
           </nav>
         </aside>
         <div className="flex-1 p-6">
@@ -107,8 +117,10 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
               />
             ) : adminView === "products" ? (
               <AdminProducts products={products} />
-            ) : (
+            ) : adminView === "statistics" ? (
               <AdminStatistics orders={orders} products={products} curiers={curiers} />
+            ) : (
+              <AdminCouriers curiers={curiers} orders={orders} />
             )}
           </motion.div>
         </div>

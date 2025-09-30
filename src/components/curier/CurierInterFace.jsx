@@ -17,6 +17,7 @@ import CurierSettingsDialog from "./CurierSettingsDialog"; // Yangi nom
 const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   const navigate = useNavigate();
   const [curierName, setCurierName] = useState("Kuryer");
+  const [curierPhone, setCurierPhone] = useState(""); // Yangi holat
   const [curierId, setCurierId] = useState(null);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false); // Dialog holati
 
@@ -29,7 +30,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
         setCurierId(storedId);
         const { data, error } = await supabase
           .from("curiers")
-          .select("name")
+          .select("name, phone") // Telefon raqamini ham olamiz
           .eq("id", storedId)
           .single();
 
@@ -43,6 +44,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           handleLogout();
         } else if (data) {
           setCurierName(data.name || storedUsername);
+          setCurierPhone(data.phone || "");
         }
       } else {
         handleLogout();
@@ -62,8 +64,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     });
   };
 
-  const handleNameUpdated = (newName) => {
+  const handleNameUpdated = (newName, newPhone) => {
     setCurierName(newName);
+    setCurierPhone(newPhone);
   };
 
   const getStatusColor = (status) => {
@@ -296,6 +299,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           onClose={() => setShowSettingsDialog(false)}
           curierId={curierId}
           currentName={curierName}
+          currentPhone={curierPhone} // Telefon raqamini uzatamiz
           onNameUpdated={handleNameUpdated}
           orders={orders} // Statistikani hisoblash uchun buyurtmalarni uzatamiz
         />

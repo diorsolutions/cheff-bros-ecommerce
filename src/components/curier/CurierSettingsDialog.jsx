@@ -15,17 +15,19 @@ import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Tabs komponentlari
 import CurierStatistics from "./CurierStatistics"; // Yangi import
 
-const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, onNameUpdated, orders }) => {
+const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, currentPhone, onNameUpdated, orders }) => {
   const [name, setName] = useState(currentName || "");
+  const [phone, setPhone] = useState(currentPhone || ""); // Yangi holat
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("profile"); // Yangi holat
 
   useEffect(() => {
     setName(currentName || "");
+    setPhone(currentPhone || ""); // Telefon raqamini ham yangilash
     setActiveTab("profile"); // Dialog ochilganda har doim "profile" tabini ko'rsatish
-  }, [currentName, isOpen]); // isOpen o'zgarganda ham reset qilish
+  }, [currentName, currentPhone, isOpen]); // isOpen o'zgarganda ham reset qilish
 
-  const handleSaveName = async () => {
+  const handleSaveProfile = async () => {
     if (!name.trim()) {
       toast({
         title: "Xatolik",
@@ -39,22 +41,22 @@ const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, onNameUp
     try {
       const { error } = await supabase
         .from("curiers")
-        .update({ name: name.trim() })
+        .update({ name: name.trim(), phone: phone.trim() }) // Telefon raqamini ham yangilash
         .eq("id", curierId);
 
       if (error) throw error;
 
       toast({
         title: "Muvaffaqiyatli!",
-        description: "Ism muvaffaqiyatli yangilandi.",
+        description: "Profil ma'lumotlari muvaffaqiyatli yangilandi.",
       });
-      onNameUpdated(name.trim());
+      onNameUpdated(name.trim(), phone.trim()); // O'zgartirilgan nom va telefonni yuqori komponentga qaytarish
       onClose();
     } catch (error) {
-      console.error("Ismni yangilashda xatolik:", error);
+      console.error("Profilni yangilashda xatolik:", error);
       toast({
         title: "Xatolik",
-        description: error.message || "Ismni yangilashda xatolik yuz berdi.",
+        description: error.message || "Profilni yangilashda xatolik yuz berdi.",
         variant: "destructive",
       });
     } finally {
@@ -91,6 +93,17 @@ const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, onNameUp
                   className="col-span-3 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right text-white">
+                  Telefon
+                </Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="col-span-3 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                />
+              </div>
             </div>
             <DialogFooter className="mt-6">
               <DialogClose asChild>
@@ -98,7 +111,7 @@ const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, onNameUp
                   Bekor qilish
                 </Button>
               </DialogClose>
-              <Button onClick={handleSaveName} disabled={isSaving}>
+              <Button onClick={handleSaveProfile} disabled={isSaving}>
                 {isSaving ? "Saqlanmoqda..." : "Saqlash"}
               </Button>
             </DialogFooter>

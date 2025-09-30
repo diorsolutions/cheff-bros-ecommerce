@@ -127,7 +127,7 @@ function App() {
       try {
         const { data: curiersData, error: curiersErr } = await supabase
           .from("curiers")
-          .select("id, name");
+          .select("id, name, phone"); // Telefon raqamini ham olamiz
         if (curiersErr) {
           console.error("Kuryerlarni yuklashda xatolik:", curiersErr);
         } else {
@@ -537,6 +537,7 @@ function App() {
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
       />
+      <MiniChat messages={messages} /> {/* MiniChat MainLayout ichiga ko'chirildi */}
       <Toaster />
     </>
   );
