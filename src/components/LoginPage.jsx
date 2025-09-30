@@ -170,7 +170,7 @@ const LoginPage = () => {
       // Kuryer login logikasi
       const { data, error } = await supabase
         .from("curiers")
-        .select("id, username, password_hash")
+        .select("id, username, password_hash, name") // name ustunini ham olamiz
         .eq("username", username)
         .single();
 
@@ -199,6 +199,8 @@ const LoginPage = () => {
 
       // Muvaffaqiyatli kuryer login
       localStorage.setItem("curierLoggedIn", "true");
+      localStorage.setItem("curierUsername", data.username); // Username'ni saqlaymiz
+      localStorage.setItem("curierId", data.id); // ID'ni saqlaymiz
       toast({
         title: "Muvaffaqiyatli!",
         description: "Kuryer paneliga xush kelibsiz.",
