@@ -309,10 +309,15 @@ function App() {
     });
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus, curierId = null) => {
+    const updateData = { status: newStatus };
+    if (newStatus === "confirmed" && curierId) {
+      updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+    }
+
     const { error } = await supabase
       .from("orders")
-      .update({ status: newStatus })
+      .update(updateData)
       .eq("id", orderId);
     if (error) {
       toast({

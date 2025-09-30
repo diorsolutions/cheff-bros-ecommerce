@@ -12,13 +12,13 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
-import CurierProfileDialog from "./CurierProfileDialog"; // Yangi import
+import CurierSettingsDialog from "./CurierSettingsDialog"; // Yangi nom
 
 const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   const navigate = useNavigate();
   const [curierName, setCurierName] = useState("Kuryer");
   const [curierId, setCurierId] = useState(null);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false); // Dialog holati
 
   useEffect(() => {
     const fetchCurierInfo = async () => {
@@ -40,13 +40,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
             description: "Kuryer ma'lumotlarini yuklashda xatolik yuz berdi.",
             variant: "destructive",
           });
-          // Agar ma'lumot topilmasa, login sahifasiga qaytarish
           handleLogout();
         } else if (data) {
           setCurierName(data.name || storedUsername);
         }
       } else {
-        handleLogout(); // Agar username yoki id yo'q bo'lsa, chiqish
+        handleLogout();
       }
     };
     fetchCurierInfo();
@@ -109,7 +108,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => setShowProfileDialog(true)}
+              onClick={() => setShowSettingsDialog(true)} // Dialogni ochish
               className="text-white hover:bg-white/10"
             >
               <User className="mr-2 h-4 w-4" />
@@ -173,100 +172,64 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                 "uz-UZ"
                               )}
                             </span>
-                            {!isConfirmed ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-white hover:bg-white/20"
-                                  >
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-slate-800 border-white/20">
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      onUpdateOrderStatus(order.id, "confirmed")
-                                    }
-                                    className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                  >
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Yetkazib berildi
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : (
-                              <span className="text-xs text-gray-400 italic">
-                                ✓ Yetkazib berildi
-                              </span>
-                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-white hover:bg-white/20"
+                                  disabled={isConfirmed} // Tasdiqlangan buyurtmani qayta o'zgartirib bo'lmaydi
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="bg-slate-800 border-white/20">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    onUpdateOrderStatus(order.id, "confirmed", curierId)
+                                  }
+                                  className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Yetkazib berildi
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    onUpdateOrderStatus(order.id, "cancelled", curierId)
+                                  }
+                                  className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Bekor qilish
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       </CardHeader>
 
-                      <CardContent className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <h4 className="font-medium text-white mb-2">
-                              Mijoz ma'lumotlari
-                            </h4>
-                            <div className="space-y-2 text-sm text-gray-300">
-                              <p>
-                                <span className="font-bold text-gray-100/50">
-                                  Ism:
-                                </span>{" "}
-                                {order.customer_info.name}
-                              </p>
-                              <p>
-                                <span className="font-bold text-gray-100/50">
-                                  Telefon:
-                                </span>{" "}
-                                {order.customer_info.phone}
-                              </p>
-                              <p>
-                                <span className="font-bold text-gray-100/50">
-                                  Manzil:
-                                </span>{" "}
-                                {order.location}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="font-medium text-white mb-2">
-                              Buyurtma tafsilotlari
-                            </h4>
-                            <div className="space-y-1">
-                              {order.items.map((item, index) => (
-                                <div
-                                  key={index}
-                                  className="flex justify-between text-sm"
-                                >
-                                  <span className="text-gray-300">
-                                    {item.name} x{item.quantity}
-                                  </span>
-                                  <span className="text-orange-400 font-medium">
-                                    {(
-                                      item.price * item.quantity
-                                    ).toLocaleString()}{" "}
-                                    so'm
-                                  </span>
-                                </div>
-                              ))}
-                              <div className="border-t border-white/20 pt-2 mt-2">
-                                <div className="flex justify-between font-bold">
-                                  <span className="text-white">Jami:</span>
-                                  <span className="text-orange-400 text-lg">
-                                    {order.total_price.toLocaleString()} so'm
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center text-sm text-gray-300">
+                          <p>
+                            <span className="font-bold text-gray-100/50">Mijoz:</span>{" "}
+                            {order.customer_info.name}
+                          </p>
+                          <p>
+                            <span className="font-bold text-gray-100/50">Tel:</span>{" "}
+                            {order.customer_info.phone}
+                          </p>
                         </div>
-
-                        <div className="flex items-center gap-2">
+                        <p className="text-sm text-gray-300">
+                          <span className="font-bold text-gray-100/50">Manzil:</span>{" "}
+                          {order.location}
+                        </p>
+                        <div className="border-t border-white/20 pt-2 mt-2 flex justify-between items-center">
+                          <span className="text-white font-bold">Jami:</span>
+                          <span className="text-orange-400 text-lg font-bold">
+                            {order.total_price.toLocaleString()} so'm
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Status:</span>
                           <span
@@ -292,12 +255,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       </main>
 
       {curierId && (
-        <CurierProfileDialog
-          isOpen={showProfileDialog}
-          onClose={() => setShowProfileDialog(false)}
+        <CurierSettingsDialog
+          isOpen={showSettingsDialog}
+          onClose={() => setShowSettingsDialog(false)}
           curierId={curierId}
           currentName={curierName}
           onNameUpdated={handleNameUpdated}
+          orders={orders} // Statistikani hisoblash uchun buyurtmalarni uzatamiz
         />
       )}
     </div>
