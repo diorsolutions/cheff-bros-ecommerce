@@ -41,12 +41,15 @@ const ProductCard = ({ product, onAddToCart }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      whileHover={{ y: -5 }}
+      whileHover={{ y: 0 }}
       className="h-full"
     >
-      <Card className="h-full flex flex-col gap-5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300">
+      <Card className="h-full flex flex-col gap-5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/10 transition-all duration-500">
         <CardContent className="p-2 flex-grow flex flex-col">
-          <Link to={`/product/${product.id}`} className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 relative group">
+          <Link
+            to={`/product/${product.id}`}
+            className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 relative group"
+          >
             <img
               className="w-full h-full object-cover"
               alt={product.name}
