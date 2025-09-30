@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, MoreVertical, Truck, LogOut, User } from "lucide-react";
+import { CheckCircle, XCircle, MoreVertical, Truck, LogOut, User, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,6 +70,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
+      case "on_the_way":
+        return "bg-orange-500"; // Yangi status uchun rang
       case "confirmed":
         return "bg-green-500";
       case "cancelled":
@@ -83,8 +85,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "Yangi";
+      case "on_the_way":
+        return "Buyurtma menda"; // Yangi status uchun matn
       case "confirmed":
-        return "Tasdiqlangan";
+        return "Yetkazib berildi";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -92,9 +96,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  // Faqat "new" yoki "confirmed" statusdagi buyurtmalarni ko'rsatish
+  // Faqat "new" yoki "on_the_way" statusdagi buyurtmalarni ko'rsatish
   const relevantOrders = orders.filter(
-    (order) => order.status === "new" || order.status === "confirmed"
+    (order) => order.status === "new" || order.status === "on_the_way"
   );
 
   return (
@@ -135,7 +139,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
               </Card>
             ) : (
               relevantOrders.map((order) => {
-                const isConfirmed = order.status === "confirmed";
+                const isNew = order.status === "new";
+                const isOnTheWay = order.status === "on_the_way";
+                const isFinal = order.status === "confirmed" || order.status === "cancelled";
+
                 return (
                   <motion.div
                     key={order.id}
@@ -146,8 +153,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
-                        isConfirmed
+                        order.status === "confirmed"
                           ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
+                          : order.status === "cancelled"
+                          ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                          : order.status === "on_the_way"
+                          ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
                           : "from-white/10 to-white/5"
                       }`}
                     >
@@ -158,7 +169,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
                               )} ${
-                                order.status === "new" ? "animate-pulse" : ""
+                                order.status === "new" || order.status === "on_the_way" ? "animate-pulse" : ""
                               }`}
                             ></span>
                             Buyurtma{" "}
@@ -172,38 +183,61 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                 "uz-UZ"
                               )}
                             </span>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-white hover:bg-white/20"
-                                  disabled={isConfirmed} // Tasdiqlangan buyurtmani qayta o'zgartirib bo'lmaydi
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="bg-slate-800 border-white/20">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onUpdateOrderStatus(order.id, "confirmed", curierId)
-                                  }
-                                  className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Yetkazib berildi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onUpdateOrderStatus(order.id, "cancelled", curierId)
-                                  }
-                                  className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Bekor qilish
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {!isFinal && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-white hover:bg-white/20"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="bg-slate-800 border-white/20">
+                                  {isNew && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "on_the_way", curierId)
+                                      }
+                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                    >
+                                      <Package className="mr-2 h-4 w-4" />
+                                      Buyurtma menda
+                                    </DropdownMenuItem>
+                                  )}
+                                  {isOnTheWay && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          onUpdateOrderStatus(order.id, "confirmed", curierId)
+                                        }
+                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                      >
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Yetkazib berildi
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          onUpdateOrderStatus(order.id, "cancelled", curierId)
+                                        }
+                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                      >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Bekor qilish
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                            {isFinal && (
+                              <span className="text-xs text-gray-400 italic">
+                                {order.status === "confirmed"
+                                  ? "✓ Yetkazib berildi"
+                                  : "✗ Bekor qilingan"}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </CardHeader>
@@ -236,6 +270,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
                                 ? "bg-blue-500/20 text-blue-400"
+                                : order.status === "on_the_way"
+                                ? "bg-orange-500/20 text-orange-400"
                                 : order.status === "confirmed"
                                 ? "bg-green-500/20 text-green-400"
                                 : "bg-red-500/20 text-red-400"

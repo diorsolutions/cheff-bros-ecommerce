@@ -72,3 +72,17 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
 }
+
+
+
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

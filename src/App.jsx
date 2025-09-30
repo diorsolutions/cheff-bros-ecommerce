@@ -310,15 +310,66 @@ function App() {
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus, curierId = null) => {
-    const updateData = { status: newStatus };
-    if (newStatus === "confirmed" && curierId) {
-      updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+    const orderToUpdate = orders.find((o) => o.id === orderId);
+
+    if (!orderToUpdate) {
+      toast({
+        title: "Xatolik!",
+        description: "Buyurtma topilmadi.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Status o'zgarish logikasi
+    let canUpdate = false;
+    let updateData = { status: newStatus };
+
+    if (newStatus === "on_the_way") {
+      // Faqat "new" statusdagi buyurtmani "on_the_way" ga o'tkazish mumkin
+      if (orderToUpdate.status === "new") {
+        canUpdate = true;
+        updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+      } else {
+        toast({
+          title: "Xatolik!",
+          description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (newStatus === "confirmed" || newStatus === "cancelled") {
+      // Faqat "on_the_way" statusdagi buyurtmani "confirmed" yoki "cancelled" ga o'tkazish mumkin
+      if (orderToUpdate.status === "on_the_way") {
+        canUpdate = true;
+        updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+      } else {
+        toast({
+          title: "Xatolik!",
+          description: "Buyurtma hali kuryer tomonidan qabul qilinmagan yoki yakunlangan.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // Boshqa statuslar uchun (masalan, admin panelidan)
+      canUpdate = true;
+    }
+
+    if (!canUpdate) {
+      toast({
+        title: "Xatolik!",
+        description: "Statusni o'zgartirish mumkin emas.",
+        variant: "destructive",
+      });
+      return;
     }
 
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", orderId);
+
     if (error) {
       toast({
         title: "Xatolik!",
@@ -331,9 +382,11 @@ function App() {
     const order = orders.find((o) => o.id === orderId);
     if (order) {
       let message = "";
-      if (newStatus === "confirmed") {
+      if (newStatus === "on_the_way") {
+        message = `Sizning buyurtmangiz kuryer tomonidan qabul qilindi va yo'lda!`;
+      } else if (newStatus === "confirmed") {
         const itemNames = order.items.map((item) => item.name).join(", ");
-        message = `Sizning ${itemNames} nomli buyurtmalaringiz allaqachon tayyor va kurier ularni olib manzilingizga eltib berish uchun yo'lga chiqdi!`;
+        message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
       }
@@ -428,7 +481,7 @@ function App() {
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
       />
-      <MiniChat messages={messages} />
+      {/* MiniChat komponenti kuryer panelidan olib tashlandi */}
       <Toaster />
     </>
   );
