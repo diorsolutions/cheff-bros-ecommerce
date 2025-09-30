@@ -8,6 +8,8 @@ import {
   Store,
   Utensils,
   ListOrdered,
+  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
@@ -159,6 +161,30 @@ function App() {
     });
   };
 
+  const removeFromCart = (productId) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== productId));
+  };
+
+  const decreaseCartItem = (productId) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const increaseCartItem = (productId) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
   const handleOrderSubmit = async (orderData) => {
     const { customer, items, location, totalPrice } = orderData;
 
@@ -300,6 +326,9 @@ function App() {
         onClose={() => setIsOrderDialogOpen(false)}
         cartItems={cartItems}
         onOrderSubmit={handleOrderSubmit}
+        removeFromCart={removeFromCart}
+        decreaseCartItem={decreaseCartItem}
+        increaseCartItem={increaseCartItem}
       />
       <MiniChat messages={messages} />
       <Toaster />
@@ -320,6 +349,8 @@ function MainLayout({
   handleUpdateOrderStatus,
   setIsOrderDialogOpen,
 }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
@@ -370,7 +401,7 @@ function MainLayout({
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full mx-auto max-w-[1367px]">
         {view === "menu" ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -386,7 +417,7 @@ function MainLayout({
                 ingredientlar bilan tayyorlanadi.
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-6 px-5">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -460,22 +491,40 @@ function MainLayout({
             )}
           </motion.div>
         ) : (
-          <div className="flex gap-8">
-            <aside className="w-64">
-              <nav className="space-y-2">
+          <div className="flex gap-12">
+            <aside
+              className={`transition-all duration-300 ${
+                isSidebarOpen ? "w-64" : "w-14"
+              } border-r border-white/30`}
+            >
+              <nav className="flex flex-col items-start justify-start w-full sticky top-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="justify-end ml-[-4px]"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                >
+                  {isSidebarOpen ? (
+                    <PanelLeftClose className="h-5 w-5" />
+                  ) : (
+                    <PanelRightClose className="h-5 w-5" />
+                  )}
+                </Button>
                 <Button
                   variant={adminView === "orders" ? "secondary" : "ghost"}
-                  className="w-full justify-start text-base py-6"
+                  className=""
                   onClick={() => setAdminView("orders")}
                 >
-                  <ListOrdered className="mr-3 h-5 w-5" /> Buyurtmalar
+                  <ListOrdered className="mr-3 h-5 w-5" />
+                  {isSidebarOpen && "Buyurtmalar"}
                 </Button>
                 <Button
                   variant={adminView === "products" ? "secondary" : "ghost"}
-                  className="w-full justify-start text-base py-6"
+                  className=""
                   onClick={() => setAdminView("products")}
                 >
-                  <Utensils className="mr-3 h-5 w-5" /> Mahsulotlar
+                  <Utensils className="mr-3 h-5 w-5" />
+                  {isSidebarOpen && "Mahsulotlar"}
                 </Button>
               </nav>
             </aside>

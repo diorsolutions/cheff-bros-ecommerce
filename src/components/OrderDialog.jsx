@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { MapPin, Phone, User, Navigation, Edit3 } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  User,
+  Navigation,
+  Edit3,
+  Plus,
+  Minus,
+  X,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +32,15 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-const OrderDialog = ({ isOpen, onClose, cartItems, onOrderSubmit }) => {
+const OrderDialog = ({
+  isOpen,
+  onClose,
+  cartItems,
+  onOrderSubmit,
+  removeFromCart,
+  decreaseCartItem,
+  increaseCartItem,
+}) => {
   const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
     name: "",
     phone: "",
@@ -132,9 +149,40 @@ const OrderDialog = ({ isOpen, onClose, cartItems, onOrderSubmit }) => {
                           {item.quantity} dona
                         </p>
                       </div>
-                      <span className="font-bold text-orange-400">
-                        {(item.price * item.quantity).toLocaleString()} so'm
-                      </span>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => decreaseCartItem(item.id)}
+                            className="h-8 w-8 bg-white/10 border-white/20 text-white"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="font-bold text-orange-400 text-lg">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => increaseCartItem(item.id)}
+                            className="h-8 w-8 bg-white/10 border-white/20 text-white"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <span className="font-bold text-orange-400">
+                          {(item.price * item.quantity).toLocaleString()} so'm
+                        </span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-red-500 hover:bg-red-500/20"
+                        >
+                          <X className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

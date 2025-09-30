@@ -97,7 +97,7 @@ const ProductDetail = ({ onAddToCart }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
@@ -112,10 +112,11 @@ const ProductDetail = ({ onAddToCart }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/20">
+          <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border border-white/20 rounded-2xl shadow-lg">
             <CardContent className="p-0">
-              <div className="grid md:grid-cols-2 gap-8 p-6 md:p-8">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 sm:p-6 lg:p-10">
+                {/* Product Image */}
+                <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 shadow-md">
                   <img
                     className="w-full h-full object-cover"
                     alt={product.name}
@@ -126,12 +127,13 @@ const ProductDetail = ({ onAddToCart }) => {
                   />
                 </div>
 
-                <div className="flex flex-col justify-between space-y-6">
+                {/* Product Details */}
+                <div className="flex flex-col justify-start space-y-6">
                   <div>
-                    <h1 className="text-4xl font-bold text-white mb-4">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
                       {product.name}
                     </h1>
-                    <p className="text-gray-300 text-lg mb-6">
+                    <p className="text-gray-300 text-base sm:text-lg mb-6 leading-relaxed">
                       {product.description}
                     </p>
 
@@ -147,19 +149,22 @@ const ProductDetail = ({ onAddToCart }) => {
                             : "bg-gray-500/20 text-gray-400"
                         }`}
                       >
-                        {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
+                        {stock > 0
+                          ? `${stock} ta qoldi - ulgurib qoling`
+                          : "Qolmagan"}
                       </span>
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-4xl font-bold text-orange-400">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-400">
                         {Number(product.price).toLocaleString()} so'm
                       </span>
                     </div>
                   </div>
 
+                  {/* Quantity + Add to Cart */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       <span className="text-white font-medium">Miqdor:</span>
                       <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2">
                         <Button
@@ -189,7 +194,7 @@ const ProductDetail = ({ onAddToCart }) => {
                     <Button
                       onClick={handleAddToCart}
                       disabled={isOutOfStock}
-                      className="w-full h-14 text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="mr-2 h-5 w-5" />
                       {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}

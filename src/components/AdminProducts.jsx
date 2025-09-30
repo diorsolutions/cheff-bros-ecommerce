@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const AdminProducts = ({ products }) => {
+const AdminProducts = memo(({ products }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,6 +97,15 @@ const AdminProducts = ({ products }) => {
 
       if (selectedImage) {
         imageUrl = await uploadImage(selectedImage);
+      }
+
+      // Cache-Control Header for uploaded images
+      const response = await fetch(imageUrl);
+      if (response.ok) {
+        const cacheControlHeader = response.headers.get("cache-control");
+        if (!cacheControlHeader.includes("no-cache")) {
+          console.warn("Cache policy might need adjustment for dynamic content.");
+        }
       }
 
       const productData = {
@@ -367,6 +376,6 @@ const AdminProducts = ({ products }) => {
       </Dialog>
     </div>
   );
-};
+});
 
 export default AdminProducts;

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Eye } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -43,9 +44,9 @@ const ProductCard = ({ product, onAddToCart }) => {
       whileHover={{ y: -5 }}
       className="h-full"
     >
-      <Card className="h-full flex flex-col bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300">
-        <CardContent className="p-4 flex-grow flex flex-col">
-          <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 relative group">
+      <Card className="h-full flex flex-col gap-5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300">
+        <CardContent className="p-2 flex-grow flex flex-col">
+          <Link to={`/product/${product.id}`} className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 relative group">
             <img
               className="w-full h-full object-cover"
               alt={product.name}
@@ -57,7 +58,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <Eye className="h-12 w-12 text-white" />
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-bold text-white">{product.name}</h3>
@@ -76,7 +77,7 @@ const ProductCard = ({ product, onAddToCart }) => {
             </span>
           </div>
           <p className="text-gray-300 text-sm mb-3 line-clamp-2 flex-grow">
-            {product.description}
+            {product.description.slice(0, 40) + "..."}
           </p>
 
           <div className="flex items-center justify-between mt-auto">
@@ -108,7 +109,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         </CardContent>
 
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
