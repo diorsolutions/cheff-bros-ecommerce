@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Eye } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -10,6 +11,15 @@ const ProductCard = ({ product, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const stock = product.stock || 0;
   const isOutOfStock = stock === 0;
+
+  const isBigTablet = useMediaQuery({ minWidth: 954 });
+  const isTablet = useMediaQuery({ minWidth: 780 });
+  const isMobile = useMediaQuery({ maxWidth: 530 });
+
+  let sliceLength = 40;
+  if (isBigTablet) sliceLength = 120;
+  else if (isTablet) sliceLength = 80;
+  else if (isMobile) sliceLength = 22;
 
   const handleAddToCart = () => {
     if (quantity > stock) {
@@ -64,7 +74,9 @@ const ProductCard = ({ product, onAddToCart }) => {
           </Link>
 
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-bold text-white">{product.name}</h3>
+            <h3 className="text-xl nor_tablet:text-sm big_tablet:text-[1.1rem] font-bold text-white">
+              {product.name}
+            </h3>
             <span
               className={`text-xs font-semibold px-2 py-1 rounded ${
                 stock > 10
@@ -80,11 +92,11 @@ const ProductCard = ({ product, onAddToCart }) => {
             </span>
           </div>
           <p className="text-gray-300 text-sm mb-3 line-clamp-2 flex-grow">
-            {product.description.slice(0, 40) + "..."}
+            {product.description.slice(0, sliceLength) + "..."}
           </p>
 
           <div className="flex items-center justify-between mt-auto">
-            <span className="text-2xl font-bold text-orange-400">
+            <span className="text-[1.1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-bold text-orange-400">
               {Number(product.price).toLocaleString()} so'm
             </span>
             <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1">
@@ -92,11 +104,11 @@ const ProductCard = ({ product, onAddToCart }) => {
                 size="sm"
                 variant="ghost"
                 onClick={decrementQuantity}
-                className="h-8 w-8 p-0 text-white hover:bg-white/20"
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-white hover:bg-white/20"
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="text-white font-medium w-8 text-center">
+              <span className="text-white big_tablet:text-[0.8rem] font-medium w-8 text-center">
                 {quantity}
               </span>
               <Button
@@ -104,7 +116,7 @@ const ProductCard = ({ product, onAddToCart }) => {
                 variant="ghost"
                 onClick={incrementQuantity}
                 disabled={isOutOfStock || quantity >= stock}
-                className="h-8 w-8 p-0 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -116,7 +128,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           <Button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mob_small:text-[0.8rem] w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}

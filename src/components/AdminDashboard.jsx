@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MoreVertical, Clock, CheckCircle, XCircle, Bell, Filter } from "lucide-react";
+import {
+  MoreVertical,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Bell,
+  Filter,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -112,10 +119,18 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-white/20">
-                <SelectItem value="all" className="text-white">Hammasi</SelectItem>
-                <SelectItem value="new" className="text-blue-400">Yangi</SelectItem>
-                <SelectItem value="confirmed" className="text-green-400">Tasdiqlangan</SelectItem>
-                <SelectItem value="cancelled" className="text-red-400">Bekor qilingan</SelectItem>
+                <SelectItem value="all" className="text-white">
+                  Hammasi
+                </SelectItem>
+                <SelectItem value="new" className="text-blue-400">
+                  Yangi
+                </SelectItem>
+                <SelectItem value="confirmed" className="text-green-400">
+                  Tasdiqlangan
+                </SelectItem>
+                <SelectItem value="cancelled" className="text-red-400">
+                  Bekor qilingan
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -126,10 +141,18 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
               <SelectValue placeholder="Tartiblash" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-white/20">
-              <SelectItem value="date-desc" className="text-white">Sana: Yangi → Eski</SelectItem>
-              <SelectItem value="date-asc" className="text-white">Sana: Eski → Yangi</SelectItem>
-              <SelectItem value="price-desc" className="text-white">Narx: Yuqori → Past</SelectItem>
-              <SelectItem value="price-asc" className="text-white">Narx: Past → Yuqori</SelectItem>
+              <SelectItem value="date-desc" className="text-white">
+                Sana: Yangi → Eski
+              </SelectItem>
+              <SelectItem value="date-asc" className="text-white">
+                Sana: Eski → Yangi
+              </SelectItem>
+              <SelectItem value="price-desc" className="text-white">
+                Narx: Yuqori → Past
+              </SelectItem>
+              <SelectItem value="price-asc" className="text-white">
+                Narx: Past → Yuqori
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -141,7 +164,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
             <Card className="bg-white/10 border-white/20">
               <CardContent className="p-8 text-center">
                 <p className="text-gray-400 text-lg">
-                  {statusFilter === "all" ? "Hozircha buyurtmalar yo'q" : "Bu statusda buyurtmalar yo'q"}
+                  {statusFilter === "all"
+                    ? "Hozircha buyurtmalar yo'q"
+                    : "Bu statusda buyurtmalar yo'q"}
                 </p>
               </CardContent>
             </Card>
@@ -171,9 +196,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                           <span
                             className={`w-3 h-3 rounded-full ${getStatusColor(
                               order.status
-                            )} ${order.status === "new" ? "animate-pulse" : ""}`}
+                            )} ${
+                              order.status === "new" ? "animate-pulse" : ""
+                            }`}
                           ></span>
-                          Buyurtma #{order.id.substring(0, 8)}
+                          Buyurtma{" "}
+                          <span className="text-gray-400">
+                            {order.id.substring(0, 8)}
+                          </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400">
@@ -213,7 +243,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                             </DropdownMenu>
                           ) : (
                             <span className="text-xs text-gray-400 italic">
-                              {order.status === "confirmed" ? "✓ Tasdiqlangan" : "✗ Bekor qilingan"}
+                              {order.status === "confirmed"
+                                ? "✓ Tasdiqlangan"
+                                : "✗ Bekor qilingan"}
                             </span>
                           )}
                         </div>
@@ -226,17 +258,23 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                           <h4 className="font-medium text-white mb-2">
                             Mijoz ma'lumotlari
                           </h4>
-                          <div className="space-y-1 text-sm text-gray-300">
+                          <div className="space-y-2 text-sm text-gray-300">
                             <p>
-                              <span className="font-medium">Ism:</span>{" "}
+                              <span className="font-bold text-gray-100/50">
+                                Ism:
+                              </span>{" "}
                               {order.customer_info.name}
                             </p>
                             <p>
-                              <span className="font-medium">Telefon:</span>{" "}
+                              <span className="font-bold text-gray-100/50">
+                                Telefon:
+                              </span>{" "}
                               {order.customer_info.phone}
                             </p>
                             <p>
-                              <span className="font-medium">Manzil:</span>{" "}
+                              <span className="font-bold text-gray-100/50">
+                                Manzil:
+                              </span>{" "}
                               {order.location}
                             </p>
                           </div>
@@ -256,7 +294,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                                   {item.name} x{item.quantity}
                                 </span>
                                 <span className="text-orange-400 font-medium">
-                                  {(item.price * item.quantity).toLocaleString()}{" "}
+                                  {(
+                                    item.price * item.quantity
+                                  ).toLocaleString()}{" "}
                                   so'm
                                 </span>
                               </div>

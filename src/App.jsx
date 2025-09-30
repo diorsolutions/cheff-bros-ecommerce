@@ -14,121 +14,188 @@ import {
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import OrderDialog from "@/components/OrderDialog";
-import AdminDashboard from "@/components/AdminDashboard";
-import AdminProducts from "@/components/AdminProducts";
+import Dashboard from "@/components/Dashboard";
+import LoginPage from "@/components/LoginPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import MiniChat from "@/components/MiniChat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import CurierInterFace from "./components/curier/CurierInterFace";
 
 function App() {
-  const [view, setView] = useState("menu"); // 'menu' or 'admin'
-  const [adminView, setAdminView] = useState("orders"); // 'orders' or 'products'
   const [cartItems, setCartItems] = useState([]);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState(null);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [ordersError, setOrdersError] = useState(null);
+  const [customerInfo, setCustomerInfo] = useState({
     name: "",
     phone: "",
   });
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (productsError)
-        console.error("Error fetching products:", productsError);
-      else setProducts(productsData || []);
+      try {
+        setLoadingProducts(true);
+        setProductsError(null);
+        let { data: productsData, error: productsErr } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (productsErr) {
+          // fallback: order by id if created_at missing
+          const { data: fallbackData, error: fallbackErr } = await supabase
+            .from("products")
+            .select("*")
+            .order("id", { ascending: false });
+          if (fallbackErr) {
+            setProductsError(
+              fallbackErr.message ||
+                productsErr.message ||
+                "Mahsulotlarni yuklashda xatolik"
+            );
+            toast({
+              title: "Xatolik",
+              description:
+                fallbackErr.message ||
+                productsErr.message ||
+                "Mahsulotlarni yuklashda xatolik",
+              variant: "destructive",
+            });
+          } else {
+            productsData = fallbackData;
+            setProducts(productsData || []);
+          }
+        } else {
+          setProducts(productsData || []);
+        }
+      } catch (e) {
+        setProductsError(e.message || "Mahsulotlarni yuklashda xatolik");
+        toast({
+          title: "Xatolik",
+          description: e.message,
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingProducts(false);
+      }
 
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (ordersError) console.error("Error fetching orders:", ordersError);
-      else setOrders(ordersData || []);
+      try {
+        setLoadingOrders(true);
+        setOrdersError(null);
+        let { data: ordersData, error: ordersErr } = await supabase
+          .from("orders")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (ordersErr) {
+          const { data: fbOrders, error: fbOrdersErr } = await supabase
+            .from("orders")
+            .select("*")
+            .order("id", { ascending: false });
+          if (fbOrdersErr) {
+            setOrdersError(
+              fbOrdersErr.message ||
+                ordersErr.message ||
+                "Buyurtmalarni yuklashda xatolik"
+            );
+          } else {
+            ordersData = fbOrders;
+            setOrders(ordersData || []);
+          }
+        } else {
+          setOrders(ordersData || []);
+        }
+      } catch (e) {
+        setOrdersError(e.message || "Buyurtmalarni yuklashda xatolik");
+      } finally {
+        setLoadingOrders(false);
+      }
     };
 
     fetchInitialData();
 
-    const productChannel = supabase
-      .channel("realtime-products")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "products" },
-        (payload) => {
-          console.log("Product change:", payload);
-          if (payload.eventType === "INSERT") {
-            setProducts((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === "UPDATE") {
-            setProducts((prev) =>
-              prev.map((p) => (p.id === payload.new.id ? payload.new : p))
-            );
-          } else if (payload.eventType === "DELETE") {
-            setProducts((prev) => prev.filter((p) => p.id !== payload.old.id));
+    let productChannel, orderChannel, messageChannel;
+    try {
+      productChannel = supabase
+        .channel("realtime-products")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setProducts((prev) => [payload.new, ...prev]);
+            } else if (payload.eventType === "UPDATE") {
+              setProducts((prev) =>
+                prev.map((p) => (p.id === payload.new.id ? payload.new : p))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setProducts((prev) =>
+                prev.filter((p) => p.id !== payload.old.id)
+              );
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Product channel status:", status);
-      });
+        )
+        .subscribe();
+    } catch (_) {}
 
-    const orderChannel = supabase
-      .channel("realtime-orders")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        (payload) => {
-          console.log("Order change:", payload);
-          if (payload.eventType === "INSERT") {
-            setOrders((prev) => [payload.new, ...prev]);
-            toast({
-              title: "Yangi buyurtma!",
-              description: "Yangi buyurtma keldi",
-            });
-          } else if (payload.eventType === "UPDATE") {
-            setOrders((prev) =>
-              prev.map((o) => (o.id === payload.new.id ? payload.new : o))
-            );
-          } else if (payload.eventType === "DELETE") {
-            setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
+    try {
+      orderChannel = supabase
+        .channel("realtime-orders")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "orders" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setOrders((prev) => [payload.new, ...prev]);
+              toast({
+                title: "Yangi buyurtma!",
+                description: "Yangi buyurtma keldi",
+              });
+            } else if (payload.eventType === "UPDATE") {
+              setOrders((prev) =>
+                prev.map((o) => (o.id === payload.new.id ? payload.new : o))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Order channel status:", status);
-      });
+        )
+        .subscribe();
+    } catch (_) {}
 
-    const messageChannel = supabase
-      .channel("realtime-messages")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
-          console.log("Message change:", payload);
-          if (
-            customerInfo.phone &&
-            payload.new.customer_phone === customerInfo.phone
-          ) {
-            setMessages((prev) => [...prev, payload.new]);
+    try {
+      messageChannel = supabase
+        .channel("realtime-messages")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "messages" },
+          (payload) => {
+            if (
+              customerInfo.phone &&
+              payload.new.customer_phone === customerInfo.phone
+            ) {
+              setMessages((prev) => [...prev, payload.new]);
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log("Message channel status:", status);
-      });
+        )
+        .subscribe();
+    } catch (_) {}
 
     return () => {
-      supabase.removeChannel(productChannel);
-      supabase.removeChannel(orderChannel);
-      supabase.removeChannel(messageChannel);
+      if (productChannel) supabase.removeChannel(productChannel);
+      if (orderChannel) supabase.removeChannel(orderChannel);
+      if (messageChannel) supabase.removeChannel(messageChannel);
     };
   }, [customerInfo.phone]);
 
@@ -262,7 +329,7 @@ function App() {
         const itemNames = order.items.map((item) => item.name).join(", ");
         message = `Sizning ${itemNames} nomli buyurtmalaringiz allaqachon tayyor va kurier ularni olib manzilingizga eltib berish uchun yo'lga chiqdi!`;
       } else if (newStatus === "cancelled") {
-        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ngiroq qiling`;
+        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
       }
 
       if (message) {
@@ -297,6 +364,20 @@ function App() {
       </Helmet>
 
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/curier" element={<CurierInterFace orders={orders} onUpdateOrderStatus={handleUpdateOrderStatus} />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard
+                products={products}
+                orders={orders}
+                onUpdateOrderStatus={handleUpdateOrderStatus}
+              />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/product/:id"
           element={<ProductDetail onAddToCart={addToCart} />}
@@ -305,17 +386,18 @@ function App() {
           path="/"
           element={
             <MainLayout
-              view={view}
-              setView={setView}
-              adminView={adminView}
-              setAdminView={setAdminView}
               cartItems={cartItems}
               cartItemsCount={cartItemsCount}
               products={products}
-              orders={orders}
               addToCart={addToCart}
-              handleUpdateOrderStatus={handleUpdateOrderStatus}
               setIsOrderDialogOpen={setIsOrderDialogOpen}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              loadingProducts={loadingProducts}
+              productsError={productsError}
             />
           }
         />
@@ -337,17 +419,18 @@ function App() {
 }
 
 function MainLayout({
-  view,
-  setView,
-  adminView,
-  setAdminView,
   cartItems,
   cartItemsCount,
   products,
-  orders,
   addToCart,
-  handleUpdateOrderStatus,
   setIsOrderDialogOpen,
+  categoryFilter,
+  setCategoryFilter,
+  currentPage,
+  setCurrentPage,
+  itemsPerPage,
+  loadingProducts,
+  productsError,
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -356,195 +439,222 @@ function MainLayout({
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setView("menu")}
-            >
+            <div className="flex items-center gap-3">
               <Store className="h-8 w-8 text-orange-400" />
               <h1 className="text-2xl font-bold text-white">Restoran</h1>
             </div>
 
             <div className="flex items-center gap-4">
               <Button
-                variant={view === "menu" ? "secondary" : "ghost"}
-                onClick={() => setView("menu")}
-                className="text-white"
+                onClick={() => setIsOrderDialogOpen(true)}
+                disabled={cartItems.length === 0}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
               >
-                Menyu
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Buyurtma berish
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                    {cartItemsCount}
+                  </span>
+                )}
               </Button>
-              <Button
-                variant={view === "admin" ? "secondary" : "ghost"}
-                onClick={() => setView("admin")}
-                className="text-white"
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-
-              {view === "menu" && (
-                <Button
-                  onClick={() => setIsOrderDialogOpen(true)}
-                  disabled={cartItems.length === 0}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
-                >
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Buyurtma berish
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
-                      {cartItemsCount}
-                    </span>
-                  )}
-                </Button>
-              )}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="w-full mx-auto max-w-[1367px]">
-        {view === "menu" ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-white mb-4">
-                Bizning Menyumiz
-              </h2>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
-                ingredientlar bilan tayyorlanadi.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-6 px-5">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={addToCart}
-                />
-              ))}
-            </div>
-            {cartItems.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="fixed bottom-6 left-6 z-20"
-              >
-                <Card className="bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-lg border-orange-500/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-white text-lg">Savat</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 p-4">
-                    {cartItems.map((item, index) => {
-                      const currentProduct = products.find(
-                        (p) => p.id === item.id
-                      );
-                      const stock = currentProduct?.stock || 0;
-                      return (
-                        <div key={index} className="space-y-1">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-300">
-                              {item.name} x{item.quantity}
-                            </span>
-                            <span className="text-orange-400 font-medium">
-                              {(item.price * item.quantity).toLocaleString()}{" "}
-                              so'm
-                            </span>
-                          </div>
-                          <div className="flex justify-end">
-                            <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                                stock > 10
-                                  ? "bg-green-500/20 text-green-400"
-                                  : stock > 5
-                                  ? "bg-orange-500/20 text-orange-400"
-                                  : stock > 0
-                                  ? "bg-red-500/20 text-red-400"
-                                  : "bg-gray-500/20 text-gray-400"
-                              }`}
-                            >
-                              {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <div className="border-t border-white/20 pt-2 mt-2">
-                      <div className="flex justify-between font-bold">
-                        <span className="text-white">Jami:</span>
-                        <span className="text-orange-400">
-                          {cartItems
-                            .reduce(
-                              (sum, item) => sum + item.price * item.quantity,
-                              0
-                            )
-                            .toLocaleString()}{" "}
-                          so'm
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </motion.div>
-        ) : (
-          <div className="flex gap-12">
-            <aside
-              className={`transition-all duration-300 ${
-                isSidebarOpen ? "w-64" : "w-14"
-              } border-r border-white/30`}
-            >
-              <nav className="flex flex-col items-start justify-start w-full sticky top-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="justify-end ml-[-4px]"
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                >
-                  {isSidebarOpen ? (
-                    <PanelLeftClose className="h-5 w-5" />
-                  ) : (
-                    <PanelRightClose className="h-5 w-5" />
-                  )}
-                </Button>
-                <Button
-                  variant={adminView === "orders" ? "secondary" : "ghost"}
-                  className=""
-                  onClick={() => setAdminView("orders")}
-                >
-                  <ListOrdered className="mr-3 h-5 w-5" />
-                  {isSidebarOpen && "Buyurtmalar"}
-                </Button>
-                <Button
-                  variant={adminView === "products" ? "secondary" : "ghost"}
-                  className=""
-                  onClick={() => setAdminView("products")}
-                >
-                  <Utensils className="mr-3 h-5 w-5" />
-                  {isSidebarOpen && "Mahsulotlar"}
-                </Button>
-              </nav>
-            </aside>
-            <motion.div
-              className="flex-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              {adminView === "orders" ? (
-                <AdminDashboard
-                  orders={orders}
-                  onUpdateOrderStatus={handleUpdateOrderStatus}
-                />
-              ) : (
-                <AdminProducts products={products} />
-              )}
-            </motion.div>
+      <main className="w-full mx-auto max-w-[1376px]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center mb-8 sm:mb-12 px-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">
+              Bizning Menyumiz
+            </h2>
+            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto">
+              Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
+              ingredientlar bilan tayyorlanadi.
+            </p>
           </div>
-        )}
+
+          {/* Category Filters */}
+          <div className="px-4 mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
+            {[
+              { key: "all", label: "Barchasi" },
+              { key: "Hoddog", label: "Hoddog" },
+              { key: "Ichimlillar", label: "Ichimlillar" },
+              { key: "Disertlar", label: "Disertlar" },
+            ].map((c) => (
+              <Button
+                key={c.key}
+                variant={categoryFilter === c.key ? "secondary" : "ghost"}
+                className="text-white"
+                onClick={() => {
+                  setCategoryFilter(c.key);
+                  setCurrentPage(1);
+                }}
+              >
+                {c.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Products Grid with pagination */}
+          <div className="px-4">
+            {productsError ? (
+              <div className="text-center text-red-300 bg-red-500/10 border border-red-500/30 rounded-md p-4">
+                {productsError}
+              </div>
+            ) : loadingProducts ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-48 rounded-lg bg-white/10 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <>
+                {(() => {
+                  const all =
+                    categoryFilter === "all"
+                      ? products
+                      : products.filter((p) => p.category === categoryFilter);
+                  const pageItems = all.slice(
+                    (currentPage - 1) * itemsPerPage,
+                    currentPage * itemsPerPage
+                  );
+                  return (
+                    <>
+                      {all.length === 0 ? (
+                        <div className="text-center text-gray-300 py-16">
+                          Hozircha mahsulotlar yo'q.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                          {pageItems.map((product) => (
+                            <ProductCard
+                              key={product.id}
+                              product={product}
+                              onAddToCart={addToCart}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Pagination */}
+                      {(() => {
+                        const totalItems = all.length;
+                        const totalPages =
+                          Math.ceil(totalItems / itemsPerPage) || 1;
+                        const canPrev = currentPage > 1;
+                        const canNext = currentPage < totalPages;
+                        return (
+                          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
+                            <Button
+                              variant="ghost"
+                              disabled={!canPrev}
+                              onClick={() =>
+                                canPrev && setCurrentPage((p) => p - 1)
+                              }
+                              className="text-white"
+                            >
+                              Oldingi
+                            </Button>
+                            <span className="text-gray-300 text-sm sm:text-base">
+                              {currentPage} / {totalPages}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              disabled={!canNext}
+                              onClick={() =>
+                                canNext && setCurrentPage((p) => p + 1)
+                              }
+                              className="text-white"
+                            >
+                              Keyingi
+                            </Button>
+                          </div>
+                        );
+                      })()}
+                    </>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+
+          {cartItems.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="fixed bottom-6 left-6 z-20"
+            >
+              <Card className=" w-[15rem] flex flex-col justify-start bg-gradient-to-r to-gray-600/80 backdrop-blur-lg border-orange-500/90">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-white text-center text-lg">
+                    Savat
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 p-4">
+                  {cartItems.map((item, index) => {
+                    const currentProduct = products.find(
+                      (p) => p.id === item.id
+                    );
+                    const stock = currentProduct?.stock || 0;
+                    return (
+                      <div
+                        key={index}
+                        className="space-y-1 border-b border-white/30 py-2"
+                      >
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-300">
+                            {item.name} x{item.quantity}
+                          </span>
+                          <span className="text-orange-200 font-medium">
+                            {(item.price * item.quantity).toLocaleString()} so'm
+                          </span>
+                        </div>
+                        <div className="flex justify-end">
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                              stock > 10
+                                ? "bg-green-500/20 text-green-400"
+                                : stock > 5
+                                ? "bg-orange-500/20 text-orange-400"
+                                : stock > 0
+                                ? "bg-red-500/20 text-red-400"
+                                : "bg-gray-500/20 text-gray-400"
+                            }`}
+                          >
+                            {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="border-t border-white/80 pt-2">
+                    <div className="flex justify-between font-bold">
+                      <span className="text-white">Jami:</span>
+                      <span className="text-orange-100">
+                        {cartItems
+                          .reduce(
+                            (sum, item) => sum + item.price * item.quantity,
+                            0
+                          )
+                          .toLocaleString()}{" "}
+                        so'm
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </motion.div>
       </main>
     </div>
   );

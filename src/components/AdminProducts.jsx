@@ -37,7 +37,7 @@ const AdminProducts = memo(({ products }) => {
 
   const openDialog = (product = null) => {
     setCurrentProduct(
-      product || { name: "", description: "", price: "", image_url: "" }
+      product || { name: "", description: "", price: "", image_url: "", stock: 0, category: "" }
     );
     setSelectedImage(null);
     setImagePreview(product?.image_url || null);
@@ -114,6 +114,7 @@ const AdminProducts = memo(({ products }) => {
         price: Number(currentProduct.price),
         image_url: imageUrl,
         stock: Number(currentProduct.stock),
+        category: currentProduct.category || null,
       };
 
       let error;
@@ -237,6 +238,13 @@ const AdminProducts = memo(({ products }) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow">
+                  {product.category && (
+                    <div className="mb-2">
+                      <span className="text-xs font-semibold px-2 py-1 rounded bg-white/10 text-white border border-white/20">
+                        {product.category}
+                      </span>
+                    </div>
+                  )}
                   <p className="text-gray-300 mb-2">{product.description}</p>
                   <p className="text-orange-400 font-bold text-lg">
                     {Number(product.price).toLocaleString()} so'm
@@ -313,6 +321,23 @@ const AdminProducts = memo(({ products }) => {
               className="bg-white/10 border-white/20 text-white"
               min="0"
             />
+
+            {/* Category */}
+            <div className="space-y-2">
+              <label className="text-white text-sm font-medium">Kategoriya</label>
+              <select
+                value={currentProduct?.category || ""}
+                onChange={(e) =>
+                  setCurrentProduct({ ...currentProduct, category: e.target.value })
+                }
+                className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:outline-none"
+              >
+                <option value="" className="bg-slate-900">Tanlang</option>
+                <option value="Hoddog" className="bg-slate-900">Hoddog</option>
+                <option value="Ichimlillar" className="bg-slate-900">Ichimlillar</option>
+                <option value="Disertlar" className="bg-slate-900">Disertlar</option>
+              </select>
+            </div>
 
             <div className="space-y-2">
               <label className="text-white text-sm font-medium">

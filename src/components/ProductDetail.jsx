@@ -130,9 +130,16 @@ const ProductDetail = ({ onAddToCart }) => {
                 {/* Product Details */}
                 <div className="flex flex-col justify-start space-y-6">
                   <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 leading-tight">
                       {product.name}
                     </h1>
+                    {product.category && (
+                      <div className="mb-3">
+                        <span className="inline-block text-xs sm:text-sm font-semibold px-3 py-1 rounded bg-white/10 text-white border border-white/20">
+                          Kategoriya: {product.category}
+                        </span>
+                      </div>
+                    )}
                     <p className="text-gray-300 text-base sm:text-lg mb-6 leading-relaxed">
                       {product.description}
                     </p>

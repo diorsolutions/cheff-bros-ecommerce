@@ -16,6 +16,13 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        big_tablet: { max: "954px" }, // 954px dan kichik
+        nor_tablet: { max: "780px" }, // 780px dan kichik
+        mob: { max: "530px" }, // 530px dan kichik
+        mob_small: { max: "431px" }, // 400px dan kichik
+        extra_small: { max: "280px" }, // 280px dan kichik
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

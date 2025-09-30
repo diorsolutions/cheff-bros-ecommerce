@@ -66,7 +66,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus }) => {
             </Button>
             <Button
               variant={adminView === "orders" ? "secondary" : "ghost"}
-              className="w-full justify-start"
+              className="min-w-full justify-start"
               onClick={() => setAdminView("orders")}
             >
               <ListOrdered className="mr-3 h-5 w-5" />
@@ -74,7 +74,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus }) => {
             </Button>
             <Button
               variant={adminView === "products" ? "secondary" : "ghost"}
-              className="w-full justify-start"
+              className="min-w-full justify-start"
               onClick={() => setAdminView("products")}
             >
               <Utensils className="mr-3 h-5 w-5" />
