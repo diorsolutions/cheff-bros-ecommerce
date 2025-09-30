@@ -7,6 +7,7 @@ import {
   XCircle,
   Bell,
   Filter,
+  Package,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 
-const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
+const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
@@ -50,10 +51,17 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
     setPrevOrdersCount(orders.length);
   }, [orders]);
 
+  const getCurierName = (curierId) => {
+    const curier = curiers.find((c) => c.id === curierId);
+    return curier ? curier.name : "Noma'lum kuryer";
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
+      case "on_the_way":
+        return "bg-orange-500";
       case "confirmed":
         return "bg-green-500";
       case "cancelled":
@@ -63,12 +71,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, curierId) => {
     switch (status) {
       case "new":
         return "Yangi";
+      case "on_the_way":
+        return `${getCurierName(curierId)} buyurtmani oldi`;
       case "confirmed":
-        return "Tasdiqlangan";
+        return `${getCurierName(curierId)} mijozga yetkazdi`;
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -125,8 +135,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                 <SelectItem value="new" className="text-blue-400">
                   Yangi
                 </SelectItem>
+                <SelectItem value="on_the_way" className="text-orange-400">
+                  Yo'lda
+                </SelectItem>
                 <SelectItem value="confirmed" className="text-green-400">
-                  Tasdiqlangan
+                  Yetkazildi
                 </SelectItem>
                 <SelectItem value="cancelled" className="text-red-400">
                   Bekor qilingan
@@ -173,6 +186,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
           ) : (
             filteredOrders.map((order) => {
               const isProcessed = order.status !== "new";
+              const isFinal = order.status === "confirmed" || order.status === "cancelled";
               return (
                 <motion.div
                   key={order.id}
@@ -187,6 +201,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
                         : order.status === "cancelled"
                         ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                        : order.status === "on_the_way"
+                        ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
                         : "from-white/10 to-white/5"
                     }`}
                   >
@@ -209,7 +225,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                           <span className="text-sm text-gray-400">
                             {new Date(order.created_at).toLocaleString("uz-UZ")}
                           </span>
-                          {!isProcessed ? (
+                          {!isFinal ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -221,30 +237,68 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent className="bg-slate-800 border-white/20">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onUpdateOrderStatus(order.id, "confirmed")
-                                  }
-                                  className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Tasdiqlash
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    onUpdateOrderStatus(order.id, "cancelled")
-                                  }
-                                  className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Bekor qilish
-                                </DropdownMenuItem>
+                                {order.status === "new" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      onUpdateOrderStatus(order.id, "on_the_way", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                    }
+                                    className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                  >
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Buyurtma menda (Admin)
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === "on_the_way" && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "confirmed", order.curier_id)
+                                      }
+                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                    >
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Yetkazib berildi (Admin)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "cancelled", order.curier_id)
+                                      }
+                                      className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Bekor qilish (Admin)
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {/* Admin uchun qo'shimcha statuslar */}
+                                {order.status !== "new" && order.status !== "on_the_way" && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "confirmed", order.curier_id)
+                                      }
+                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                    >
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Tasdiqlash
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "cancelled", order.curier_id)
+                                      }
+                                      className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Bekor qilish
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           ) : (
                             <span className="text-xs text-gray-400 italic">
                               {order.status === "confirmed"
-                                ? "✓ Tasdiqlangan"
+                                ? "✓ Yetkazib berildi"
                                 : "✗ Bekor qilingan"}
                             </span>
                           )}
@@ -320,12 +374,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus }) => {
                           className={`text-sm font-medium px-2 py-1 rounded ${
                             order.status === "new"
                               ? "bg-blue-500/20 text-blue-400"
+                              : order.status === "on_the_way"
+                              ? "bg-orange-500/20 text-orange-400"
                               : order.status === "confirmed"
                               ? "bg-green-500/20 text-green-400"
                               : "bg-red-500/20 text-red-400"
                           }`}
                         >
-                          {getStatusText(order.status)}
+                          {getStatusText(order.status, order.curier_id)}
                         </span>
                       </div>
                     </CardContent>

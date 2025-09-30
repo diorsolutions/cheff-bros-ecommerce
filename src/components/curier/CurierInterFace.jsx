@@ -98,7 +98,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
 
   // Faqat "new" yoki "on_the_way" statusdagi buyurtmalarni ko'rsatish
   const relevantOrders = orders.filter(
-    (order) => order.status === "new" || order.status === "on_the_way"
+    (order) => order.status === "new" || (order.status === "on_the_way" && order.curier_id === curierId)
   );
 
   return (

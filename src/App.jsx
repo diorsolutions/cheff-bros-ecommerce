@@ -17,8 +17,8 @@ import OrderDialog from "@/components/OrderDialog";
 import Dashboard from "@/components/Dashboard";
 import LoginPage from "@/components/LoginPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ProtectedRouteCurier from "@/components/ProtectedRouteCurier"; // Yangi import
-import MiniChat from "@/components/MiniChat";
+import ProtectedRouteCurier from "@/components/ProtectedRouteCurier";
+import MiniChat from "@/components/MiniChat"; // MiniChat qaytarildi
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,6 +33,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [curiers, setCuriers] = useState([]); // Kuryerlar ro'yxati
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -55,7 +56,6 @@ function App() {
           .select("*")
           .order("created_at", { ascending: false });
         if (productsErr) {
-          // fallback: order by id if created_at missing
           const { data: fallbackData, error: fallbackErr } = await supabase
             .from("products")
             .select("*")
@@ -122,11 +122,25 @@ function App() {
       } finally {
         setLoadingOrders(false);
       }
+
+      // Kuryerlar ro'yxatini yuklash
+      try {
+        const { data: curiersData, error: curiersErr } = await supabase
+          .from("curiers")
+          .select("id, name");
+        if (curiersErr) {
+          console.error("Kuryerlarni yuklashda xatolik:", curiersErr);
+        } else {
+          setCuriers(curiersData || []);
+        }
+      } catch (e) {
+        console.error("Kuryerlarni yuklashda kutilmagan xatolik:", e);
+      }
     };
 
     fetchInitialData();
 
-    let productChannel, orderChannel, messageChannel;
+    let productChannel, orderChannel, messageChannel, curierChannel;
     try {
       productChannel = supabase
         .channel("realtime-products")
@@ -193,10 +207,35 @@ function App() {
         .subscribe();
     } catch (_) {}
 
+    // Kuryerlar ro'yxatini real-time yangilash
+    try {
+      curierChannel = supabase
+        .channel("realtime-curiers")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "curiers" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setCuriers((prev) => [...prev, payload.new]);
+            } else if (payload.eventType === "UPDATE") {
+              setCuriers((prev) =>
+                prev.map((c) => (c.id === payload.new.id ? payload.new : c))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setCuriers((prev) =>
+                prev.filter((c) => c.id !== payload.old.id)
+              );
+            }
+          }
+        )
+        .subscribe();
+    } catch (_) {}
+
     return () => {
       if (productChannel) supabase.removeChannel(productChannel);
       if (orderChannel) supabase.removeChannel(orderChannel);
       if (messageChannel) supabase.removeChannel(messageChannel);
+      if (curierChannel) supabase.removeChannel(curierChannel);
     };
   }, [customerInfo.phone]);
 
@@ -321,15 +360,22 @@ function App() {
       return;
     }
 
-    // Status o'zgarish logikasi
     let canUpdate = false;
     let updateData = { status: newStatus };
 
     if (newStatus === "on_the_way") {
       // Faqat "new" statusdagi buyurtmani "on_the_way" ga o'tkazish mumkin
-      if (orderToUpdate.status === "new") {
+      // Va faqat agar buyurtma hali hech kim tomonidan olinmagan bo'lsa
+      if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
         canUpdate = true;
         updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+      } else if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
+        toast({
+          title: "Xatolik!",
+          description: "Bu buyurtma allaqachon boshqa kuryer tomonidan qabul qilingan.",
+          variant: "destructive",
+        });
+        return;
       } else {
         toast({
           title: "Xatolik!",
@@ -340,9 +386,17 @@ function App() {
       }
     } else if (newStatus === "confirmed" || newStatus === "cancelled") {
       // Faqat "on_the_way" statusdagi buyurtmani "confirmed" yoki "cancelled" ga o'tkazish mumkin
-      if (orderToUpdate.status === "on_the_way") {
+      // Va faqat buyurtmani olgan kuryer tomonidan
+      if (orderToUpdate.status === "on_the_way" && orderToUpdate.curier_id === curierId) {
         canUpdate = true;
         updateData.curier_id = curierId; // Kuryer ID'sini saqlash
+      } else if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
+        toast({
+          title: "Xatolik!",
+          description: "Bu buyurtmani faqat uni qabul qilgan kuryer yakunlashi mumkin.",
+          variant: "destructive",
+        });
+        return;
       } else {
         toast({
           title: "Xatolik!",
@@ -352,7 +406,7 @@ function App() {
         return;
       }
     } else {
-      // Boshqa statuslar uchun (masalan, admin panelidan)
+      // Admin panelidan status o'zgarishlari uchun (agar kerak bo'lsa, qo'shimcha tekshiruvlar qo'shish mumkin)
       canUpdate = true;
     }
 
@@ -443,6 +497,7 @@ function App() {
                 products={products}
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
+                curiers={curiers} // Kuryerlar ro'yxatini Dashboardga uzatish
               />
             </ProtectedRoute>
           }
@@ -467,6 +522,7 @@ function App() {
               itemsPerPage={itemsPerPage}
               loadingProducts={loadingProducts}
               productsError={productsError}
+              messages={messages} // MiniChat uchun messages uzatildi
             />
           }
         />
@@ -481,7 +537,6 @@ function App() {
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
       />
-      {/* MiniChat komponenti kuryer panelidan olib tashlandi */}
       <Toaster />
     </>
   );
@@ -500,6 +555,7 @@ function MainLayout({
   itemsPerPage,
   loadingProducts,
   productsError,
+  messages, // MiniChat uchun messages qabul qilindi
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -725,6 +781,7 @@ function MainLayout({
           )}
         </motion.div>
       </main>
+      <MiniChat messages={messages} /> {/* MiniChat MainLayout ichiga ko'chirildi */}
     </div>
   );
 }

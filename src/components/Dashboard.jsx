@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
-const Dashboard = ({ products, orders, onUpdateOrderStatus }) => {
+const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
   const [adminView, setAdminView] = useState("orders");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
@@ -93,6 +93,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus }) => {
               <AdminDashboard
                 orders={orders}
                 onUpdateOrderStatus={onUpdateOrderStatus}
+                curiers={curiers} // Kuryerlar ro'yxatini AdminDashboardga uzatish
               />
             ) : (
               <AdminProducts products={products} />
