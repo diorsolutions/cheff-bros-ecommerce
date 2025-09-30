@@ -17,6 +17,7 @@ import OrderDialog from "@/components/OrderDialog";
 import Dashboard from "@/components/Dashboard";
 import LoginPage from "@/components/LoginPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRouteCurier from "@/components/ProtectedRouteCurier"; // Yangi import
 import MiniChat from "@/components/MiniChat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -365,7 +366,17 @@ function App() {
 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/curier" element={<CurierInterFace orders={orders} onUpdateOrderStatus={handleUpdateOrderStatus} />} />
+        <Route
+          path="/curier"
+          element={
+            <ProtectedRouteCurier>
+              <CurierInterFace
+                orders={orders}
+                onUpdateOrderStatus={handleUpdateOrderStatus}
+              />
+            </ProtectedRouteCurier>
+          }
+        />
         <Route
           path="/dashboard"
           element={

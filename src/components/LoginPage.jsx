@@ -30,6 +30,7 @@ const LoginPage = () => {
   const [attempts, setAttempts] = useState(0);
   const [blockedUntil, setBlockedUntil] = useState(null);
   const [now, setNow] = useState(Date.now());
+  const [loginMode, setLoginMode] = useState("admin"); // 'admin' or 'curier'
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -113,67 +114,135 @@ const LoginPage = () => {
 
     setLoading(true);
 
-    const ok =
-      username.trim().toLowerCase() === "admin" && password === "cheffbro";
+    if (loginMode === "admin") {
+      const ok =
+        username.trim().toLowerCase() === "admin" && password === "cheffbro";
 
-    if (!ok) {
-      const nextAttempts = attempts + 1;
-      let nextBlockedUntil = null;
+      if (!ok) {
+        const nextAttempts = attempts + 1;
+        let nextBlockedUntil = null;
 
-      if (nextAttempts >= MAX_ATTEMPTS) {
-        nextBlockedUntil = new Date(
-          Date.now() + BLOCK_DURATION_MS
-        ).toISOString();
+        if (nextAttempts >= MAX_ATTEMPTS) {
+          nextBlockedUntil = new Date(
+            Date.now() + BLOCK_DURATION_MS
+          ).toISOString();
+          toast({
+            title: "Bloklandi",
+            description: "3 marta xato kiritdingiz. 1 minut kuting.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Kirishda xatolik",
+            description: "Login yoki parol noto'g'ri.",
+            variant: "destructive",
+          });
+        }
+
+        await updateLock(nextAttempts, nextBlockedUntil);
+        setLoading(false);
+        return;
+      }
+
+      // To‘g‘ri login
+      await updateLock(0, null);
+
+      const email = "admin@admin.com";
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
         toast({
-          title: "Bloklandi",
-          description: "3 marta xato kiritdingiz. 1 minut kuting.",
+          title: "Kirish muvaffaqiyatsiz",
+          description:
+            "Hisob topilmadi. Supabase-da admin@admin.com foydalanuvchisini yarating.",
           variant: "destructive",
         });
-      } else {
+        setLoading(false);
+        return;
+      }
+
+      navigate("/dashboard", { replace: true });
+      setLoading(false);
+    } else if (loginMode === "curier") {
+      // Kuryer login logikasi
+      const { data, error } = await supabase
+        .from("curiers")
+        .select("id, username, password_hash")
+        .eq("username", username)
+        .single();
+
+      if (error || !data) {
         toast({
           title: "Kirishda xatolik",
           description: "Login yoki parol noto'g'ri.",
           variant: "destructive",
         });
+        setLoading(false);
+        return;
       }
 
-      await updateLock(nextAttempts, nextBlockedUntil);
-      setLoading(false);
-      return;
-    }
+      // Parolni tekshirish (Haqiqiy ilovalarda xashlangan parolni solishtiring!)
+      const isPasswordCorrect = password === data.password_hash; // Bu yerda xashlangan parolni solishtirish kerak
 
-    // To‘g‘ri login
-    await updateLock(0, null);
+      if (!isPasswordCorrect) {
+        toast({
+          title: "Kirishda xatolik",
+          description: "Login yoki parol noto'g'ri.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
 
-    const email = "admin@admin.com";
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
+      // Muvaffaqiyatli kuryer login
+      localStorage.setItem("curierLoggedIn", "true");
       toast({
-        title: "Kirish muvaffaqiyatsiz",
-        description:
-          "Hisob topilmadi. Supabase-da admin@admin.com foydalanuvchisini yarating.",
-        variant: "destructive",
+        title: "Muvaffaqiyatli!",
+        description: "Kuryer paneliga xush kelibsiz.",
       });
+      navigate("/curier", { replace: true });
       setLoading(false);
-      return;
     }
-
-    navigate("/dashboard", { replace: true });
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
       <Card className="w-full max-w-[380px] bg-white/10 border-white/20 text-white">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">Admin Kirishi</CardTitle>
+          <CardTitle className="text-center text-2xl">
+            {loginMode === "admin" ? "Admin Kirishi" : "Kuryer Kirishi"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {isBlocked ? (
+          <div className="flex justify-center gap-2 mb-6">
+            <Button
+              variant={loginMode === "admin" ? "secondary" : "outline"}
+              onClick={() => {
+                setLoginMode("admin");
+                setUsername("");
+                setPassword("");
+              }}
+              className="flex-1"
+            >
+              Admin
+            </Button>
+            <Button
+              variant={loginMode === "curier" ? "secondary" : "outline"}
+              onClick={() => {
+                setLoginMode("curier");
+                setUsername("");
+                setPassword("");
+              }}
+              className="flex-1"
+            >
+              Kuryer
+            </Button>
+          </div>
+
+          {isBlocked && loginMode === "admin" ? (
             <div className="space-y-4">
               <div className="p-4 rounded-md border border-red-500/40 bg-red-500/10 text-red-300 text-sm sm:text-base">
                 Siz 3 marta noto'g'ri login yoki parol kiritdingiz, keyinroq
