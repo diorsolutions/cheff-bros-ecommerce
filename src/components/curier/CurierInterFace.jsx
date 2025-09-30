@@ -288,7 +288,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
               })
             )}
           </AnimatePresence>
-        </main>
+        </div>
+      </main>
 
       {curierId && (
         <CurierProfileDialog
