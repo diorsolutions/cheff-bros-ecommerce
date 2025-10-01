@@ -57,7 +57,7 @@ const AdminCouriers = ({ curiers, orders }) => {
 
       orders.forEach(order => {
         if (order.curier_id && stats[order.curier_id]) {
-          if (order.status === "confirmed") {
+          if (order.status === "delivered_to_customer") {
             stats[order.curier_id].totalDelivered++;
           } else if (order.status === "cancelled") {
             stats[order.curier_id].totalCancelled++;
@@ -137,13 +137,13 @@ const AdminCouriers = ({ curiers, orders }) => {
   };
 
   if (loading) {
-    return <div className="text-center text-gray-400 py-8">Kuryerlar yuklanmoqda...</div>;
+    return <div className="text-center text-gray-600 py-8">Kuryerlar yuklanmoqda...</div>; {/* Matn rangi yangilandi */}
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">Kuryerlar</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Kuryerlar</h1> {/* Matn rangi yangilandi */}
         <Button
           onClick={() => setIsAddCourierDialogOpen(true)}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -155,9 +155,9 @@ const AdminCouriers = ({ curiers, orders }) => {
       <div className="grid gap-4">
         <AnimatePresence>
           {Object.values(courierStats).length === 0 ? (
-            <Card className="bg-white/10 border-white/20">
+            <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
               <CardContent className="p-8 text-center">
-                <p className="text-gray-400 text-lg">Hozircha kuryerlar yo'q.</p>
+                <p className="text-gray-600 text-lg">Hozircha kuryerlar yo'q.</p> {/* Matn rangi yangilandi */}
               </CardContent>
             </Card>
           ) : (
@@ -171,11 +171,11 @@ const AdminCouriers = ({ curiers, orders }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <Card className="bg-white/10 border-white/20">
+                  <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
                     <CardHeader>
-                      <CardTitle className="text-white flex justify-between items-center">
+                      <CardTitle className="text-gray-800 flex justify-between items-center"> {/* Matn rangi yangilandi */}
                         <div className="flex items-center gap-2">
-                          <User className="h-5 w-5 text-purple-400" />
+                          <User className="h-5 w-5 text-purple-600" /> {/* Icon rangi yangilandi */}
                           {courier.name}
                         </div>
                         <AlertDialog>
@@ -183,27 +183,29 @@ const AdminCouriers = ({ curiers, orders }) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 hover:bg-red-500/20"
+                              className="h-8 w-8 hover:bg-red-100" {/* Ranglar yangilandi */}
                             >
-                              <Trash2 className="h-4 w-4 text-red-400" />
+                              <Trash2 className="h-4 w-4 text-red-500" /> {/* Rang yangilandi */}
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
+                          <AlertDialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-white">
+                              <AlertDialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
                                 O'chirishni tasdiqlang
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-300">
+                              <AlertDialogDescription className="text-gray-600"> {/* Matn rangi yangilandi */}
                                 "{courier.name}" nomli kuryerni o'chirishga
                                 ishonchingiz komilmi? Bu amalni orqaga qaytarib
                                 bo'lmaydi.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                              <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+                                Bekor qilish
+                              </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDeleteCourier(curierId, courier.name)} // curierId ni to'g'ri uzatamiz
-                                className="bg-red-600 hover:bg-red-700"
+                                className="bg-red-600 hover:bg-red-700 text-white" {/* Ranglar yangilandi */}
                               >
                                 O'chirish
                               </AlertDialogAction>
@@ -212,18 +214,18 @@ const AdminCouriers = ({ curiers, orders }) => {
                         </AlertDialog>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-gray-300">
+                    <CardContent className="space-y-2 text-gray-600"> {/* Matn rangi yangilandi */}
                       <p className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        Telefon: <span className="font-medium text-white">{courier.phone || "Kiritilmagan"}</span>
+                        <Phone className="h-4 w-4 text-gray-500" /> {/* Icon rangi yangilandi */}
+                        Telefon: <span className="font-medium text-gray-800">{courier.phone || "Kiritilmagan"}</span> {/* Matn rangi yangilandi */}
                       </p>
                       <p className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-green-400" />
-                        Jami yetkazilgan: <span className="font-bold text-green-400">{courier.totalDelivered}</span>
+                        <Package className="h-4 w-4 text-green-600" /> {/* Icon rangi yangilandi */}
+                        Jami yetkazilgan: <span className="font-bold text-green-600">{courier.totalDelivered}</span> {/* Matn rangi yangilandi */}
                       </p>
                       <p className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-400" />
-                        Jami bekor qilingan: <span className="font-bold text-red-400">{courier.totalCancelled}</span>
+                        <XCircle className="h-4 w-4 text-red-600" /> {/* Icon rangi yangilandi */}
+                        Jami bekor qilingan: <span className="font-bold text-red-600">{courier.totalCancelled}</span> {/* Matn rangi yangilandi */}
                       </p>
                     </CardContent>
                   </Card>
@@ -235,9 +237,9 @@ const AdminCouriers = ({ curiers, orders }) => {
       </div>
 
       <Dialog open={isAddCourierDialogOpen} onOpenChange={setIsAddCourierDialogOpen}>
-        <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
+        <DialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
           <DialogHeader>
-            <DialogTitle className="text-white">Yangi kuryer qo'shish</DialogTitle>
+            <DialogTitle className="text-gray-800">Yangi kuryer qo'shish</DialogTitle> {/* Matn rangi yangilandi */}
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input
@@ -246,7 +248,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, username: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
               required
             />
             <Input
@@ -256,7 +258,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, password: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
               required
             />
             <Input
@@ -265,7 +267,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, name: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
               required
             />
             <Input
@@ -274,16 +276,16 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, phone: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
             />
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
                 Bekor qilish
               </Button>
             </DialogClose>
-            <Button onClick={handleAddCourier} disabled={isSaving}>
+            <Button onClick={handleAddCourier} disabled={isSaving} className="bg-orange-500 hover:bg-orange-600 text-white"> {/* Ranglar yangilandi */}
               {isSaving ? "Qo'shilmoqda..." : "Qo'shish"}
             </Button>
           </DialogFooter>

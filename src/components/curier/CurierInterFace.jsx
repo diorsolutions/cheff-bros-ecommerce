@@ -112,23 +112,23 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white">
-      <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
+    <div className="min-h-screen bg-[#bfbfbf] text-gray-800"> {/* Fon va matn rangi yangilandi */}
+      <header className="bg-white border-b border-gray-300 sticky top-0 z-30"> {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Truck className="h-8 w-8 text-orange-400" />
-            <h1 className="text-2xl font-bold text-white">Kuryer Paneli</h1>
+            <Truck className="h-8 w-8 text-orange-500" /> {/* Icon rangi yangilandi */}
+            <h1 className="text-2xl font-bold text-gray-800">Kuryer Paneli</h1> {/* Matn rangi yangilandi */}
           </div>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               onClick={() => setShowSettingsDialog(true)} // Dialogni ochish
-              className="text-white hover:bg-white/10"
+              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
             >
               <User className="mr-2 h-4 w-4" />
               {curierName}
             </Button>
-            <Button onClick={handleLogout} variant="ghost">
+            <Button onClick={handleLogout} variant="ghost" className="text-gray-800 hover:bg-gray-200"> {/* Ranglar yangilandi */}
               <LogOut className="mr-2 h-4 w-4" />
               Chiqish
             </Button>
@@ -136,13 +136,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-6 bg-[#bfbfbf]"> {/* Asosiy kontent foni yangilandi */}
         <div className="grid gap-4">
           <AnimatePresence>
             {relevantOrders.length === 0 ? (
-              <Card className="bg-white/10 border-white/20">
+              <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
                 <CardContent className="p-8 text-center">
-                  <p className="text-gray-400 text-lg">
+                  <p className="text-gray-600 text-lg"> {/* Matn rangi yangilandi */}
                     Hozircha yetkazib beriladigan buyurtmalar yo'q.
                   </p>
                 </CardContent>
@@ -163,21 +163,21 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                     exit={{ opacity: 0, y: -20 }}
                   >
                     <Card
-                      className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
+                      className={`bg-white border-gray-300 hover:border-gray-400 transition-all duration-300 ${ /* Card rangi va chegarasi yangilandi */
                         order.status === "delivered_to_customer"
-                          ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
+                          ? "bg-green-100 border-green-300 opacity-80" /* Ranglar yangilandi */
                           : order.status === "cancelled"
-                          ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                          ? "bg-red-100 border-red-300 opacity-80" /* Ranglar yangilandi */
                           : order.status === "picked_up_from_kitchen"
-                          ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
+                          ? "bg-orange-100 border-orange-300" /* Ranglar yangilandi */
                           : order.status === "en_route_to_kitchen"
-                          ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
-                          : "from-white/10 to-white/5"
+                          ? "bg-yellow-100 border-yellow-300" /* Ranglar yangilandi */
+                          : "bg-white"
                       }`}
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-white flex items-center gap-3 text-base">
+                          <CardTitle className="text-gray-800 flex items-center gap-3 text-base"> {/* Matn rangi yangilandi */}
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
@@ -186,12 +186,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               }`}
                             ></span>
                             Buyurtma{" "}
-                            <span className="text-gray-400">
+                            <span className="text-gray-500"> {/* Matn rangi yangilandi */}
                               {order.id.substring(0, 8)}
                             </span>
                           </CardTitle>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-400">
+                            <span className="text-gray-500"> {/* Matn rangi yangilandi */}
                               {new Date(order.created_at).toLocaleString(
                                 "uz-UZ"
                               )}
@@ -202,18 +202,18 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-white hover:bg-white/20"
+                                    className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
                                   >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-slate-800 border-white/20">
+                                <DropdownMenuContent className="bg-white border-gray-300"> {/* Ranglar yangilandi */}
                                   {isNew && (
                                     <DropdownMenuItem
                                       onClick={() =>
                                         onUpdateOrderStatus(order.id, "en_route_to_kitchen", curierId)
                                       }
-                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
+                                      className="text-yellow-600 hover:!bg-yellow-100 focus:bg-yellow-100 focus:text-yellow-700" /* Ranglar yangilandi */
                                     >
                                       <Truck className="mr-2 h-4 w-4" />
                                       Olish uchun yo'lda
@@ -224,7 +224,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                       onClick={() =>
                                         onUpdateOrderStatus(order.id, "picked_up_from_kitchen", curierId)
                                       }
-                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                      className="text-orange-600 hover:!bg-orange-100 focus:bg-orange-100 focus:text-orange-700" /* Ranglar yangilandi */
                                     >
                                       <Package className="mr-2 h-4 w-4" />
                                       Buyurtma menda
@@ -236,7 +236,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                         onClick={() =>
                                           onUpdateOrderStatus(order.id, "delivered_to_customer", curierId)
                                         }
-                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                        className="text-green-600 hover:!bg-green-100 focus:bg-green-100 focus:text-green-700" /* Ranglar yangilandi */
                                       >
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         Mijozda
@@ -245,7 +245,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                         onClick={() =>
                                           onUpdateOrderStatus(order.id, "cancelled", curierId)
                                         }
-                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                        className="text-red-600 hover:!bg-red-100 focus:bg-red-100 focus:text-red-700" /* Ranglar yangilandi */
                                       >
                                         <XCircle className="mr-2 h-4 w-4" />
                                         Bekor qilish
@@ -256,7 +256,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               </DropdownMenu>
                             )}
                             {isFinal && (
-                              <span className="text-xs text-gray-400 italic">
+                              <span className="text-xs text-gray-500 italic"> {/* Matn rangi yangilandi */}
                                 {order.status === "delivered_to_customer"
                                   ? "✓ Mijozga yetkazildi"
                                   : "✗ Bekor qilingan"}
@@ -267,40 +267,40 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                       </CardHeader>
 
                       <CardContent className="space-y-2">
-                        <div className="flex justify-between items-center text-sm text-gray-300">
+                        <div className="flex justify-between items-center text-sm text-gray-600"> {/* Matn rangi yangilandi */}
                           <p>
-                            <span className="font-bold text-gray-100/50">Mijoz:</span>{" "}
+                            <span className="font-bold text-gray-800">Mijoz:</span>{" "} {/* Matn rangi yangilandi */}
                             {order.customer_info.name}
                           </p>
                           <p>
-                            <span className="font-bold text-gray-100/50">Tel:</span>{" "}
+                            <span className="font-bold text-gray-800">Tel:</span>{" "} {/* Matn rangi yangilandi */}
                             {order.customer_info.phone}
                           </p>
                         </div>
-                        <p className="text-sm text-gray-300">
-                          <span className="font-bold text-gray-100/50">Manzil:</span>{" "}
+                        <p className="text-sm text-gray-600"> {/* Matn rangi yangilandi */}
+                          <span className="font-bold text-gray-800">Manzil:</span>{" "} {/* Matn rangi yangilandi */}
                           {order.location}
                         </p>
-                        <div className="border-t border-white/20 pt-2 mt-2 flex justify-between items-center">
-                          <span className="text-white font-bold">Jami:</span>
-                          <span className="text-orange-400 text-lg font-bold">
+                        <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center"> {/* Chegara rangi yangilandi */}
+                          <span className="text-gray-800 font-bold">Jami:</span> {/* Matn rangi yangilandi */}
+                          <span className="text-orange-500 text-lg font-bold"> {/* Matn rangi yangilandi */}
                             {order.total_price.toLocaleString()} so'm
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <Truck className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-400">Status:</span>
+                          <Truck className="h-4 w-4 text-gray-500" /> {/* Icon rangi yangilandi */}
+                          <span className="text-sm text-gray-500">Status:</span> {/* Matn rangi yangilandi */}
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
-                                ? "bg-blue-500/20 text-blue-400"
+                                ? "bg-blue-100 text-blue-600" /* Ranglar yangilandi */
                                 : order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-500/20 text-yellow-400"
+                                ? "bg-yellow-100 text-yellow-600" /* Ranglar yangilandi */
                                 : order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-500/20 text-orange-400"
+                                ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
                                 : order.status === "delivered_to_customer"
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-red-500/20 text-red-400"
+                                ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
+                                : "bg-red-100 text-red-600" /* Ranglar yangilandi */
                             }`}
                           >
                             {getStatusText(order.status)}

@@ -170,7 +170,7 @@ const AdminProducts = memo(({ products }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">Mahsulotlar</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Mahsulotlar</h1> {/* Matn rangi yangilandi */}
         <Button
           onClick={() => openDialog()}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -189,15 +189,15 @@ const AdminProducts = memo(({ products }) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
             >
-              <Card className="bg-white/10 border-white/20 h-full flex flex-col">
+              <Card className="bg-white border-gray-300 h-full flex flex-col"> {/* Card rangi va chegarasi yangilandi */}
                 <CardHeader>
-                  <CardTitle className="text-white flex justify-between items-start">
+                  <CardTitle className="text-gray-800 flex justify-between items-start"> {/* Matn rangi yangilandi */}
                     <span className="flex-1 mr-4">{product.name}</span>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
                         onClick={() => openDialog(product)}
                       >
                         <Edit className="h-4 w-4" />
@@ -207,27 +207,29 @@ const AdminProducts = memo(({ products }) => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hover:bg-red-500/20"
+                            className="h-8 w-8 hover:bg-red-100" {/* Ranglar yangilandi */}
                           >
-                            <Trash2 className="h-4 w-4 text-red-400" />
+                            <Trash2 className="h-4 w-4 text-red-500" /> {/* Rang yangilandi */}
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
+                        <AlertDialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white">
+                            <AlertDialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
                               O'chirishni tasdiqlang
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-300">
+                            <AlertDialogDescription className="text-gray-600"> {/* Matn rangi yangilandi */}
                               "{product.name}" mahsulotini o'chirishga
                               ishonchingiz komilmi? Bu amalni orqaga qaytarib
                               bo'lmaydi.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                            <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+                              Bekor qilish
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(product.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-red-600 hover:bg-red-700 text-white" {/* Ranglar yangilandi */}
                             >
                               O'chirish
                             </AlertDialogAction>
@@ -240,25 +242,25 @@ const AdminProducts = memo(({ products }) => {
                 <CardContent className="flex-grow">
                   {product.category && (
                     <div className="mb-2">
-                      <span className="text-xs font-semibold px-2 py-1 rounded bg-white/10 text-white border border-white/20">
+                      <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300"> {/* Ranglar yangilandi */}
                         {product.category}
                       </span>
                     </div>
                   )}
-                  <p className="text-gray-300 mb-2">{product.description}</p>
-                  <p className="text-orange-400 font-bold text-lg">
+                  <p className="text-gray-600 mb-2">{product.description}</p> {/* Matn rangi yangilandi */}
+                  <p className="text-orange-500 font-bold text-lg"> {/* Matn rangi yangilandi */}
                     {Number(product.price).toLocaleString()} so'm
                   </p>
                   <div className="mt-2">
                     <span
                       className={`text-sm font-medium px-2 py-1 rounded ${
                         product.stock > 10
-                          ? "bg-green-500/20 text-green-400"
+                          ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
                           : product.stock > 5
-                          ? "bg-orange-500/20 text-orange-400"
+                          ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
                           : product.stock > 0
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-gray-500/20 text-gray-400"
+                          ? "bg-red-100 text-red-600" /* Ranglar yangilandi */
+                          : "bg-gray-100 text-gray-600" /* Ranglar yangilandi */
                       }`}
                     >
                       {product.stock > 0
@@ -274,9 +276,9 @@ const AdminProducts = memo(({ products }) => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
+        <DialogContent className="bg-white border-gray-300 text-gray-800"> {/* Dialog rangi va matn rangi yangilandi */}
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
               {currentProduct?.id
                 ? "Mahsulotni tahrirlash"
                 : "Yangi mahsulot qo'shish"}
@@ -289,7 +291,7 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, name: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
             />
             <Textarea
               placeholder="Tavsifi"
@@ -300,7 +302,7 @@ const AdminProducts = memo(({ products }) => {
                   description: e.target.value,
                 })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
             />
             <Input
               type="number"
@@ -309,7 +311,7 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, price: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
             />
             <Input
               type="number"
@@ -318,39 +320,39 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, stock: e.target.value })
               }
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
               min="0"
             />
 
             {/* Category */}
             <div className="space-y-2">
-              <label className="text-white text-sm font-medium">Kategoriya</label>
+              <label className="text-gray-800 text-sm font-medium">Kategoriya</label> {/* Matn rangi yangilandi */}
               <select
                 value={currentProduct?.category || ""}
                 onChange={(e) =>
                   setCurrentProduct({ ...currentProduct, category: e.target.value })
                 }
-                className="w-full bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 focus:outline-none"
+                className="w-full bg-gray-100 border border-gray-300 text-gray-800 rounded-md px-3 py-2 focus:outline-none" {/* Ranglar yangilandi */}
               >
-                <option value="" className="bg-slate-900">Tanlang</option>
-                <option value="Hoddog" className="bg-slate-900">Hoddog</option>
-                <option value="Ichimlillar" className="bg-slate-900">Ichimlillar</option>
-                <option value="Disertlar" className="bg-slate-900">Disertlar</option>
+                <option value="" className="bg-white">Tanlang</option> {/* Rang yangilandi */}
+                <option value="Hoddog" className="bg-white">Hoddog</option> {/* Rang yangilandi */}
+                <option value="Ichimlillar" className="bg-white">Ichimlillar</option> {/* Rang yangilandi */}
+                <option value="Disertlar" className="bg-white">Disertlar</option> {/* Rang yangilandi */}
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-white text-sm font-medium">
+              <label className="text-gray-800 text-sm font-medium"> {/* Matn rangi yangilandi */}
                 Mahsulot rasmi
               </label>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <label
                     htmlFor="image-upload"
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-white/10 border border-white/20 rounded-md cursor-pointer hover:bg-white/20 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200 transition-colors" {/* Ranglar yangilandi */}
                   >
-                    <Upload className="h-4 w-4 text-white" />
-                    <span className="text-white text-sm">
+                    <Upload className="h-4 w-4 text-gray-800" /> {/* Icon rangi yangilandi */}
+                    <span className="text-gray-800 text-sm"> {/* Matn rangi yangilandi */}
                       {selectedImage ? selectedImage.name : "Rasm tanlash"}
                     </span>
                   </label>
@@ -363,7 +365,7 @@ const AdminProducts = memo(({ products }) => {
                   />
                 </div>
                 {imagePreview && (
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-white/20">
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-300"> {/* Chegara rangi yangilandi */}
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -385,11 +387,11 @@ const AdminProducts = memo(({ products }) => {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
                 Bekor qilish
               </Button>
             </DialogClose>
-            <Button onClick={handleSave} disabled={isSaving || isUploading}>
+            <Button onClick={handleSave} disabled={isSaving || isUploading} className="bg-orange-500 hover:bg-orange-600 text-white"> {/* Ranglar yangilandi */}
               {isUploading
                 ? "Yuklanyapti..."
                 : isSaving

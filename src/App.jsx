@@ -600,13 +600,13 @@ function MainLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
-      <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
+    <div className="min-h-screen bg-[#bfbfbf]"> {/* Asosiy fon rangi yangilandi */}
+      <header className="bg-white backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30"> {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Store className="h-8 w-8 text-orange-400" />
-              <h1 className="text-2xl font-bold text-white">Restoran</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Restoran</h1> {/* Matn rangi yangilandi */}
             </div>
 
             <div className="flex items-center gap-4">
@@ -635,10 +635,10 @@ function MainLayout({
           transition={{ duration: 0.5 }}
         >
           <div className="text-center mb-8 sm:mb-12 px-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3 sm:mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-3 sm:mb-4"> {/* Matn rangi yangilandi */}
               Bizning Menyumiz
             </h2>
-            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto"> {/* Matn rangi yangilandi */}
               Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
               ingredientlar bilan tayyorlanadi.
             </p>
@@ -655,7 +655,7 @@ function MainLayout({
               <Button
                 key={c.key}
                 variant={categoryFilter === c.key ? "secondary" : "ghost"}
-                className={`${categoryFilter === c.key ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
+                className={`${categoryFilter === c.key ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
                 onClick={() => {
                   setCategoryFilter(c.key);
                   setCurrentPage(1);
@@ -669,7 +669,7 @@ function MainLayout({
           {/* Products Grid with pagination */}
           <div className="px-4">
             {productsError ? (
-              <div className="text-center text-red-300 bg-red-500/10 border border-red-500/30 rounded-md p-4">
+              <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4"> {/* Ranglar yangilandi */}
                 {productsError}
               </div>
             ) : loadingProducts ? (
@@ -677,7 +677,7 @@ function MainLayout({
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-48 rounded-lg bg-white/10 animate-pulse"
+                    className="h-48 rounded-lg bg-gray-200 animate-pulse" // Rang yangilandi
                   />
                 ))}
               </div>
@@ -695,7 +695,7 @@ function MainLayout({
                   return (
                     <>
                       {all.length === 0 ? (
-                        <div className="text-center text-gray-300 py-16">
+                        <div className="text-center text-gray-600 py-16"> {/* Matn rangi yangilandi */}
                           Hozircha mahsulotlar yo'q.
                         </div>
                       ) : (
@@ -725,11 +725,11 @@ function MainLayout({
                               onClick={() =>
                                 canPrev && setCurrentPage((p) => p - 1)
                               }
-                              className="text-white"
+                              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
                             >
                               Oldingi
                             </Button>
-                            <span className="text-gray-300 text-sm sm:text-base">
+                            <span className="text-gray-600 text-sm sm:text-base"> {/* Matn rangi yangilandi */}
                               {currentPage} / {totalPages}
                             </span>
                             <Button
@@ -738,7 +738,7 @@ function MainLayout({
                               onClick={() =>
                                 canNext && setCurrentPage((p) => p + 1)
                               }
-                              className="text-white"
+                              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
                             >
                               Keyingi
                             </Button>
@@ -758,9 +758,9 @@ function MainLayout({
               animate={{ opacity: 1, y: 0 }}
               className="fixed bottom-6 left-6 z-20"
             >
-              <Card className=" w-[15rem] flex flex-col justify-start bg-gradient-to-r to-gray-600/80 backdrop-blur-lg border-orange-500/90">
+              <Card className=" w-[15rem] flex flex-col justify-start bg-white border-orange-500/90"> {/* Card rangi yangilandi */}
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-white text-center text-lg">
+                  <CardTitle className="text-gray-800 text-center text-lg"> {/* Matn rangi yangilandi */}
                     Savat
                   </CardTitle>
                 </CardHeader>
@@ -773,13 +773,13 @@ function MainLayout({
                     return (
                       <div
                         key={index}
-                        className="space-y-1 border-b border-white/30 py-2"
+                        className="space-y-1 border-b border-gray-300 py-2" {/* Chegara rangi yangilandi */}
                       >
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-300">
+                          <span className="text-gray-600"> {/* Matn rangi yangilandi */}
                             {item.name} x{item.quantity}
                           </span>
-                          <span className="text-orange-200 font-medium">
+                          <span className="text-orange-500 font-medium"> {/* Matn rangi yangilandi */}
                             {(item.price * item.quantity).toLocaleString()} so'm
                           </span>
                         </div>
@@ -787,12 +787,12 @@ function MainLayout({
                           <span
                             className={`text-xs font-semibold px-2 py-0.5 rounded ${
                               stock > 10
-                                ? "bg-green-500/20 text-green-400"
+                                ? "bg-green-500/20 text-green-600"
                                 : stock > 5
-                                ? "bg-orange-500/20 text-orange-400"
+                                ? "bg-orange-500/20 text-orange-600"
                                 : stock > 0
-                                ? "bg-red-500/20 text-red-400"
-                                : "bg-gray-500/20 text-gray-400"
+                                ? "bg-red-500/20 text-red-600"
+                                : "bg-gray-500/20 text-gray-600"
                             }`}
                           >
                             {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
@@ -801,10 +801,10 @@ function MainLayout({
                       </div>
                     );
                   })}
-                  <div className="border-t border-white/80 pt-2">
+                  <div className="border-t border-gray-300 pt-2"> {/* Chegara rangi yangilandi */}
                     <div className="flex justify-between font-bold">
-                      <span className="text-white">Jami:</span>
-                      <span className="text-orange-100">
+                      <span className="text-gray-800">Jami:</span> {/* Matn rangi yangilandi */}
+                      <span className="text-orange-500"> {/* Matn rangi yangilandi */}
                         {cartItems
                           .reduce(
                             (sum, item) => sum + item.price * item.quantity,

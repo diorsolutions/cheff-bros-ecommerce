@@ -17,8 +17,8 @@ const ProductCard = ({ product, onAddToCart }) => {
   const isMobile = useMediaQuery({ maxWidth: 530 });
 
   let sliceLength = 40;
-  if (isBigTablet) sliceLength = 120;
-  else if (isTablet) sliceLength = 80;
+  if (isBigTablet) sliceLength = 30;
+  else if (isTablet) sliceLength = 25;
   else if (isMobile) sliceLength = 22;
 
   const handleAddToCart = () => {
@@ -54,11 +54,11 @@ const ProductCard = ({ product, onAddToCart }) => {
       whileHover={{ y: 0 }}
       className="h-full"
     >
-      <Card className="h-full flex flex-col gap-5 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg border-white/10 transition-all duration-500">
+      <Card className="h-full flex flex-col gap-5 bg-white border-gray-300 transition-all duration-500"> {/* Card rangi va chegarasi yangilandi */}
         <CardContent className="p-2 flex-grow flex flex-col">
           <Link
             to={`/product/${product.id}`}
-            className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-red-500 relative group"
+            className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 relative group"
           >
             <img
               className="w-full h-full object-cover"
@@ -74,41 +74,41 @@ const ProductCard = ({ product, onAddToCart }) => {
           </Link>
 
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xl nor_tablet:text-sm big_tablet:text-[1.1rem] font-bold text-white">
+            <h3 className="text-[0.92rem] nor_tablet:text-sm big_tablet:text-[1.1rem] font-bold text-gray-800"> {/* Matn rangi yangilandi */}
               {product.name}
             </h3>
             <span
               className={`text-xs font-semibold px-2 py-1 rounded ${
                 stock > 10
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
                   : stock > 5
-                  ? "bg-orange-500/20 text-orange-400"
+                  ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
                   : stock > 0
-                  ? "bg-red-500/20 text-red-400"
-                  : "bg-gray-500/20 text-gray-400"
+                  ? "bg-red-100 text-red-600" /* Ranglar yangilandi */
+                  : "bg-gray-100 text-gray-600" /* Ranglar yangilandi */
               }`}
             >
               {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
             </span>
           </div>
-          <p className="text-gray-300 text-sm mb-3 line-clamp-2 flex-grow">
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow"> {/* Matn rangi yangilandi */}
             {product.description.slice(0, sliceLength) + "..."}
           </p>
 
           <div className="flex items-center justify-between mt-auto">
-            <span className="text-[1.1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-bold text-orange-400">
+            <span className="text-[1.1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-bold text-orange-500"> {/* Matn rangi yangilandi */}
               {Number(product.price).toLocaleString()} so'm
             </span>
-            <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1"> {/* Rang yangilandi */}
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={decrementQuantity}
-                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-white hover:bg-white/20"
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="text-white big_tablet:text-[0.8rem] font-medium w-8 text-center">
+              <span className="text-gray-800 big_tablet:text-[0.8rem] font-medium w-8 text-center"> {/* Matn rangi yangilandi */}
                 {quantity}
               </span>
               <Button
@@ -116,7 +116,7 @@ const ProductCard = ({ product, onAddToCart }) => {
                 variant="ghost"
                 onClick={incrementQuantity}
                 disabled={isOutOfStock || quantity >= stock}
-                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" {/* Ranglar yangilandi */}
               >
                 <Plus className="h-4 w-4" />
               </Button>

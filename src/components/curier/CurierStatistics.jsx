@@ -57,24 +57,24 @@ const CurierStatistics = ({ curierId, orders }) => {
   }, [curierId, orders]); // Buyurtmalar yoki kuryer ID o'zgarganda qayta hisoblash
 
   if (loading) {
-    return <div className="text-center text-gray-400">Statistika yuklanmoqda...</div>;
+    return <div className="text-center text-gray-600">Statistika yuklanmoqda...</div>; {/* Matn rangi yangilandi */}
   }
 
   return (
     <div className="space-y-4">
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
         <CardContent className="p-4">
-          <h4 className="font-semibold text-white mb-2">Bugungi buyurtmalar</h4>
-          <p className="text-gray-300">Yetkazilgan: <span className="font-bold text-green-400">{stats.todayDelivered}</span></p>
-          <p className="text-gray-300">Bekor qilingan: <span className="font-bold text-red-400">{stats.todayCancelled}</span></p>
+          <h4 className="font-semibold text-gray-800 mb-2">Bugungi buyurtmalar</h4> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600">Yetkazilgan: <span className="font-bold text-green-600">{stats.todayDelivered}</span></p> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600">Bekor qilingan: <span className="font-bold text-red-600">{stats.todayCancelled}</span></p> {/* Matn rangi yangilandi */}
         </CardContent>
       </Card>
 
-      <Card className="bg-white/10 border-white/20">
+      <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
         <CardContent className="p-4">
-          <h4 className="font-semibold text-white mb-2">Jami yetkazilganlar</h4>
-          <p className="text-gray-300">Jami yetkazilgan buyurtmalar: <span className="font-bold text-orange-400">{stats.totalDelivered}</span></p>
-          <p className="text-gray-300">Jami bekor qilingan buyurtmalar: <span className="font-bold text-red-400">{stats.totalCancelled}</span></p>
+          <h4 className="font-semibold text-gray-800 mb-2">Jami yetkazilganlar</h4> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600">Jami yetkazilgan buyurtmalar: <span className="font-bold text-orange-500">{stats.totalDelivered}</span></p> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600">Jami bekor qilingan buyurtmalar: <span className="font-bold text-red-600">{stats.totalCancelled}</span></p> {/* Matn rangi yangilandi */}
         </CardContent>
       </Card>
     </div>

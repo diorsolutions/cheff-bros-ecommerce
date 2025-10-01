@@ -57,7 +57,7 @@ const MiniChat = ({ messages }) => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-slate-800"
+            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white" {/* Chegara rangi yangilandi */}
           >
             <span className="text-xs text-white font-bold">{unreadCount}</span>
           </motion.div>
@@ -72,14 +72,14 @@ const MiniChat = ({ messages }) => {
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
             className="fixed bottom-24 right-6 z-40 w-80 h-96"
           >
-            <Card className="h-full flex flex-col bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-lg border-white/20">
+            <Card className="h-full flex flex-col bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
               <CardHeader className="pb-3">
-                <CardTitle className="text-white text-lg">Xabarlar</CardTitle>
+                <CardTitle className="text-gray-800 text-lg">Xabarlar</CardTitle> {/* Matn rangi yangilandi */}
               </CardHeader>
 
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 ? (
-                  <p className="text-gray-400 text-center text-sm">
+                  <p className="text-gray-600 text-center text-sm"> {/* Matn rangi yangilandi */}
                     Hozircha xabarlar yo'q
                   </p>
                 ) : (
@@ -89,7 +89,7 @@ const MiniChat = ({ messages }) => {
                       layout
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-3 rounded-lg max-w-[85%] bg-blue-500/20 border border-blue-500/30 text-blue-200"
+                      className="p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600" /* Ranglar yangilandi */
                     >
                       <p className="text-sm">{message.text}</p>
                       <span className="text-xs opacity-70 block text-right mt-1">

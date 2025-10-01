@@ -11,7 +11,7 @@
 
 body {
   font-family: "Inter", sans-serif;
-  @apply bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white;
+  @apply bg-[#bfbfbf] text-gray-800; /* Global fon va matn rangi yangilandi */
   overflow-x: hidden;
 }
 
@@ -21,7 +21,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-800/50;
+  @apply bg-gray-300; /* Scrollbar track rangi yangilandi */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -72,11 +72,6 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
 }
-
-
-
-
-
 
 @layer base {
   * {
