@@ -128,31 +128,31 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       <header className="bg-white border-b border-gray-300 sticky top-0 z-30">
         {" "}
         {/* Header rangi yangilandi */}
-        <div className="mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="mx-auto px-5 py-3 flex items-center justify-between border border-violet-300">
           <div className="flex items-center gap-3">
             <Truck className="h-8 w-8 text-orange-500" />{" "}
             {/* Icon rangi yangilandi */}
-            <h1 className="text-2xl font-bold text-gray-800">
-              Kuryer Paneli
+            <h1 className="text-2xl nor_tablet:text-xs font-bold text-gray-800">
+              Buyurtmalar Paneli
             </h1>{" "}
             {/* Matn rangi yangilandi */}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex justify-end items-center gap-1">
             <Button
               variant="ghost"
               onClick={() => setShowSettingsDialog(true)} // Dialogni ochish
-              className="text-gray-800 hover:bg-gray-200"
+              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2"
             >
-              <User className="mr-2 h-4 w-4" />
-              {curierName}
+              <User className="h-4 w-4" />
+              <span className="nor_tablet:hidden">{curierName}</span>
             </Button>
             <Button
               onClick={handleLogout}
               variant="ghost"
-              className="text-gray-800 hover:bg-gray-200"
+              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Chiqish
+              <LogOut className="h-4 w-4" />
+              <span className="nor_tablet:hidden">Chiqish</span>
             </Button>
           </div>
         </div>
@@ -217,15 +217,17 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                 order.status
                               )} ${!isFinal ? "animate-pulse" : ""}`}
                             ></span>
-                            Buyurtma{" "}
-                            <span className="text-gray-500">
+                            <span className="nor_tablet:text-[0.9rem]">
+                              Buyurtma{" "}
+                            </span>
+                            <span className="text-gray-500 nor_tablet:hidden">
                               {" "}
                               {/* Matn rangi yangilandi */}
                               {order.id.substring(0, 8)}
                             </span>
                           </CardTitle>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-500">
+                          <div className="flex items-center gap-1 mr-[-0.9rem]">
+                            <span className="text-gray-500 nor_tablet:text-[0.7rem]">
                               {" "}
                               {/* Matn rangi yangilandi */}
                               {new Date(order.created_at).toLocaleString(
@@ -324,7 +326,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                         <div className="flex justify-between items-center text-sm text-gray-600">
                           {" "}
                           {/* Matn rangi yangilandi */}
-                          <p>
+                          <p className="flex items-center mob_small:text-[0.8rem]">
                             <span className="font-bold text-gray-800">
                               Mijoz:
                             </span>{" "}
@@ -332,30 +334,42 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             {order.customer_info.name}
                           </p>
                           <p>
-                            <span className="font-bold text-gray-800">
+                            <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
                               Tel:
                             </span>{" "}
                             {/* Matn rangi yangilandi */}
-                            {order.customer_info.phone}
+                            <span className="mob_small:text-[0.8rem]">
+                              <a
+                                href={`tel:${order.customer_info.phone}`}
+                                className="text-blue-600 hover:underline"
+                              >
+                                {order.customer_info.phone}
+                              </a>
+                            </span>
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">
                           {" "}
                           {/* Matn rangi yangilandi */}
-                          <span className="font-bold text-gray-800">
+                          <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
                             Manzil:
                           </span>{" "}
                           {/* Matn rangi yangilandi */}
-                          {order.location}
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Ochish
+                          </a>
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
                           {" "}
                           {/* Chegara rangi yangilandi */}
-                          <span className="text-gray-800 font-bold">
+                          <span className="text-gray-800 font-bold mob_small:text-[0.8rem]">
                             Jami:
                           </span>{" "}
                           {/* Matn rangi yangilandi */}
-                          <span className="text-orange-500 text-lg font-bold">
+                          <span className="text-orange-500 text-lg nor_tablet:text-[0.9rem] font-bold">
                             {" "}
                             {/* Matn rangi yangilandi */}
                             {order.total_price.toLocaleString()} so'm
@@ -364,12 +378,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-500" />{" "}
                           {/* Icon rangi yangilandi */}
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 mob_small:text-[0.8rem]">
                             Status:
                           </span>{" "}
                           {/* Matn rangi yangilandi */}
                           <span
-                            className={`text-sm font-medium px-2 py-1 rounded ${
+                            className={`text-sm font-medium px-2 py-1 rounded mob_small:text-[0.8rem] ${
                               order.status === "new"
                                 ? "bg-blue-100 text-blue-600" /* Ranglar yangilandi */
                                 : order.status === "en_route_to_kitchen"

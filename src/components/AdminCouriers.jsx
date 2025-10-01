@@ -150,7 +150,7 @@ const AdminCouriers = ({ curiers, orders }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Kuryerlar</h1>
+        <h1 className="text-3xl font-bold text-white/90">Kuryerlar</h1>
         <Button
           onClick={() => setIsAddCourierDialogOpen(true)}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -162,7 +162,7 @@ const AdminCouriers = ({ curiers, orders }) => {
       <div className="grid gap-4">
         <AnimatePresence>
           {Object.values(courierStats).length === 0 ? (
-            <Card className="bg-white border-gray-300">
+            <Card className="bg-white/10 border-gray-600">
               <CardContent className="p-8 text-center">
                 <p className="text-gray-600 text-lg">
                   Hozircha kuryerlar yo'q.
@@ -181,11 +181,11 @@ const AdminCouriers = ({ curiers, orders }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <Card className="bg-white border-gray-300">
+                  <Card className="bg-white/10 border-gray-600">
                     <CardHeader>
                       <CardTitle className="text-gray-800 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <User className="h-5 w-5 text-purple-600" />
+                        <div className="flex items-center gap-2 text-white text-xl">
+                          <User className="h-5 w-5 text-purple-100" />
                           {courier.name}
                         </div>
                         <AlertDialog>
@@ -195,7 +195,7 @@ const AdminCouriers = ({ curiers, orders }) => {
                               size="icon"
                               className="h-8 w-8 hover:bg-red-100"
                             >
-                              <Trash2 className="h-4 w-4 text-red-500" />
+                              <Trash2 className="h-4 w-4 text-red-500 rounded-xl" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="bg-white border-gray-300">
@@ -229,22 +229,26 @@ const AdminCouriers = ({ curiers, orders }) => {
                     <CardContent className="space-y-2 text-gray-600">
                       {" "}
                       <p className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" />{" "}
-                        Telefon:{" "}
-                        <span className="font-medium text-gray-800">
+                        <Phone className="h-4 w-4 text-white/80" />
+                        <span className="text-white/80">Telefon: </span>
+                        <span className="font-medium text-white">
                           {courier.phone || "Kiritilmagan"}
                         </span>
                       </p>
                       <p className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-green-600" />{" "}
-                        Jami yetkazilgan:{" "}
+                        <Package className="h-4 w-4 text-green-600" />
+                        <span className="text-white/80">
+                          Jami yetkazilgan:{" "}
+                        </span>
                         <span className="font-bold text-green-600">
                           {courier.totalDelivered}
                         </span>{" "}
                       </p>
                       <p className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-600" />{" "}
-                        Jami bekor qilingan:{" "}
+                        <XCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-white/80">
+                          Jami bekor qilingan:{" "}
+                        </span>
                         <span className="font-bold text-red-600">
                           {courier.totalCancelled}
                         </span>{" "}

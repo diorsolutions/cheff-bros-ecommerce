@@ -141,13 +141,22 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                 <SelectItem value="new" className="text-blue-400">
                   Yangi
                 </SelectItem>
-                <SelectItem value="en_route_to_kitchen" className="text-yellow-400">
+                <SelectItem
+                  value="en_route_to_kitchen"
+                  className="text-yellow-400"
+                >
                   Olish uchun yo'lda
                 </SelectItem>
-                <SelectItem value="picked_up_from_kitchen" className="text-orange-400">
+                <SelectItem
+                  value="picked_up_from_kitchen"
+                  className="text-orange-400"
+                >
                   Buyurtma menda
                 </SelectItem>
-                <SelectItem value="delivered_to_customer" className="text-green-400">
+                <SelectItem
+                  value="delivered_to_customer"
+                  className="text-green-400"
+                >
                   Mijozda
                 </SelectItem>
                 <SelectItem value="cancelled" className="text-red-400">
@@ -194,7 +203,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
             </Card>
           ) : (
             filteredOrders.map((order) => {
-              const isFinal = order.status === "delivered_to_customer" || order.status === "cancelled";
+              const isFinal =
+                order.status === "delivered_to_customer" ||
+                order.status === "cancelled";
               return (
                 <motion.div
                   key={order.id}
@@ -207,13 +218,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                     className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
                       order.status === "delivered_to_customer"
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
-                          : order.status === "cancelled"
-                          ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
-                          : order.status === "picked_up_from_kitchen"
-                          ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
-                          : order.status === "en_route_to_kitchen"
-                          ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
-                          : "from-white/10 to-white/5"
+                        : order.status === "cancelled"
+                        ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                        : order.status === "picked_up_from_kitchen"
+                        ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
+                        : order.status === "en_route_to_kitchen"
+                        ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
+                        : "from-white/10 to-white/5"
                     }`}
                   >
                     <CardHeader className="pb-3">
@@ -223,7 +234,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                             className={`w-3 h-3 rounded-full ${getStatusColor(
                               order.status
                             )} ${
-                              order.status === "new" || order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" ? "animate-pulse" : ""
+                              order.status === "new" ||
+                              order.status === "en_route_to_kitchen" ||
+                              order.status === "picked_up_from_kitchen"
+                                ? "animate-pulse"
+                                : ""
                             }`}
                           ></span>
                           Buyurtma{" "}
@@ -242,7 +257,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                   variant="ghost"
                                   size="sm"
                                   className="text-white hover:bg-white/20"
-                                  disabled={!!order.curier_id && order.status !== "new"} // Agar kuryer olgan bo'lsa, admin o'zgartira olmaydi
+                                  disabled={
+                                    !!order.curier_id && order.status !== "new"
+                                  } // Agar kuryer olgan bo'lsa, admin o'zgartira olmaydi
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
@@ -251,8 +268,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                 {order.status === "new" && (
                                   <>
                                     <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "en_route_to_kitchen", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                      onClick={
+                                        () =>
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "en_route_to_kitchen",
+                                            null
+                                          ) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
                                       }
                                       className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
                                     >
@@ -260,8 +282,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                       Olish uchun yo'lda (Admin)
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "picked_up_from_kitchen", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                      onClick={
+                                        () =>
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "picked_up_from_kitchen",
+                                            null
+                                          ) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
                                       }
                                       className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
                                     >
@@ -270,28 +297,38 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {(order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen") && !order.curier_id && (
-                                  <>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "delivered_to_customer", null)
-                                      }
-                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                    >
-                                      <CheckCircle className="mr-2 h-4 w-4" />
-                                      Mijozda (Admin)
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "cancelled", null)
-                                      }
-                                      className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                    >
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                      Bekor qilish (Admin)
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
+                                {(order.status === "en_route_to_kitchen" ||
+                                  order.status === "picked_up_from_kitchen") &&
+                                  !order.curier_id && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "delivered_to_customer",
+                                            null
+                                          )
+                                        }
+                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                      >
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Mijozda (Admin)
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "cancelled",
+                                            null
+                                          )
+                                        }
+                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                      >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Bekor qilish (Admin)
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           ) : (
@@ -328,7 +365,10 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                               <span className="font-bold text-gray-100/50">
                                 Manzil:
                               </span>{" "}
-                              {order.location}
+                              <a
+                                className="underline text-blue-300"
+                                href={`https://maps.google.com/?q=${order.location}`}
+                              >Xaritada ochish</a>
                             </p>
                           </div>
                         </div>
@@ -346,7 +386,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                 <span className="text-gray-300">
                                   {item.name} x{item.quantity}
                                 </span>
-                                <span className="text-orange-400 font-medium">
+                                <span className="text-white/80 font-medium">
                                   {(
                                     item.price * item.quantity
                                   ).toLocaleString()}{" "}
@@ -357,7 +397,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                             <div className="border-t border-white/20 pt-2 mt-2">
                               <div className="flex justify-between font-bold">
                                 <span className="text-white">Jami:</span>
-                                <span className="text-orange-400 text-lg">
+                                <span className="text-white text-lg">
                                   {order.total_price.toLocaleString()} so'm
                                 </span>
                               </div>

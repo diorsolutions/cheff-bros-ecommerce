@@ -181,7 +181,7 @@ const AdminProducts = memo(({ products }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Mahsulotlar</h1>
+        <h1 className="text-3xl font-semibold text-white">Mahsulotlar</h1>
         <Button
           onClick={() => openDialog()}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -200,15 +200,17 @@ const AdminProducts = memo(({ products }) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
             >
-              <Card className="bg-white border-gray-300 h-full flex flex-col">
+              <Card className="bg-white/10 border-gray-500 rounded-[0.5rem] h-full flex flex-col">
                 <CardHeader>
                   <CardTitle className="text-gray-800 flex justify-between items-start">
-                    <span className="flex-1 mr-4">{product.name}</span>
+                    <span className="flex-1 text-xl mr-4 text-white/90">
+                      {product.name}
+                    </span>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-800 hover:bg-gray-200"
+                        className="h-8 w-8 text-gray-200 hover:bg-gray-200 rounded-[0.3rem]"
                         onClick={() => openDialog(product)}
                       >
                         <Edit className="h-4 w-4" />
@@ -253,16 +255,24 @@ const AdminProducts = memo(({ products }) => {
                 <CardContent className="flex-grow">
                   {product.category && (
                     <div className="mb-2">
-                      <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300">
+                      <span className="text-gray-200 font-bold">
+                        Kategoriya:
+                      </span>
+                      <span className="text-[1rem] font-semibold px-2 py-1 text-orange-400">
                         {product.category}
                       </span>
                     </div>
                   )}
-                  <p className="text-gray-600 mb-2">{product.description}</p>
-                  <p className="text-orange-500 font-bold text-lg">
+                  <p className="text-gray-200 my-2">
+                    <span className="text-gray-200 font-bold">Tavsifi: </span>
+                    {product.description}
+                  </p>
+                  <p className="text-white/80 font-bold text-lg">
+                    <span className="text-gray-200 font-bold">Narxi: </span>
                     {Number(product.price).toLocaleString()} so'm
                   </p>
                   <div className="mt-2">
+                  <span className="text-gray-200 font-bold">Soni: </span>
                     <span
                       className={`text-sm font-medium px-2 py-1 rounded ${
                         product.stock > 10
