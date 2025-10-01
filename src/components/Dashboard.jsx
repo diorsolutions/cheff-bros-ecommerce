@@ -70,7 +70,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "orders" ? "secondary" : "ghost"}
-              className="min-w-full justify-start"
+              className={`min-w-full justify-start ${adminView === "orders" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
               onClick={() => setAdminView("orders")}
             >
               <ListOrdered className="mr-3 h-5 w-5" />
@@ -78,7 +78,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "products" ? "secondary" : "ghost"}
-              className="min-w-full justify-start"
+              className={`min-w-full justify-start ${adminView === "products" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
               onClick={() => setAdminView("products")}
             >
               <Utensils className="mr-3 h-5 w-5" />
@@ -86,7 +86,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "statistics" ? "secondary" : "ghost"}
-              className="min-w-full justify-start"
+              className={`min-w-full justify-start ${adminView === "statistics" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
               onClick={() => setAdminView("statistics")}
             >
               <BarChart2 className="mr-3 h-5 w-5" />
@@ -94,7 +94,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "couriers" ? "secondary" : "ghost"}
-              className="min-w-full justify-start"
+              className={`min-w-full justify-start ${adminView === "couriers" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
               onClick={() => setAdminView("couriers")}
             >
               <Users className="mr-3 h-5 w-5" />

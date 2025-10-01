@@ -67,6 +67,7 @@ module.exports = {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
+            'active-orange': '#f7903d', // Yangi rang qo'shildi
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',

@@ -618,7 +618,7 @@ function MainLayout({
               <Button
                 key={c.key}
                 variant={categoryFilter === c.key ? "secondary" : "ghost"}
-                className="text-white"
+                className={`${categoryFilter === c.key ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
                 onClick={() => {
                   setCategoryFilter(c.key);
                   setCurrentPage(1);

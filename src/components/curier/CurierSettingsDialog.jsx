@@ -73,10 +73,10 @@ const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, currentP
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/10 border-white/20">
-            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-orange-400">
+            <TabsTrigger value="profile" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-active-orange">
               Profil
             </TabsTrigger>
-            <TabsTrigger value="statistics" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-orange-400">
+            <TabsTrigger value="statistics" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-active-orange">
               Statistika
             </TabsTrigger>
           </TabsList>
