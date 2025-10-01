@@ -52,16 +52,17 @@ const ProductCard = ({ product, onAddToCart }) => {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: 0 }}
-      className="h-full"
+      className="h-full bg-gray-300/80"
     >
-      <Card className="h-full flex flex-col gap-5 bg-white border-gray-300 transition-all duration-500"> {/* Card rangi va chegarasi yangilandi */}
+      <Card className="h-full flex flex-col gap-2 bg-white shadow-[0_4px_16px_rgba(17,17,26,0.1),0_8px_32px_rgba(17,17,26,0.05)] border-gray-200 rounded-lg transition-all duration-500">
+        {" "}
         <CardContent className="p-2 flex-grow flex flex-col">
           <Link
             to={`/product/${product.id}`}
             className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 relative group"
           >
             <img
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-lg"
               alt={product.name}
               src={
                 product.image_url ||
@@ -74,7 +75,8 @@ const ProductCard = ({ product, onAddToCart }) => {
           </Link>
 
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[0.92rem] nor_tablet:text-sm big_tablet:text-[1.1rem] font-bold text-gray-800"> {/* Matn rangi yangilandi */}
+            <h3 className="text-[0.92rem] nor_tablet:text-sm big_tablet:text-[1.1rem] font-bold text-gray-600">
+              {" "}
               {product.name}
             </h3>
             <span
@@ -91,24 +93,30 @@ const ProductCard = ({ product, onAddToCart }) => {
               {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
             </span>
           </div>
-          <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow"> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">
+            {" "}
+            {/* Matn rangi yangilandi */}
             {product.description.slice(0, sliceLength) + "..."}
           </p>
 
           <div className="flex items-center justify-between mt-auto">
-            <span className="text-[1.1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-bold text-orange-500"> {/* Matn rangi yangilandi */}
+            <span className="text-[1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-semibold text-orange-500">
+              {" "}
+              {/* Matn rangi yangilandi */}
               {Number(product.price).toLocaleString()} so'm
             </span>
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1"> {/* Rang yangilandi */}
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              {" "}
+              {/* Rang yangilandi */}
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={decrementQuantity}
-                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 rounded-lg text-gray-800 hover:bg-gray-200"
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <span className="text-gray-800 big_tablet:text-[0.8rem] font-medium w-8 text-center"> {/* Matn rangi yangilandi */}
+              <span className="text-gray-800 big_tablet:text-[0.8rem] font-medium w-8 text-center">
                 {quantity}
               </span>
               <Button
@@ -116,19 +124,18 @@ const ProductCard = ({ product, onAddToCart }) => {
                 variant="ghost"
                 onClick={incrementQuantity}
                 disabled={isOutOfStock || quantity >= stock}
-                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" {/* Ranglar yangilandi */}
+                className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 rounded-lg text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </CardContent>
-
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
             disabled={isOutOfStock || quantity > stock || quantity === 0} // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
-            className="mob_small:text-[0.8rem] w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mob_small:text-[0.8rem] w-full bg-gradient-to-r rounded-[0.4rem] from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
             {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}

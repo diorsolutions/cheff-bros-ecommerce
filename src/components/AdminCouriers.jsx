@@ -40,13 +40,16 @@ const AdminCouriers = ({ curiers, orders }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    console.log("AdminCouriers useEffect triggered. Current curiers prop:", curiers); // Debug log
+    console.log(
+      "AdminCouriers useEffect triggered. Current curiers prop:",
+      curiers
+    ); // Debug log
     if (!curiers || !orders) return;
 
     setLoading(true);
     const calculateCourierStats = () => {
       const stats = {};
-      curiers.forEach(curier => {
+      curiers.forEach((curier) => {
         stats[curier.id] = {
           name: curier.name,
           phone: curier.phone,
@@ -55,7 +58,7 @@ const AdminCouriers = ({ curiers, orders }) => {
         };
       });
 
-      orders.forEach(order => {
+      orders.forEach((order) => {
         if (order.curier_id && stats[order.curier_id]) {
           if (order.status === "delivered_to_customer") {
             stats[order.curier_id].totalDelivered++;
@@ -137,13 +140,17 @@ const AdminCouriers = ({ curiers, orders }) => {
   };
 
   if (loading) {
-    return <div className="text-center text-gray-600 py-8">Kuryerlar yuklanmoqda...</div>; {/* Matn rangi yangilandi */}
+    return (
+      <div className="text-center text-gray-600 py-8">
+        Kuryerlar yuklanmoqda...
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Kuryerlar</h1> {/* Matn rangi yangilandi */}
+        <h1 className="text-3xl font-bold text-gray-800">Kuryerlar</h1>
         <Button
           onClick={() => setIsAddCourierDialogOpen(true)}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -155,13 +162,16 @@ const AdminCouriers = ({ curiers, orders }) => {
       <div className="grid gap-4">
         <AnimatePresence>
           {Object.values(courierStats).length === 0 ? (
-            <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+            <Card className="bg-white border-gray-300">
               <CardContent className="p-8 text-center">
-                <p className="text-gray-600 text-lg">Hozircha kuryerlar yo'q.</p> {/* Matn rangi yangilandi */}
+                <p className="text-gray-600 text-lg">
+                  Hozircha kuryerlar yo'q.
+                </p>
               </CardContent>
             </Card>
           ) : (
-            Object.keys(courierStats).map((curierId) => { // curierId ni key sifatida ishlatamiz
+            Object.keys(courierStats).map((curierId) => {
+              // curierId ni key sifatida ishlatamiz
               const courier = courierStats[curierId];
               return (
                 <motion.div
@@ -171,11 +181,11 @@ const AdminCouriers = ({ curiers, orders }) => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                 >
-                  <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+                  <Card className="bg-white border-gray-300">
                     <CardHeader>
-                      <CardTitle className="text-gray-800 flex justify-between items-center"> {/* Matn rangi yangilandi */}
+                      <CardTitle className="text-gray-800 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <User className="h-5 w-5 text-purple-600" /> {/* Icon rangi yangilandi */}
+                          <User className="h-5 w-5 text-purple-600" />
                           {courier.name}
                         </div>
                         <AlertDialog>
@@ -183,29 +193,31 @@ const AdminCouriers = ({ curiers, orders }) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 hover:bg-red-100" {/* Ranglar yangilandi */}
+                              className="h-8 w-8 hover:bg-red-100"
                             >
-                              <Trash2 className="h-4 w-4 text-red-500" /> {/* Rang yangilandi */}
+                              <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
+                          <AlertDialogContent className="bg-white border-gray-300">
                             <AlertDialogHeader>
-                              <AlertDialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
+                              <AlertDialogTitle className="text-gray-800">
                                 O'chirishni tasdiqlang
                               </AlertDialogTitle>
-                              <AlertDialogDescription className="text-gray-600"> {/* Matn rangi yangilandi */}
+                              <AlertDialogDescription className="text-gray-600">
                                 "{courier.name}" nomli kuryerni o'chirishga
                                 ishonchingiz komilmi? Bu amalni orqaga qaytarib
                                 bo'lmaydi.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+                              <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200">
                                 Bekor qilish
                               </AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDeleteCourier(curierId, courier.name)} // curierId ni to'g'ri uzatamiz
-                                className="bg-red-600 hover:bg-red-700 text-white" {/* Ranglar yangilandi */}
+                                onClick={() =>
+                                  handleDeleteCourier(curierId, courier.name)
+                                }
+                                className="bg-red-600 hover:bg-red-700 text-white"
                               >
                                 O'chirish
                               </AlertDialogAction>
@@ -214,18 +226,28 @@ const AdminCouriers = ({ curiers, orders }) => {
                         </AlertDialog>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2 text-gray-600"> {/* Matn rangi yangilandi */}
+                    <CardContent className="space-y-2 text-gray-600">
+                      {" "}
                       <p className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-500" /> {/* Icon rangi yangilandi */}
-                        Telefon: <span className="font-medium text-gray-800">{courier.phone || "Kiritilmagan"}</span> {/* Matn rangi yangilandi */}
+                        <Phone className="h-4 w-4 text-gray-500" />{" "}
+                        Telefon:{" "}
+                        <span className="font-medium text-gray-800">
+                          {courier.phone || "Kiritilmagan"}
+                        </span>
                       </p>
                       <p className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-green-600" /> {/* Icon rangi yangilandi */}
-                        Jami yetkazilgan: <span className="font-bold text-green-600">{courier.totalDelivered}</span> {/* Matn rangi yangilandi */}
+                        <Package className="h-4 w-4 text-green-600" />{" "}
+                        Jami yetkazilgan:{" "}
+                        <span className="font-bold text-green-600">
+                          {courier.totalDelivered}
+                        </span>{" "}
                       </p>
                       <p className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-600" /> {/* Icon rangi yangilandi */}
-                        Jami bekor qilingan: <span className="font-bold text-red-600">{courier.totalCancelled}</span> {/* Matn rangi yangilandi */}
+                        <XCircle className="h-4 w-4 text-red-600" />{" "}
+                        Jami bekor qilingan:{" "}
+                        <span className="font-bold text-red-600">
+                          {courier.totalCancelled}
+                        </span>{" "}
                       </p>
                     </CardContent>
                   </Card>
@@ -236,10 +258,15 @@ const AdminCouriers = ({ curiers, orders }) => {
         </AnimatePresence>
       </div>
 
-      <Dialog open={isAddCourierDialogOpen} onOpenChange={setIsAddCourierDialogOpen}>
-        <DialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
+      <Dialog
+        open={isAddCourierDialogOpen}
+        onOpenChange={setIsAddCourierDialogOpen}
+      >
+        <DialogContent className="bg-white border-gray-300">
           <DialogHeader>
-            <DialogTitle className="text-gray-800">Yangi kuryer qo'shish</DialogTitle> {/* Matn rangi yangilandi */}
+            <DialogTitle className="text-gray-800">
+              Yangi kuryer qo'shish
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input
@@ -248,7 +275,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, username: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
               required
             />
             <Input
@@ -258,7 +285,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, password: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
               required
             />
             <Input
@@ -267,7 +294,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, name: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
               required
             />
             <Input
@@ -276,16 +303,26 @@ const AdminCouriers = ({ curiers, orders }) => {
               onChange={(e) =>
                 setNewCourier({ ...newCourier, phone: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
             />
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+              <Button
+                type="button"
+                variant="outline"
+                className="text-gray-800 border-gray-300 hover:bg-gray-200"
+              >
+                {" "}
                 Bekor qilish
               </Button>
             </DialogClose>
-            <Button onClick={handleAddCourier} disabled={isSaving} className="bg-orange-500 hover:bg-orange-600 text-white"> {/* Ranglar yangilandi */}
+            <Button
+              onClick={handleAddCourier}
+              disabled={isSaving}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {" "}
               {isSaving ? "Qo'shilmoqda..." : "Qo'shish"}
             </Button>
           </DialogFooter>

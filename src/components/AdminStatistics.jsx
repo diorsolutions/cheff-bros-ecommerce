@@ -120,7 +120,7 @@ const AdminStatistics = ({ orders, products, curiers }) => {
 
   if (loading) {
     return (
-      <div className="text-center text-gray-600 py-8"> {/* Matn rangi yangilandi */}
+      <div className="text-center text-gray-600 py-8">
         Statistika yuklanmoqda...
       </div>
     );
@@ -128,57 +128,80 @@ const AdminStatistics = ({ orders, products, curiers }) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Umumiy Statistika</h2> {/* Matn rangi yangilandi */}
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        Umumiy Statistika
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-sm font-medium text-gray-600">
               Jami Yetkazilgan
             </CardTitle>
-            <Package className="h-4 w-4 text-green-600" /> {/* Icon rangi yangilandi */}
+            <Package className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800"> {/* Matn rangi yangilandi */}
+            <div className="text-2xl font-bold text-gray-800">
               {stats.totalDeliveredOrders}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
+          {" "}
+          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Jami Bekor Qilingan
             </CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" /> {/* Icon rangi yangilandi */}
+            <XCircle className="h-4 w-4 text-red-600" />{" "}
+            {/* Icon rangi yangilandi */}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800"> {/* Matn rangi yangilandi */}
+            <div className="text-2xl font-bold text-gray-800">
+              {" "}
+              {/* Matn rangi yangilandi */}
               {stats.totalCancelledOrders}
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
+          {" "}
+          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Bugungi Daromad
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-orange-500" /> {/* Icon rangi yangilandi */}
+            <DollarSign className="h-4 w-4 text-orange-500" />{" "}
+            {/* Icon rangi yangilandi */}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800"> {/* Matn rangi yangilandi */}
+            <div className="text-2xl font-bold text-gray-800">
+              {" "}
+              {/* Matn rangi yangilandi */}
               {stats.dailyRevenue.toLocaleString()} so'm
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
+          {" "}
+          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Jami Daromad
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-purple-600" /> {/* Icon rangi yangilandi */}
+            <DollarSign className="h-4 w-4 text-purple-600" />{" "}
+            {/* Icon rangi yangilandi */}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-800"> {/* Matn rangi yangilandi */}
+            <div className="text-2xl font-bold text-gray-800">
+              {" "}
+              {/* Matn rangi yangilandi */}
               {stats.totalRevenue.toLocaleString()} so'm
             </div>
           </CardContent>
@@ -186,9 +209,13 @@ const AdminStatistics = ({ orders, products, curiers }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
+          {" "}
+          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-lg font-semibold text-gray-800">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Eng ko'p sotilgan mahsulotlar
             </CardTitle>
           </CardHeader>
@@ -197,74 +224,93 @@ const AdminStatistics = ({ orders, products, curiers }) => {
               stats.topSellingProducts.map((product, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center text-gray-600" {/* Matn rangi yangilandi */}
+                  className="flex justify-between items-center text-gray-600"
                 >
                   <span>{product.name}</span>
-                  <span className="font-medium text-green-600"> {/* Matn rangi yangilandi */}
+                  <span className="font-medium text-green-600">
                     {product.count} dona
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-gray-600">Ma'lumotlar yo'q</p> {/* Matn rangi yangilandi */}
+              <p className="text-gray-600">Ma'lumotlar yo'q</p>
             )}
           </CardContent>
         </Card>
-        <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+        <Card className="bg-white border-gray-300">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800"> {/* Matn rangi yangilandi */}
+            <CardTitle className="text-lg font-semibold text-gray-800">
               Mahsulotlar haqida
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex justify-between items-center text-gray-600"> {/* Matn rangi yangilandi */}
+            <div className="flex justify-between items-center text-gray-600">
               <span>Jami mahsulotlar:</span>
-              <span className="font-medium text-gray-800"> {/* Matn rangi yangilandi */}
+              <span className="font-medium text-gray-800">
                 {stats.totalProductsCount}
               </span>
             </div>
-            <div className="flex justify-between items-center text-gray-600"> {/* Matn rangi yangilandi */}
+            <div className="flex justify-between items-center text-gray-600">
               <span>Kam qolgan mahsulotlar:</span>
-              <span className="font-medium text-red-600">{stats.lowStockProductsCount}</span> {/* Matn rangi yangilandi */}
+              <span className="font-medium text-red-600">
+                {stats.lowStockProductsCount}
+              </span>{" "}
+              {/* Matn rangi yangilandi */}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 mt-8"> {/* Matn rangi yangilandi */}
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 mt-8">
+        {" "}
+        {/* Matn rangi yangilandi */}
         Kuryerlar Statistikasi
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Object.values(stats.courierStats).length > 0 ? (
           Object.values(stats.courierStats).map((courier, index) => (
-            <Card key={index} className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+            <Card key={index} className="bg-white border-gray-300">
+              {" "}
+              {/* Card rangi va chegarasi yangilandi */}
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-800"> {/* Matn rangi yangilandi */}
+                <CardTitle className="text-lg font-semibold text-gray-800">
+                  {" "}
+                  {/* Matn rangi yangilandi */}
                   {courier.name}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-gray-600"> {/* Matn rangi yangilandi */}
+              <CardContent className="space-y-2 text-gray-600">
+                {" "}
+                {/* Matn rangi yangilandi */}
                 <p>
                   Bugun yetkazilgan:{" "}
-                  <span className="font-bold text-green-600"> {/* Matn rangi yangilandi */}
+                  <span className="font-bold text-green-600">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     {courier.todayDelivered}
                   </span>
                 </p>
                 <p>
                   Bugun bekor qilingan:{" "}
-                  <span className="font-bold text-red-600"> {/* Matn rangi yangilandi */}
+                  <span className="font-bold text-red-600">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     {courier.todayCancelled}
                   </span>
                 </p>
                 <p>
                   Jami yetkazilgan:{" "}
-                  <span className="font-bold text-orange-500"> {/* Matn rangi yangilandi */}
+                  <span className="font-bold text-orange-500">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     {courier.totalDelivered}
                   </span>
                 </p>
                 <p>
                   Jami bekor qilingan:{" "}
-                  <span className="font-bold text-red-600"> {/* Matn rangi yangilandi */}
+                  <span className="font-bold text-red-600">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     {courier.totalCancelled}
                   </span>
                 </p>
@@ -272,7 +318,9 @@ const AdminStatistics = ({ orders, products, curiers }) => {
             </Card>
           ))
         ) : (
-          <p className="text-gray-600 col-span-full"> {/* Matn rangi yangilandi */}
+          <p className="text-gray-600 col-span-full">
+            {" "}
+            {/* Matn rangi yangilandi */}
             Kuryerlar haqida ma'lumotlar yo'q
           </p>
         )}

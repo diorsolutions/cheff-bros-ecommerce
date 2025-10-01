@@ -45,7 +45,7 @@ const MiniChat = ({ messages }) => {
       >
         <Button
           onClick={handleToggleChat}
-          className="w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
+          className="w-14 h-14 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
         >
           {isOpen ? (
             <X className="h-6 w-6" />
@@ -57,12 +57,21 @@ const MiniChat = ({ messages }) => {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white" {/* Chegara rangi yangilandi */}
+            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"
           >
             <span className="text-xs text-white font-bold">{unreadCount}</span>
           </motion.div>
         )}
       </motion.div>
+
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-md z-30"
+          onClick={handleToggleChat}
+        >
+          {/* Click bo'lganda chat yopiladi */}
+        </div>
+      )}
 
       <AnimatePresence>
         {isOpen && (
@@ -72,14 +81,20 @@ const MiniChat = ({ messages }) => {
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
             className="fixed bottom-24 right-6 z-40 w-80 h-96"
           >
-            <Card className="h-full flex flex-col bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
+            <Card className="h-full flex flex-col bg-white border-gray-300">
+              {" "}
+              {/* Card rangi va chegarasi yangilandi */}
               <CardHeader className="pb-3">
-                <CardTitle className="text-gray-800 text-lg">Xabarlar</CardTitle> {/* Matn rangi yangilandi */}
+                <CardTitle className="text-gray-800 text-lg">
+                  Xabarlar
+                </CardTitle>{" "}
+                {/* Matn rangi yangilandi */}
               </CardHeader>
-
               <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.length === 0 ? (
-                  <p className="text-gray-600 text-center text-sm"> {/* Matn rangi yangilandi */}
+                  <p className="text-gray-600 text-center text-sm">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     Hozircha xabarlar yo'q
                   </p>
                 ) : (

@@ -15,7 +15,15 @@ import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Tabs komponentlari
 import CurierStatistics from "./CurierStatistics"; // Yangi import
 
-const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, currentPhone, onNameUpdated, orders }) => {
+const CurierSettingsDialog = ({
+  isOpen,
+  onClose,
+  curierId,
+  currentName,
+  currentPhone,
+  onNameUpdated,
+  orders,
+}) => {
   const [name, setName] = useState(currentName || "");
   const [phone, setPhone] = useState(currentPhone || ""); // Yangi holat
   const [isSaving, setIsSaving] = useState(false);
@@ -66,52 +74,74 @@ const CurierSettingsDialog = ({ isOpen, onClose, curierId, currentName, currentP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
+      <DialogContent className="bg-white border-gray-300">
+        {" "}
+        {/* Dialog rangi va chegarasi yangilandi */}
         <DialogHeader>
-          <DialogTitle className="text-gray-800">Kuryer sozlamalari</DialogTitle> {/* Matn rangi yangilandi */}
+          <DialogTitle className="text-gray-800">
+            Kuryer sozlamalari
+          </DialogTitle>{" "}
+          {/* Matn rangi yangilandi */}
         </DialogHeader>
-        
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-gray-100 border-gray-300"> {/* Ranglar yangilandi */}
-            <TabsTrigger value="profile" className="text-gray-800 data-[state=active]:bg-orange-500 data-[state=active]:text-white"> {/* Ranglar yangilandi */}
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100 border-gray-300">
+            <TabsTrigger
+              value="profile"
+              className="text-gray-800 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+            >
               Profil
             </TabsTrigger>
-            <TabsTrigger value="statistics" className="text-gray-800 data-[state=active]:bg-orange-500 data-[state=active]:text-white"> {/* Ranglar yangilandi */}
+            <TabsTrigger
+              value="statistics"
+              className="text-gray-800 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+            >
               Statistika
             </TabsTrigger>
           </TabsList>
           <TabsContent value="profile" className="py-4">
             <div className="grid gap-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right text-gray-800"> {/* Matn rangi yangilandi */}
+                <Label htmlFor="name" className="text-right text-gray-800">
+                  {" "}
+                  {/* Matn rangi yangilandi */}
                   Ism
                 </Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="col-span-3 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500" {/* Ranglar yangilandi */}
+                  className="col-span-3 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right text-gray-800"> {/* Matn rangi yangilandi */}
+                <Label htmlFor="phone" className="text-right text-gray-800">
+                  {" "}
+                  {/* Matn rangi yangilandi */}
                   Telefon
                 </Label>
                 <Input
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="col-span-3 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500" {/* Ranglar yangilandi */}
+                  className="col-span-3 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500"
                 />
               </div>
             </div>
             <DialogFooter className="mt-6">
               <DialogClose asChild>
-                <Button type="button" variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-gray-800 border-gray-300 hover:bg-gray-200"
+                >
                   Bekor qilish
                 </Button>
               </DialogClose>
-              <Button onClick={handleSaveProfile} disabled={isSaving} className="bg-orange-500 hover:bg-orange-600 text-white"> {/* Ranglar yangilandi */}
+              <Button
+                onClick={handleSaveProfile}
+                disabled={isSaving}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
                 {isSaving ? "Saqlanmoqda..." : "Saqlash"}
               </Button>
             </DialogFooter>

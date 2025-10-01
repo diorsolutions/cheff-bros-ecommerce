@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, XCircle, MoreVertical, Truck, LogOut, User, Package } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  MoreVertical,
+  Truck,
+  LogOut,
+  User,
+  Package,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,42 +115,61 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   const relevantOrders = orders.filter(
     (order) =>
       order.status === "new" ||
-      (order.status === "en_route_to_kitchen" && order.curier_id === curierId) ||
-      (order.status === "picked_up_from_kitchen" && order.curier_id === curierId)
+      (order.status === "en_route_to_kitchen" &&
+        order.curier_id === curierId) ||
+      (order.status === "picked_up_from_kitchen" &&
+        order.curier_id === curierId)
   );
 
   return (
-    <div className="min-h-screen bg-[#bfbfbf] text-gray-800"> {/* Fon va matn rangi yangilandi */}
-      <header className="bg-white border-b border-gray-300 sticky top-0 z-30"> {/* Header rangi yangilandi */}
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#fefefe] text-gray-800">
+      {" "}
+      {/* Fon va matn rangi yangilandi */}
+      <header className="bg-white border-b border-gray-300 sticky top-0 z-30">
+        {" "}
+        {/* Header rangi yangilandi */}
+        <div className="mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Truck className="h-8 w-8 text-orange-500" /> {/* Icon rangi yangilandi */}
-            <h1 className="text-2xl font-bold text-gray-800">Kuryer Paneli</h1> {/* Matn rangi yangilandi */}
+            <Truck className="h-8 w-8 text-orange-500" />{" "}
+            {/* Icon rangi yangilandi */}
+            <h1 className="text-2xl font-bold text-gray-800">
+              Kuryer Paneli
+            </h1>{" "}
+            {/* Matn rangi yangilandi */}
           </div>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               onClick={() => setShowSettingsDialog(true)} // Dialogni ochish
-              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+              className="text-gray-800 hover:bg-gray-200"
             >
               <User className="mr-2 h-4 w-4" />
               {curierName}
             </Button>
-            <Button onClick={handleLogout} variant="ghost" className="text-gray-800 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="text-gray-800 hover:bg-gray-200"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Chiqish
             </Button>
           </div>
         </div>
       </header>
-
-      <main className="p-6 bg-[#bfbfbf]"> {/* Asosiy kontent foni yangilandi */}
+      <main className="p-6 bg-[#f6f6f6]">
+        {" "}
+        {/* Asosiy kontent foni yangilandi */}
         <div className="grid gap-4">
           <AnimatePresence>
             {relevantOrders.length === 0 ? (
-              <Card className="bg-white border-gray-300"> {/* Card rangi va chegarasi yangilandi */}
-                <CardContent className="p-8 text-center">
-                  <p className="text-gray-600 text-lg"> {/* Matn rangi yangilandi */}
+              <Card className="bg-white/40 border-gray-100">
+                {" "}
+                {/* Card rangi va chegarasi yangilandi */}
+                <CardContent className="p-8 text-center ">
+                  <p className="text-gray-600 text-lg">
+                    {" "}
+                    {/* Matn rangi yangilandi */}
                     Hozircha yetkazib beriladigan buyurtmalar yo'q.
                   </p>
                 </CardContent>
@@ -150,9 +177,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
             ) : (
               relevantOrders.map((order) => {
                 const isNew = order.status === "new";
-                const isEnRouteToKitchen = order.status === "en_route_to_kitchen";
-                const isPickedUpFromKitchen = order.status === "picked_up_from_kitchen";
-                const isFinal = order.status === "delivered_to_customer" || order.status === "cancelled";
+                const isEnRouteToKitchen =
+                  order.status === "en_route_to_kitchen";
+                const isPickedUpFromKitchen =
+                  order.status === "picked_up_from_kitchen";
+                const isFinal =
+                  order.status === "delivered_to_customer" ||
+                  order.status === "cancelled";
 
                 return (
                   <motion.div
@@ -163,7 +194,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                     exit={{ opacity: 0, y: -20 }}
                   >
                     <Card
-                      className={`bg-white border-gray-300 hover:border-gray-400 transition-all duration-300 ${ /* Card rangi va chegarasi yangilandi */
+                      className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
+                        /* Card rangi va chegarasi yangilandi */
                         order.status === "delivered_to_customer"
                           ? "bg-green-100 border-green-300 opacity-80" /* Ranglar yangilandi */
                           : order.status === "cancelled"
@@ -177,21 +209,25 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-gray-800 flex items-center gap-3 text-base"> {/* Matn rangi yangilandi */}
+                          <CardTitle className="text-gray-800 flex items-center gap-3 text-base">
+                            {" "}
+                            {/* Matn rangi yangilandi */}
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${
-                                !isFinal ? "animate-pulse" : ""
-                              }`}
+                              )} ${!isFinal ? "animate-pulse" : ""}`}
                             ></span>
                             Buyurtma{" "}
-                            <span className="text-gray-500"> {/* Matn rangi yangilandi */}
+                            <span className="text-gray-500">
+                              {" "}
+                              {/* Matn rangi yangilandi */}
                               {order.id.substring(0, 8)}
                             </span>
                           </CardTitle>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500"> {/* Matn rangi yangilandi */}
+                            <span className="text-gray-500">
+                              {" "}
+                              {/* Matn rangi yangilandi */}
                               {new Date(order.created_at).toLocaleString(
                                 "uz-UZ"
                               )}
@@ -202,16 +238,20 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+                                    className="text-gray-800 hover:bg-gray-200"
                                   >
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-white border-gray-300"> {/* Ranglar yangilandi */}
+                                <DropdownMenuContent className="bg-white border-gray-300">
                                   {isNew && (
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        onUpdateOrderStatus(order.id, "en_route_to_kitchen", curierId)
+                                        onUpdateOrderStatus(
+                                          order.id,
+                                          "en_route_to_kitchen",
+                                          curierId
+                                        )
                                       }
                                       className="text-yellow-600 hover:!bg-yellow-100 focus:bg-yellow-100 focus:text-yellow-700" /* Ranglar yangilandi */
                                     >
@@ -222,7 +262,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                   {isEnRouteToKitchen && (
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        onUpdateOrderStatus(order.id, "picked_up_from_kitchen", curierId)
+                                        onUpdateOrderStatus(
+                                          order.id,
+                                          "picked_up_from_kitchen",
+                                          curierId
+                                        )
                                       }
                                       className="text-orange-600 hover:!bg-orange-100 focus:bg-orange-100 focus:text-orange-700" /* Ranglar yangilandi */
                                     >
@@ -234,7 +278,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                     <>
                                       <DropdownMenuItem
                                         onClick={() =>
-                                          onUpdateOrderStatus(order.id, "delivered_to_customer", curierId)
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "delivered_to_customer",
+                                            curierId
+                                          )
                                         }
                                         className="text-green-600 hover:!bg-green-100 focus:bg-green-100 focus:text-green-700" /* Ranglar yangilandi */
                                       >
@@ -243,7 +291,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
                                         onClick={() =>
-                                          onUpdateOrderStatus(order.id, "cancelled", curierId)
+                                          onUpdateOrderStatus(
+                                            order.id,
+                                            "cancelled",
+                                            curierId
+                                          )
                                         }
                                         className="text-red-600 hover:!bg-red-100 focus:bg-red-100 focus:text-red-700" /* Ranglar yangilandi */
                                       >
@@ -256,7 +308,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               </DropdownMenu>
                             )}
                             {isFinal && (
-                              <span className="text-xs text-gray-500 italic"> {/* Matn rangi yangilandi */}
+                              <span className="text-xs text-gray-500 italic">
+                                {" "}
+                                {/* Matn rangi yangilandi */}
                                 {order.status === "delivered_to_customer"
                                   ? "✓ Mijozga yetkazildi"
                                   : "✗ Bekor qilingan"}
@@ -267,29 +321,53 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                       </CardHeader>
 
                       <CardContent className="space-y-2">
-                        <div className="flex justify-between items-center text-sm text-gray-600"> {/* Matn rangi yangilandi */}
+                        <div className="flex justify-between items-center text-sm text-gray-600">
+                          {" "}
+                          {/* Matn rangi yangilandi */}
                           <p>
-                            <span className="font-bold text-gray-800">Mijoz:</span>{" "} {/* Matn rangi yangilandi */}
+                            <span className="font-bold text-gray-800">
+                              Mijoz:
+                            </span>{" "}
+                            {/* Matn rangi yangilandi */}
                             {order.customer_info.name}
                           </p>
                           <p>
-                            <span className="font-bold text-gray-800">Tel:</span>{" "} {/* Matn rangi yangilandi */}
+                            <span className="font-bold text-gray-800">
+                              Tel:
+                            </span>{" "}
+                            {/* Matn rangi yangilandi */}
                             {order.customer_info.phone}
                           </p>
                         </div>
-                        <p className="text-sm text-gray-600"> {/* Matn rangi yangilandi */}
-                          <span className="font-bold text-gray-800">Manzil:</span>{" "} {/* Matn rangi yangilandi */}
+                        <p className="text-sm text-gray-600">
+                          {" "}
+                          {/* Matn rangi yangilandi */}
+                          <span className="font-bold text-gray-800">
+                            Manzil:
+                          </span>{" "}
+                          {/* Matn rangi yangilandi */}
                           {order.location}
                         </p>
-                        <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center"> {/* Chegara rangi yangilandi */}
-                          <span className="text-gray-800 font-bold">Jami:</span> {/* Matn rangi yangilandi */}
-                          <span className="text-orange-500 text-lg font-bold"> {/* Matn rangi yangilandi */}
+                        <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
+                          {" "}
+                          {/* Chegara rangi yangilandi */}
+                          <span className="text-gray-800 font-bold">
+                            Jami:
+                          </span>{" "}
+                          {/* Matn rangi yangilandi */}
+                          <span className="text-orange-500 text-lg font-bold">
+                            {" "}
+                            {/* Matn rangi yangilandi */}
                             {order.total_price.toLocaleString()} so'm
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <Truck className="h-4 w-4 text-gray-500" /> {/* Icon rangi yangilandi */}
-                          <span className="text-sm text-gray-500">Status:</span> {/* Matn rangi yangilandi */}
+                          <Truck className="h-4 w-4 text-gray-500" />{" "}
+                          {/* Icon rangi yangilandi */}
+                          <span className="text-sm text-gray-500">
+                            Status:
+                          </span>{" "}
+                          {/* Matn rangi yangilandi */}
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
@@ -315,7 +393,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           </AnimatePresence>
         </div>
       </main>
-
       {curierId && (
         <CurierSettingsDialog
           isOpen={showSettingsDialog}

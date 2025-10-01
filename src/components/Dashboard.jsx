@@ -39,11 +39,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#bfbfbf] text-gray-800"> {/* Fon va matn rangi yangilandi */}
-      <header className="bg-white border-b border-gray-300 sticky top-0 z-30"> {/* Header rangi yangilandi */}
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Paneli</h1> {/* Matn rangi yangilandi */}
-          <Button onClick={handleSignOut} variant="ghost" className="text-gray-800 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white">
+      <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Admin Paneli</h1>
+          <Button onClick={handleSignOut} variant="ghost">
             <LogOut className="mr-2 h-4 w-4" />
             Chiqish
           </Button>
@@ -53,13 +53,13 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
         <aside
           className={`transition-all duration-300 ${
             isSidebarOpen ? "w-64" : "w-20"
-          } bg-white border-r border-gray-300 p-4 pt-2`} {/* Sidebar rangi va chegarasi yangilandi */}
+          } border-r border-white/20 p-4 pt-2`}
         >
           <nav className="flex flex-col items-start gap-2 sticky top-[81px]">
             <Button
               variant="ghost"
               size="icon"
-              className="self-end mb-4 text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+              className="self-end mb-4"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
               {isSidebarOpen ? (
@@ -70,7 +70,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "orders" ? "secondary" : "ghost"}
-              className={`min-w-full justify-start ${adminView === "orders" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`min-w-full justify-start ${
+                adminView === "orders"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
               onClick={() => setAdminView("orders")}
             >
               <ListOrdered className="mr-3 h-5 w-5" />
@@ -78,7 +82,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "products" ? "secondary" : "ghost"}
-              className={`min-w-full justify-start ${adminView === "products" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`min-w-full justify-start ${
+                adminView === "products"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
               onClick={() => setAdminView("products")}
             >
               <Utensils className="mr-3 h-5 w-5" />
@@ -86,7 +94,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "statistics" ? "secondary" : "ghost"}
-              className={`min-w-full justify-start ${adminView === "statistics" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`min-w-full justify-start ${
+                adminView === "statistics"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
               onClick={() => setAdminView("statistics")}
             >
               <BarChart2 className="mr-3 h-5 w-5" />
@@ -94,7 +106,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
             <Button
               variant={adminView === "couriers" ? "secondary" : "ghost"}
-              className={`min-w-full justify-start ${adminView === "couriers" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`min-w-full justify-start ${
+                adminView === "couriers"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
               onClick={() => setAdminView("couriers")}
             >
               <Users className="mr-3 h-5 w-5" />
@@ -102,7 +118,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
           </nav>
         </aside>
-        <div className="flex-1 p-6 bg-[#bfbfbf]"> {/* Asosiy kontent foni yangilandi */}
+        <div className="flex-1 p-6">
           <motion.div
             key={adminView}
             initial={{ opacity: 0, y: 20 }}
@@ -118,7 +134,11 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             ) : adminView === "products" ? (
               <AdminProducts products={products} />
             ) : adminView === "statistics" ? (
-              <AdminStatistics orders={orders} products={products} curiers={curiers} />
+              <AdminStatistics
+                orders={orders}
+                products={products}
+                curiers={curiers}
+              />
             ) : (
               <AdminCouriers curiers={curiers} orders={orders} />
             )}

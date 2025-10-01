@@ -42,7 +42,12 @@ const ProductDetail = ({ onAddToCart }) => {
       .channel(`product-${id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "products", filter: `id=eq.${id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
+          filter: `id=eq.${id}`,
+        },
         (payload) => {
           if (payload.eventType === "DELETE") {
             navigate("/");
@@ -60,8 +65,9 @@ const ProductDetail = ({ onAddToCart }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#bfbfbf] flex items-center justify-center"> {/* Fon rangi yangilandi */}
-        <div className="text-gray-800 text-xl">Yuklanmoqda...</div> {/* Matn rangi yangilandi */}
+      <div className="min-h-screen bg-[#ffffff] flex items-center justify-center">
+        {" "}
+        <div className="text-gray-800 text-xl">Yuklanmoqda...</div>{" "}
       </div>
     );
   }
@@ -96,12 +102,14 @@ const ProductDetail = ({ onAddToCart }) => {
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   return (
-    <div className="min-h-screen bg-[#bfbfbf]"> {/* Fon rangi yangilandi */}
+    <div className="min-h-screen bg-[#f5f5f5]">
+      {" "}
+      {/* Fon rangi yangilandi */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="text-gray-800 mb-6 hover:bg-gray-200" {/* Ranglar yangilandi */}
+          className="text-gray-800 mb-6 hover:bg-gray-200"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Orqaga
@@ -112,10 +120,9 @@ const ProductDetail = ({ onAddToCart }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white border border-gray-300 rounded-2xl shadow-lg"> {/* Card rangi va chegarasi yangilandi */}
+          <Card className="bg-white/50 border border-gray-100 rounded-2xl shadow-lg">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 sm:p-6 lg:p-10">
-                {/* Product Image */}
                 <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 shadow-md">
                   <img
                     className="w-full h-full object-cover"
@@ -127,20 +134,23 @@ const ProductDetail = ({ onAddToCart }) => {
                   />
                 </div>
 
-                {/* Product Details */}
                 <div className="flex flex-col justify-start space-y-6">
                   <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 leading-tight"> {/* Matn rangi yangilandi */}
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 leading-tight">
+                      {" "}
                       {product.name}
                     </h1>
                     {product.category && (
                       <div className="mb-3">
-                        <span className="inline-block text-xs sm:text-sm font-semibold px-3 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300"> {/* Ranglar yangilandi */}
+                        <span className="inline-block text-xs sm:text-sm font-semibold px-3 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300">
+                          {" "}
                           Kategoriya: {product.category}
                         </span>
                       </div>
                     )}
-                    <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed"> {/* Matn rangi yangilandi */}
+                    <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed">
+                      {" "}
+                      {/* Matn rangi yangilandi */}
                       {product.description}
                     </p>
 
@@ -163,7 +173,9 @@ const ProductDetail = ({ onAddToCart }) => {
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500"> {/* Matn rangi yangilandi */}
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500">
+                        {" "}
+                        {/* Matn rangi yangilandi */}
                         {Number(product.price).toLocaleString()} so'm
                       </span>
                     </div>
@@ -172,18 +184,21 @@ const ProductDetail = ({ onAddToCart }) => {
                   {/* Quantity + Add to Cart */}
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-4">
-                      <span className="text-gray-800 font-medium">Miqdor:</span> {/* Matn rangi yangilandi */}
-                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2"> {/* Rang yangilandi */}
+                      <span className="text-gray-800 font-medium">Miqdor:</span>{" "}
+                      {/* Matn rangi yangilandi */}
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+                        {" "}
+                        {/* Rang yangilandi */}
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={decrementQuantity}
                           disabled={isOutOfStock}
-                          className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" {/* Ranglar yangilandi */}
+                          className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Minus className="h-5 w-5" />
                         </Button>
-                        <span className="text-gray-800 font-bold text-xl w-12 text-center"> {/* Matn rangi yangilandi */}
+                        <span className="text-gray-800 font-bold text-xl w-12 text-center">
                           {quantity}
                         </span>
                         <Button
@@ -191,7 +206,7 @@ const ProductDetail = ({ onAddToCart }) => {
                           variant="ghost"
                           onClick={incrementQuantity}
                           disabled={isOutOfStock || quantity >= stock}
-                          className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed" {/* Ranglar yangilandi */}
+                          className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus className="h-5 w-5" />
                         </Button>
@@ -200,7 +215,9 @@ const ProductDetail = ({ onAddToCart }) => {
 
                     <Button
                       onClick={handleAddToCart}
-                      disabled={isOutOfStock || quantity > stock || quantity === 0} // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
+                      disabled={
+                        isOutOfStock || quantity > stock || quantity === 0
+                      } // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
                       className="w-full h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="mr-2 h-5 w-5" />

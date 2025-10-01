@@ -11,7 +11,7 @@
 
 body {
   font-family: "Inter", sans-serif;
-  @apply bg-[#bfbfbf] text-gray-800; /* Global fon va matn rangi yangilandi */
+  @apply bg-[#fdfdfd] text-gray-800; /* Global fon va matn rangi yangilandi */
   overflow-x: hidden;
 }
 

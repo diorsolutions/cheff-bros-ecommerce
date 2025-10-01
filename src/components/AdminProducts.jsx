@@ -37,7 +37,14 @@ const AdminProducts = memo(({ products }) => {
 
   const openDialog = (product = null) => {
     setCurrentProduct(
-      product || { name: "", description: "", price: "", image_url: "", stock: 0, category: "" }
+      product || {
+        name: "",
+        description: "",
+        price: "",
+        image_url: "",
+        stock: 0,
+        category: "",
+      }
     );
     setSelectedImage(null);
     setImagePreview(product?.image_url || null);
@@ -93,7 +100,9 @@ const AdminProducts = memo(({ products }) => {
     setIsUploading(true);
 
     try {
-      let imageUrl = currentProduct.image_url || "https://images.unsplash.com/photo-1559223669-e0065fa7f142";
+      let imageUrl =
+        currentProduct.image_url ||
+        "https://images.unsplash.com/photo-1559223669-e0065fa7f142";
 
       if (selectedImage) {
         imageUrl = await uploadImage(selectedImage);
@@ -104,7 +113,9 @@ const AdminProducts = memo(({ products }) => {
       if (response.ok) {
         const cacheControlHeader = response.headers.get("cache-control");
         if (!cacheControlHeader.includes("no-cache")) {
-          console.warn("Cache policy might need adjustment for dynamic content.");
+          console.warn(
+            "Cache policy might need adjustment for dynamic content."
+          );
         }
       }
 
@@ -170,7 +181,7 @@ const AdminProducts = memo(({ products }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Mahsulotlar</h1> {/* Matn rangi yangilandi */}
+        <h1 className="text-3xl font-bold text-gray-800">Mahsulotlar</h1>
         <Button
           onClick={() => openDialog()}
           className="bg-gradient-to-r from-orange-500 to-red-500"
@@ -189,15 +200,15 @@ const AdminProducts = memo(({ products }) => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
             >
-              <Card className="bg-white border-gray-300 h-full flex flex-col"> {/* Card rangi va chegarasi yangilandi */}
+              <Card className="bg-white border-gray-300 h-full flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-gray-800 flex justify-between items-start"> {/* Matn rangi yangilandi */}
+                  <CardTitle className="text-gray-800 flex justify-between items-start">
                     <span className="flex-1 mr-4">{product.name}</span>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+                        className="h-8 w-8 text-gray-800 hover:bg-gray-200"
                         onClick={() => openDialog(product)}
                       >
                         <Edit className="h-4 w-4" />
@@ -207,29 +218,29 @@ const AdminProducts = memo(({ products }) => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 hover:bg-red-100" {/* Ranglar yangilandi */}
+                            className="h-8 w-8 hover:bg-red-100"
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" /> {/* Rang yangilandi */}
+                            <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-white border-gray-300"> {/* Dialog rangi va chegarasi yangilandi */}
+                        <AlertDialogContent className="bg-white border-gray-300">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
+                            <AlertDialogTitle className="text-gray-800">
                               O'chirishni tasdiqlang
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-600"> {/* Matn rangi yangilandi */}
+                            <AlertDialogDescription className="text-gray-600">
                               "{product.name}" mahsulotini o'chirishga
                               ishonchingiz komilmi? Bu amalni orqaga qaytarib
                               bo'lmaydi.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+                            <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200">
                               Bekor qilish
                             </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(product.id)}
-                              className="bg-red-600 hover:bg-red-700 text-white" {/* Ranglar yangilandi */}
+                              className="bg-red-600 hover:bg-red-700 text-white"
                             >
                               O'chirish
                             </AlertDialogAction>
@@ -242,13 +253,13 @@ const AdminProducts = memo(({ products }) => {
                 <CardContent className="flex-grow">
                   {product.category && (
                     <div className="mb-2">
-                      <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300"> {/* Ranglar yangilandi */}
+                      <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300">
                         {product.category}
                       </span>
                     </div>
                   )}
-                  <p className="text-gray-600 mb-2">{product.description}</p> {/* Matn rangi yangilandi */}
-                  <p className="text-orange-500 font-bold text-lg"> {/* Matn rangi yangilandi */}
+                  <p className="text-gray-600 mb-2">{product.description}</p>
+                  <p className="text-orange-500 font-bold text-lg">
                     {Number(product.price).toLocaleString()} so'm
                   </p>
                   <div className="mt-2">
@@ -276,9 +287,9 @@ const AdminProducts = memo(({ products }) => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white border-gray-300 text-gray-800"> {/* Dialog rangi va matn rangi yangilandi */}
+        <DialogContent className="bg-white border-gray-300 text-gray-800">
           <DialogHeader>
-            <DialogTitle className="text-gray-800"> {/* Matn rangi yangilandi */}
+            <DialogTitle className="text-gray-800">
               {currentProduct?.id
                 ? "Mahsulotni tahrirlash"
                 : "Yangi mahsulot qo'shish"}
@@ -291,7 +302,7 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, name: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
             />
             <Textarea
               placeholder="Tavsifi"
@@ -302,7 +313,7 @@ const AdminProducts = memo(({ products }) => {
                   description: e.target.value,
                 })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
             />
             <Input
               type="number"
@@ -311,7 +322,7 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, price: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
             />
             <Input
               type="number"
@@ -320,39 +331,52 @@ const AdminProducts = memo(({ products }) => {
               onChange={(e) =>
                 setCurrentProduct({ ...currentProduct, stock: e.target.value })
               }
-              className="bg-gray-100 border-gray-300 text-gray-800" {/* Ranglar yangilandi */}
+              className="bg-gray-100 border-gray-300 text-gray-800"
               min="0"
             />
 
-            {/* Category */}
             <div className="space-y-2">
-              <label className="text-gray-800 text-sm font-medium">Kategoriya</label> {/* Matn rangi yangilandi */}
+              <label className="text-gray-800 text-sm font-medium">
+                Kategoriya
+              </label>
               <select
                 value={currentProduct?.category || ""}
                 onChange={(e) =>
-                  setCurrentProduct({ ...currentProduct, category: e.target.value })
+                  setCurrentProduct({
+                    ...currentProduct,
+                    category: e.target.value,
+                  })
                 }
-                className="w-full bg-gray-100 border border-gray-300 text-gray-800 rounded-md px-3 py-2 focus:outline-none" {/* Ranglar yangilandi */}
+                className="w-full bg-gray-100 border border-gray-300 text-gray-800 rounded-md px-3 py-2 focus:outline-none"
               >
-                <option value="" className="bg-white">Tanlang</option> {/* Rang yangilandi */}
-                <option value="Hoddog" className="bg-white">Hoddog</option> {/* Rang yangilandi */}
-                <option value="Ichimlillar" className="bg-white">Ichimlillar</option> {/* Rang yangilandi */}
-                <option value="Disertlar" className="bg-white">Disertlar</option> {/* Rang yangilandi */}
+                <option value="" className="bg-white">
+                  Tanlang
+                </option>
+                <option value="Hoddog" className="bg-white">
+                  Hoddog
+                </option>
+                <option value="Ichimlillar" className="bg-white">
+                  Ichimlillar
+                </option>
+                <option value="Disertlar" className="bg-white">
+                  Disertlar
+                </option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-gray-800 text-sm font-medium"> {/* Matn rangi yangilandi */}
+              <label className="text-gray-800 text-sm font-medium">
                 Mahsulot rasmi
               </label>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <label
                     htmlFor="image-upload"
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200 transition-colors" {/* Ranglar yangilandi */}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
                   >
-                    <Upload className="h-4 w-4 text-gray-800" /> {/* Icon rangi yangilandi */}
-                    <span className="text-gray-800 text-sm"> {/* Matn rangi yangilandi */}
+                    <Upload className="h-4 w-4 text-gray-800" />{" "}
+                    <span className="text-gray-800 text-sm">
+                      {" "}
                       {selectedImage ? selectedImage.name : "Rasm tanlash"}
                     </span>
                   </label>
@@ -365,7 +389,8 @@ const AdminProducts = memo(({ products }) => {
                   />
                 </div>
                 {imagePreview && (
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-300"> {/* Chegara rangi yangilandi */}
+                  <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-300">
+                    {" "}
                     <img
                       src={imagePreview}
                       alt="Preview"
@@ -387,11 +412,21 @@ const AdminProducts = memo(({ products }) => {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="text-gray-800 border-gray-300 hover:bg-gray-200"> {/* Ranglar yangilandi */}
+              <Button
+                type="button"
+                variant="outline"
+                className="text-gray-800 border-gray-300 hover:bg-gray-200"
+              >
+                {" "}
                 Bekor qilish
               </Button>
             </DialogClose>
-            <Button onClick={handleSave} disabled={isSaving || isUploading} className="bg-orange-500 hover:bg-orange-600 text-white"> {/* Ranglar yangilandi */}
+            <Button
+              onClick={handleSave}
+              disabled={isSaving || isUploading}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {" "}
               {isUploading
                 ? "Yuklanyapti..."
                 : isSaving

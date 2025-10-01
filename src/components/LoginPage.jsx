@@ -86,13 +86,11 @@ const LoginPage = () => {
   // DB ga blok holatini yozish
   const updateLock = async (nextAttempts, nextBlockedUntil) => {
     try {
-      await supabase
-        .from("admin_login_state")
-        .upsert({
-          id: LOCK_ROW_ID,
-          attempts: nextAttempts,
-          blocked_until: nextBlockedUntil,
-        });
+      await supabase.from("admin_login_state").upsert({
+        id: LOCK_ROW_ID,
+        attempts: nextAttempts,
+        blocked_until: nextBlockedUntil,
+      });
       setAttempts(nextAttempts);
       setBlockedUntil(nextBlockedUntil);
     } catch (e) {
@@ -212,10 +210,16 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#bfbfbf] flex items-center justify-center px-4"> {/* Fon rangi yangilandi */}
-      <Card className="w-full max-w-[380px] bg-white border-gray-300 text-gray-800"> {/* Card rangi va matn rangi yangilandi */}
+    <div className="min-h-screen bg-[#f2f2f2] flex items-center justify-center px-4">
+      {" "}
+      {/* Fon rangi yangilandi */}
+      <Card className="w-full max-w-[380px] bg-white border-gray-300 text-gray-800">
+        {" "}
+        {/* Card rangi va matn rangi yangilandi */}
         <CardHeader>
-          <CardTitle className="text-center text-2xl text-gray-800"> {/* Matn rangi yangilandi */}
+          <CardTitle className="text-center text-2xl text-gray-800">
+            {" "}
+            {/* Matn rangi yangilandi */}
             {loginMode === "admin" ? "Admin Kirishi" : "Kuryer Kirishi"}
           </CardTitle>
         </CardHeader>
@@ -228,7 +232,11 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className={`flex-1 ${loginMode === "admin" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`flex-1 ${
+                loginMode === "admin"
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"
+              }`}
             >
               Admin
             </Button>
@@ -239,7 +247,11 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className={`flex-1 ${loginMode === "curier" ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+              className={`flex-1 ${
+                loginMode === "curier"
+                  ? "bg-orange-500 text-white"
+                  : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"
+              }`}
             >
               Kuryer
             </Button>
@@ -247,15 +259,15 @@ const LoginPage = () => {
 
           {isBlocked && loginMode === "admin" ? (
             <div className="space-y-4">
-              <div className="p-4 rounded-md border border-red-500 bg-red-100 text-red-600 text-sm sm:text-base"> {/* Ranglar yangilandi */}
+              <div className="p-4 rounded-md border border-red-500 bg-red-100 text-red-600 text-sm sm:text-base">
                 Siz 3 marta noto'g'ri login yoki parol kiritdingiz, keyinroq
                 urinib ko'ring!
               </div>
-              <div className="p-4 rounded-md border border-red-500 bg-red-100 text-center"> {/* Ranglar yangilandi */}
-                <div className="text-xs uppercase tracking-wide text-red-600 mb-1"> {/* Ranglar yangilandi */}
+              <div className="p-4 rounded-md border border-red-500 bg-red-100 text-center">
+                <div className="text-xs uppercase tracking-wide text-red-600 mb-1">
                   Bloklangan vaqt
                 </div>
-                <div className="text-2xl font-bold text-red-500"> {/* Ranglar yangilandi */}
+                <div className="text-2xl font-bold text-red-500">
                   {secondsToHMS(remainingSec)}
                 </div>
               </div>
@@ -266,7 +278,7 @@ const LoginPage = () => {
                 placeholder="Login"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500" {/* Ranglar yangilandi */}
+                className="bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500"
                 required
               />
               <Input
@@ -274,7 +286,7 @@ const LoginPage = () => {
                 placeholder="Parol"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500" {/* Ranglar yangilandi */}
+                className="bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500"
                 required
               />
               <Button

@@ -223,9 +223,7 @@ function App() {
                 prev.map((c) => (c.id === payload.new.id ? payload.new : c))
               );
             } else if (payload.eventType === "DELETE") {
-              setCuriers((prev) =>
-                prev.filter((c) => c.id !== payload.old.id)
-              );
+              setCuriers((prev) => prev.filter((c) => c.id !== payload.old.id));
             }
           }
         )
@@ -339,8 +337,12 @@ function App() {
       return;
     }
 
-    const itemNames = items.map((item) => item.name).join(", ");
-    const systemMessage = `Sizning ${itemNames} nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab kurier orqali jo'natilganligini anglatadi.`;
+    // const itemNames = items.map((item) => item.name).join(", ");
+    const boldItemNames = items.map((item) => `*${item.name}*`).join(", ");
+
+    const systemMessage = `Sizning 
+    ${boldItemNames}
+    nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
 
     await handleSendMessage(customer.phone, systemMessage);
 
@@ -351,7 +353,11 @@ function App() {
     });
   };
 
-  const handleUpdateOrderStatus = async (orderId, newStatus, curierId = null) => {
+  const handleUpdateOrderStatus = async (
+    orderId,
+    newStatus,
+    curierId = null
+  ) => {
     const orderToUpdate = orders.find((o) => o.id === orderId);
 
     if (!orderToUpdate) {
@@ -371,7 +377,8 @@ function App() {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
         toast({
           title: "Xatolik!",
-          description: "Bu buyurtma allaqachon boshqa kuryer tomonidan qabul qilingan.",
+          description:
+            "Bu buyurtma allaqachon boshqa kuryer tomonidan qabul qilingan.",
           variant: "destructive",
         });
         return;
@@ -385,19 +392,24 @@ function App() {
           } else {
             toast({
               title: "Xatolik!",
-              description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+              description:
+                "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
               variant: "destructive",
             });
             return;
           }
           break;
         case "picked_up_from_kitchen": // BUYURTMA MENDA
-          if (orderToUpdate.status === "en_route_to_kitchen" && orderToUpdate.curier_id === curierId) {
+          if (
+            orderToUpdate.status === "en_route_to_kitchen" &&
+            orderToUpdate.curier_id === curierId
+          ) {
             canUpdate = true;
           } else {
             toast({
               title: "Xatolik!",
-              description: "Buyurtma hali kuryer tomonidan olinmagan yoki boshqa statusda.",
+              description:
+                "Buyurtma hali kuryer tomonidan olinmagan yoki boshqa statusda.",
               variant: "destructive",
             });
             return;
@@ -405,12 +417,16 @@ function App() {
           break;
         case "delivered_to_customer": // MIJOZDA
         case "cancelled": // BEKOR QILINGAN
-          if (orderToUpdate.status === "picked_up_from_kitchen" && orderToUpdate.curier_id === curierId) {
+          if (
+            orderToUpdate.status === "picked_up_from_kitchen" &&
+            orderToUpdate.curier_id === curierId
+          ) {
             canUpdate = true;
           } else {
             toast({
               title: "Xatolik!",
-              description: "Buyurtma hali kuryer tomonidan olinmagan yoki yakunlangan.",
+              description:
+                "Buyurtma hali kuryer tomonidan olinmagan yoki yakunlangan.",
               variant: "destructive",
             });
             return;
@@ -430,7 +446,8 @@ function App() {
       if (orderToUpdate.curier_id) {
         toast({
           title: "Xatolik!",
-          description: "Bu buyurtma kuryerga biriktirilgan. Faqat kuryer o'zgartira oladi.",
+          description:
+            "Bu buyurtma kuryerga biriktirilgan. Faqat kuryer o'zgartira oladi.",
           variant: "destructive",
         });
         return;
@@ -600,13 +617,19 @@ function MainLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-[#bfbfbf]"> {/* Asosiy fon rangi yangilandi */}
-      <header className="bg-white backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30"> {/* Header rangi yangilandi */}
+    <div className="min-h-screen bg-[#ffffff]">
+      {" "}
+      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
+        {" "}
+        {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Store className="h-8 w-8 text-orange-400" />
-              <h1 className="text-2xl font-bold text-gray-800">Restoran</h1> {/* Matn rangi yangilandi */}
+              <h1 className="text-2xl font-bold text-gray-800">
+                Restoran
+              </h1>{" "}
+              {/* Matn rangi yangilandi */}
             </div>
 
             <div className="flex items-center gap-4">
@@ -627,25 +650,28 @@ function MainLayout({
           </div>
         </div>
       </header>
-
-      <main className="w-full mx-auto max-w-[1376px]">
+      <main className="w-full mx-auto max-w-[1376px] bg-white/90">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
           <div className="text-center mb-8 sm:mb-12 px-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-3 sm:mb-4"> {/* Matn rangi yangilandi */}
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-3 sm:mb-4">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Bizning Menyumiz
             </h2>
-            <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto"> {/* Matn rangi yangilandi */}
+            <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
+              {" "}
+              {/* Matn rangi yangilandi */}
               Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
               ingredientlar bilan tayyorlanadi.
             </p>
           </div>
 
           {/* Category Filters */}
-          <div className="px-4 mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="px-4 mb-6 justify-center flex flex-wrap items-center gap-2 sm:gap-3">
             {[
               { key: "all", label: "Barchasi" },
               { key: "Hoddog", label: "Hoddog" },
@@ -655,7 +681,11 @@ function MainLayout({
               <Button
                 key={c.key}
                 variant={categoryFilter === c.key ? "secondary" : "ghost"}
-                className={`${categoryFilter === c.key ? "bg-orange-500 text-white" : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"}`} {/* Ranglar yangilandi */}
+                className={
+                  categoryFilter === c.key
+                    ? "bg-orange-500 text-white"
+                    : "text-gray-800 hover:bg-gray-200 hover:text-orange-500 border border-gray-300"
+                }
                 onClick={() => {
                   setCategoryFilter(c.key);
                   setCurrentPage(1);
@@ -669,7 +699,9 @@ function MainLayout({
           {/* Products Grid with pagination */}
           <div className="px-4">
             {productsError ? (
-              <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4"> {/* Ranglar yangilandi */}
+              <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4">
+                {" "}
+                {/* Ranglar yangilandi */}
                 {productsError}
               </div>
             ) : loadingProducts ? (
@@ -695,7 +727,9 @@ function MainLayout({
                   return (
                     <>
                       {all.length === 0 ? (
-                        <div className="text-center text-gray-600 py-16"> {/* Matn rangi yangilandi */}
+                        <div className="text-center text-gray-300 py-16">
+                          {" "}
+                          {/* Matn rangi yangilandi */}
                           Hozircha mahsulotlar yo'q.
                         </div>
                       ) : (
@@ -725,11 +759,11 @@ function MainLayout({
                               onClick={() =>
                                 canPrev && setCurrentPage((p) => p - 1)
                               }
-                              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+                              className="text-gray-800 hover:bg-gray-200"
                             >
                               Oldingi
                             </Button>
-                            <span className="text-gray-600 text-sm sm:text-base"> {/* Matn rangi yangilandi */}
+                            <span className="text-gray-600 text-sm sm:text-base">
                               {currentPage} / {totalPages}
                             </span>
                             <Button
@@ -738,7 +772,7 @@ function MainLayout({
                               onClick={() =>
                                 canNext && setCurrentPage((p) => p + 1)
                               }
-                              className="text-gray-800 hover:bg-gray-200" {/* Ranglar yangilandi */}
+                              className="text-gray-800 hover:bg-gray-200"
                             >
                               Keyingi
                             </Button>
@@ -758,9 +792,9 @@ function MainLayout({
               animate={{ opacity: 1, y: 0 }}
               className="fixed bottom-6 left-6 z-20"
             >
-              <Card className=" w-[15rem] flex flex-col justify-start bg-white border-orange-500/90"> {/* Card rangi yangilandi */}
+              <Card className=" w-[15rem] flex flex-col justify-start bg-white border-orange-500/90">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-gray-800 text-center text-lg"> {/* Matn rangi yangilandi */}
+                  <CardTitle className="text-gray-800 text-center text-lg">
                     Savat
                   </CardTitle>
                 </CardHeader>
@@ -773,13 +807,13 @@ function MainLayout({
                     return (
                       <div
                         key={index}
-                        className="space-y-1 border-b border-gray-300 py-2" {/* Chegara rangi yangilandi */}
+                        className="space-y-1 border-b border-gray-300 py-2"
                       >
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600"> {/* Matn rangi yangilandi */}
+                          <span className="text-gray-600">
                             {item.name} x{item.quantity}
                           </span>
-                          <span className="text-orange-500 font-medium"> {/* Matn rangi yangilandi */}
+                          <span className="text-orange-500 font-medium">
                             {(item.price * item.quantity).toLocaleString()} so'm
                           </span>
                         </div>
@@ -801,10 +835,10 @@ function MainLayout({
                       </div>
                     );
                   })}
-                  <div className="border-t border-gray-300 pt-2"> {/* Chegara rangi yangilandi */}
+                  <div className="border-t border-gray-300 pt-2">
                     <div className="flex justify-between font-bold">
-                      <span className="text-gray-800">Jami:</span> {/* Matn rangi yangilandi */}
-                      <span className="text-orange-500"> {/* Matn rangi yangilandi */}
+                      <span className="text-gray-800">Jami:</span>
+                      <span className="text-orange-500">
                         {cartItems
                           .reduce(
                             (sum, item) => sum + item.price * item.quantity,
@@ -821,7 +855,7 @@ function MainLayout({
           )}
         </motion.div>
       </main>
-      <MiniChat messages={messages} /> {/* MiniChat MainLayout ichiga ko'chirildi */}
+      <MiniChat messages={messages} />
     </div>
   );
 }
