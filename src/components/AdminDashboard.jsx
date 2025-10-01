@@ -8,6 +8,7 @@ import {
   Bell,
   Filter,
   Package,
+  Truck, // Truck ikonasi import qilindi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -206,13 +207,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                     className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
                       order.status === "delivered_to_customer"
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
-                        : order.status === "cancelled"
-                        ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
-                        : order.status === "picked_up_from_kitchen"
-                        ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
-                        : order.status === "en_route_to_kitchen"
-                        ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
-                        : "from-white/10 to-white/5"
+                          : order.status === "cancelled"
+                          ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                          : order.status === "picked_up_from_kitchen"
+                          ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
+                          : order.status === "en_route_to_kitchen"
+                          ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
+                          : "from-white/10 to-white/5"
                     }`}
                   >
                     <CardHeader className="pb-3">
