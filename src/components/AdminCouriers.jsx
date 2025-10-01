@@ -160,72 +160,75 @@ const AdminCouriers = ({ curiers, orders }) => {
               </CardContent>
             </Card>
           ) : (
-            Object.values(courierStats).map((courier, index) => (
-              <motion.div
-                key={index}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-              >
-                <Card className="bg-white/10 border-white/20">
-                  <CardHeader>
-                    <CardTitle className="text-white flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-purple-400" />
-                        {courier.name}
-                      </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-red-500/20"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-400" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white">
-                              O'chirishni tasdiqlang
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-300">
-                              "{courier.name}" nomli kuryerni o'chirishga
-                              ishonchingiz komilmi? Bu amalni orqaga qaytarib
-                              bo'lmaydi.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteCourier(Object.keys(courierStats)[index], courier.name)}
-                              className="bg-red-600 hover:bg-red-700"
+            Object.keys(courierStats).map((curierId) => { // curierId ni key sifatida ishlatamiz
+              const courier = courierStats[curierId];
+              return (
+                <motion.div
+                  key={curierId} // key ni curierId ga o'zgartirdik
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <Card className="bg-white/10 border-white/20">
+                    <CardHeader>
+                      <CardTitle className="text-white flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <User className="h-5 w-5 text-purple-400" />
+                          {courier.name}
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-red-500/20"
                             >
-                              O'chirish
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-gray-300">
-                    <p className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      Telefon: <span className="font-medium text-white">{courier.phone || "Kiritilmagan"}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-green-400" />
-                      Jami yetkazilgan: <span className="font-bold text-green-400">{courier.totalDelivered}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-400" />
-                      Jami bekor qilingan: <span className="font-bold text-red-400">{courier.totalCancelled}</span>
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))
+                              <Trash2 className="h-4 w-4 text-red-400" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-gradient-to-br from-slate-900 to-purple-900 border-white/20">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-white">
+                                O'chirishni tasdiqlang
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-gray-300">
+                                "{courier.name}" nomli kuryerni o'chirishga
+                                ishonchingiz komilmi? Bu amalni orqaga qaytarib
+                                bo'lmaydi.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteCourier(curierId, courier.name)} // curierId ni to'g'ri uzatamiz
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                O'chirish
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-gray-300">
+                      <p className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        Telefon: <span className="font-medium text-white">{courier.phone || "Kiritilmagan"}</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-green-400" />
+                        Jami yetkazilgan: <span className="font-bold text-green-400">{courier.totalDelivered}</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-red-400" />
+                        Jami bekor qilingan: <span className="font-bold text-red-400">{courier.totalCancelled}</span>
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })
           )}
         </AnimatePresence>
       </div>

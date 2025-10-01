@@ -8,7 +8,8 @@ import { useToast } from "@/components/ui/use-toast";
 
 const LOCK_ROW_ID = 1; // singleton row
 const MAX_ATTEMPTS = 3; // necha marta xato qilish mumkin
-const BLOCK_DURATION_MS = 60 * 1000; // 1 minut blok
+const BLOCK_DURATION_MS = 2 * 60 * 60 * 1000; // 2 soat blok
+// const BLOCK_DURATION_MS = 60 * 1000; // 1 minut blok (oldin shunday edi)
 
 const secondsToHMS = (s) => {
   const h = Math.floor(s / 3600)
@@ -128,7 +129,7 @@ const LoginPage = () => {
           ).toISOString();
           toast({
             title: "Bloklandi",
-            description: "3 marta xato kiritdingiz. 1 minut kuting.",
+            description: "3 marta xato kiritdingiz. 2 soat kuting.",
             variant: "destructive",
           });
         } else {
