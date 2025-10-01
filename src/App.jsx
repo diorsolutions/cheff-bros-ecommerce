@@ -540,7 +540,6 @@ function App() {
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
       />
-      <MiniChat messages={messages} /> {/* MiniChat MainLayout ichiga ko'chirildi */}
       <Toaster />
     </>
   );

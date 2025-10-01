@@ -200,7 +200,7 @@ const ProductDetail = ({ onAddToCart }) => {
 
                     <Button
                       onClick={handleAddToCart}
-                      disabled={isOutOfStock}
+                      disabled={isOutOfStock || quantity > stock || quantity === 0} // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
                       className="w-full h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="mr-2 h-5 w-5" />

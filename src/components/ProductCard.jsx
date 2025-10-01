@@ -127,7 +127,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || quantity > stock || quantity === 0} // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
             className="mob_small:text-[0.8rem] w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
