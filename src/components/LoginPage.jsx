@@ -86,13 +86,11 @@ const LoginPage = () => {
   // DB ga blok holatini yozish
   const updateLock = async (nextAttempts, nextBlockedUntil) => {
     try {
-      await supabase
-        .from("admin_login_state")
-        .upsert({
-          id: LOCK_ROW_ID,
-          attempts: nextAttempts,
-          blocked_until: nextBlockedUntil,
-        });
+      await supabase.from("admin_login_state").upsert({
+        id: LOCK_ROW_ID,
+        attempts: nextAttempts,
+        blocked_until: nextBlockedUntil,
+      });
       setAttempts(nextAttempts);
       setBlockedUntil(nextBlockedUntil);
     } catch (e) {
@@ -213,14 +211,14 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-      <Card className="w-full max-w-[380px] bg-white/10 border-white/20 text-white">
+      <Card className="w-full max-w-[380px] bg-white/10 border-white/30 text-white">
         <CardHeader>
           <CardTitle className="text-center text-2xl">
-            {loginMode === "admin" ? "Admin Kirishi" : "Kuryer Kirishi"}
+            {loginMode === "admin" ? "Admin" : "Kuryer"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center gap-2 mb-6">
+          <div className="flex justify-center gap-2 mb-6 *:border-none">
             <Button
               variant={loginMode === "admin" ? "secondary" : "outline"}
               onClick={() => {
@@ -228,7 +226,11 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className={`flex-1 ${loginMode === "admin" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
+              className={`flex-1 ${
+                loginMode === "admin"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
             >
               Admin
             </Button>
@@ -239,7 +241,11 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className={`flex-1 ${loginMode === "curier" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
+              className={`flex-1 ${
+                loginMode === "curier"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
             >
               Kuryer
             </Button>
