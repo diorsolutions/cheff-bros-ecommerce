@@ -40,6 +40,7 @@ const AdminCouriers = ({ curiers, orders }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    console.log("AdminCouriers useEffect triggered. Current curiers prop:", curiers); // Debug log
     if (!curiers || !orders) return;
 
     setLoading(true);

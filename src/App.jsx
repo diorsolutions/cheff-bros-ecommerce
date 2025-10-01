@@ -215,6 +215,7 @@ function App() {
           "postgres_changes",
           { event: "*", schema: "public", table: "curiers" },
           (payload) => {
+            console.log("Curier real-time event received:", payload); // Debug log
             if (payload.eventType === "INSERT") {
               setCuriers((prev) => [...prev, payload.new]);
             } else if (payload.eventType === "UPDATE") {
@@ -229,7 +230,9 @@ function App() {
           }
         )
         .subscribe();
-    } catch (_) {}
+    } catch (e) {
+      console.error("Error subscribing to curier real-time channel:", e); // Log subscription errors
+    }
 
     return () => {
       if (productChannel) supabase.removeChannel(productChannel);
