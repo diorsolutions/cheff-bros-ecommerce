@@ -228,7 +228,7 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className="flex-1"
+              className={`flex-1 ${loginMode === "admin" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
             >
               Admin
             </Button>
@@ -239,7 +239,7 @@ const LoginPage = () => {
                 setUsername("");
                 setPassword("");
               }}
-              className="flex-1"
+              className={`flex-1 ${loginMode === "curier" ? "bg-white/20 text-active-orange" : "text-white hover:bg-white/10 hover:text-active-orange"}`}
             >
               Kuryer
             </Button>
