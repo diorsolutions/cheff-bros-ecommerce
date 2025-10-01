@@ -448,12 +448,14 @@ function App() {
       return;
     }
 
+    console.log("Sending update to Supabase:", { orderId, updateData }); // Debug log
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", orderId);
 
     if (error) {
+      console.error("Supabase update error:", error); // Debug log
       toast({
         title: "Xatolik!",
         description: "Statusni yangilashda xatolik.",
