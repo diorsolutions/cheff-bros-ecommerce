@@ -30,7 +30,7 @@ const CurierStatistics = ({ curierId, orders }) => {
           const orderDate = new Date(order.created_at);
           orderDate.setHours(0, 0, 0, 0);
 
-          if (order.status === "confirmed") {
+          if (order.status === "delivered_to_customer") { // Yangi status nomi
             totalDelivered++;
             if (orderDate.getTime() === now.getTime()) {
               todayDelivered++;

@@ -11,7 +11,8 @@ const AdminStatistics = ({ orders, products, curiers }) => {
     dailyRevenue: 0,
     totalRevenue: 0,
     topSellingProducts: [],
-    leastSellingProducts: [],
+    totalProductsCount: 0, // Yangi: Jami mahsulotlar soni
+    lowStockProductsCount: 0, // Yangi: Kam qolgan mahsulotlar soni
     courierStats: {},
   });
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,7 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         const orderDate = new Date(order.created_at);
         orderDate.setHours(0, 0, 0, 0);
 
-        if (order.status === "confirmed") {
+        if (order.status === "delivered_to_customer") { // Yangi status nomi
           totalDeliveredOrders++;
           totalRevenue += order.total_price;
           if (orderDate.getTime() === now.getTime()) {
@@ -81,10 +82,13 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         }
       });
 
+      // Calculate product statistics
+      const totalProductsCount = products.length;
+      const lowStockProductsCount = products.filter(p => p.stock > 0 && p.stock < 5).length; // Zaxirasi 0 dan katta va 5 tadan kam
+
       // Sort products by sales count
       const sortedProducts = Object.values(productSales).sort((a, b) => b.count - a.count);
       const topSellingProducts = sortedProducts.slice(0, 5);
-      const leastSellingProducts = sortedProducts.slice(-5).reverse(); // Eng kam sotilganlar
 
       setStats({
         totalDeliveredOrders,
@@ -92,7 +96,8 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         dailyRevenue,
         totalRevenue,
         topSellingProducts,
-        leastSellingProducts,
+        totalProductsCount,
+        lowStockProductsCount,
         courierStats: courierPerformance,
       });
       setLoading(false);
@@ -168,19 +173,17 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         </Card>
         <Card className="bg-white/10 border-white/20">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-white">Eng kam sotilgan mahsulotlar</CardTitle>
+            <CardTitle className="text-lg font-semibold text-white">Mahsulotlar haqida</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {stats.leastSellingProducts.length > 0 ? (
-              stats.leastSellingProducts.map((product, index) => (
-                <div key={index} className="flex justify-between items-center text-gray-300">
-                  <span>{product.name}</span>
-                  <span className="font-medium text-red-400">{product.count} dona</span>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400">Ma'lumotlar yo'q</p>
-            )}
+            <div className="flex justify-between items-center text-gray-300">
+              <span>Jami mahsulotlar:</span>
+              <span className="font-medium text-white">{stats.totalProductsCount}</span>
+            </div>
+            <div className="flex justify-between items-center text-gray-300">
+              <span>Kam qolgan mahsulotlar:</span>
+              <span className="font-medium text-red-400">{stats.lowStockProductsCount}</span>
+            </div>
           </CardContent>
         </Card>
       </div>

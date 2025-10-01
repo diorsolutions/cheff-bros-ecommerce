@@ -73,9 +73,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
-      case "on_the_way":
-        return "bg-orange-500"; // Yangi status uchun rang
-      case "confirmed":
+      case "en_route_to_kitchen": // Yangi status
+        return "bg-yellow-500";
+      case "picked_up_from_kitchen": // Yangi status
+        return "bg-orange-500";
+      case "delivered_to_customer": // Yangi status
         return "bg-green-500";
       case "cancelled":
         return "bg-red-500";
@@ -88,10 +90,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "Yangi";
-      case "on_the_way":
-        return "Buyurtma menda"; // Yangi status uchun matn
-      case "confirmed":
-        return "Yetkazib berildi";
+      case "en_route_to_kitchen":
+        return "Olish uchun yo'lda";
+      case "picked_up_from_kitchen":
+        return "Buyurtma menda";
+      case "delivered_to_customer":
+        return "Mijozda";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -99,9 +103,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  // Faqat "new" yoki "on_the_way" statusdagi buyurtmalarni ko'rsatish
+  // Faqat "new", "en_route_to_kitchen" yoki "picked_up_from_kitchen" statusdagi buyurtmalarni ko'rsatish
   const relevantOrders = orders.filter(
-    (order) => order.status === "new" || (order.status === "on_the_way" && order.curier_id === curierId)
+    (order) =>
+      order.status === "new" ||
+      (order.status === "en_route_to_kitchen" && order.curier_id === curierId) ||
+      (order.status === "picked_up_from_kitchen" && order.curier_id === curierId)
   );
 
   return (
@@ -143,8 +150,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
             ) : (
               relevantOrders.map((order) => {
                 const isNew = order.status === "new";
-                const isOnTheWay = order.status === "on_the_way";
-                const isFinal = order.status === "confirmed" || order.status === "cancelled";
+                const isEnRouteToKitchen = order.status === "en_route_to_kitchen";
+                const isPickedUpFromKitchen = order.status === "picked_up_from_kitchen";
+                const isFinal = order.status === "delivered_to_customer" || order.status === "cancelled";
 
                 return (
                   <motion.div
@@ -156,12 +164,14 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
-                        order.status === "confirmed"
+                        order.status === "delivered_to_customer"
                           ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
                           : order.status === "cancelled"
                           ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
-                          : order.status === "on_the_way"
+                          : order.status === "picked_up_from_kitchen"
                           ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
+                          : order.status === "en_route_to_kitchen"
+                          ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
                           : "from-white/10 to-white/5"
                       }`}
                     >
@@ -172,7 +182,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
                               )} ${
-                                order.status === "new" || order.status === "on_the_way" ? "animate-pulse" : ""
+                                !isFinal ? "animate-pulse" : ""
                               }`}
                             ></span>
                             Buyurtma{" "}
@@ -201,7 +211,18 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                   {isNew && (
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        onUpdateOrderStatus(order.id, "on_the_way", curierId)
+                                        onUpdateOrderStatus(order.id, "en_route_to_kitchen", curierId)
+                                      }
+                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
+                                    >
+                                      <Truck className="mr-2 h-4 w-4" />
+                                      Olish uchun yo'lda
+                                    </DropdownMenuItem>
+                                  )}
+                                  {isEnRouteToKitchen && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "picked_up_from_kitchen", curierId)
                                       }
                                       className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
                                     >
@@ -209,16 +230,16 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                       Buyurtma menda
                                     </DropdownMenuItem>
                                   )}
-                                  {isOnTheWay && (
+                                  {isPickedUpFromKitchen && (
                                     <>
                                       <DropdownMenuItem
                                         onClick={() =>
-                                          onUpdateOrderStatus(order.id, "confirmed", curierId)
+                                          onUpdateOrderStatus(order.id, "delivered_to_customer", curierId)
                                         }
                                         className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                       >
                                         <CheckCircle className="mr-2 h-4 w-4" />
-                                        Yetkazib berildi
+                                        Mijozda
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
                                         onClick={() =>
@@ -236,8 +257,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             )}
                             {isFinal && (
                               <span className="text-xs text-gray-400 italic">
-                                {order.status === "confirmed"
-                                  ? "✓ Yetkazib berildi"
+                                {order.status === "delivered_to_customer"
+                                  ? "✓ Mijozga yetkazildi"
                                   : "✗ Bekor qilingan"}
                               </span>
                             )}
@@ -273,9 +294,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
                                 ? "bg-blue-500/20 text-blue-400"
-                                : order.status === "on_the_way"
+                                : order.status === "en_route_to_kitchen"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : order.status === "picked_up_from_kitchen"
                                 ? "bg-orange-500/20 text-orange-400"
-                                : order.status === "confirmed"
+                                : order.status === "delivered_to_customer"
                                 ? "bg-green-500/20 text-green-400"
                                 : "bg-red-500/20 text-red-400"
                             }`}

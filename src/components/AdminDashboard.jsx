@@ -60,9 +60,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
-      case "on_the_way":
+      case "en_route_to_kitchen":
+        return "bg-yellow-500";
+      case "picked_up_from_kitchen":
         return "bg-orange-500";
-      case "confirmed":
+      case "delivered_to_customer":
         return "bg-green-500";
       case "cancelled":
         return "bg-red-500";
@@ -72,15 +74,18 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
   };
 
   const getStatusText = (status, curierId) => {
+    const courierName = getCurierName(curierId);
     switch (status) {
       case "new":
         return "Yangi";
-      case "on_the_way":
-        return `${getCurierName(curierId)} buyurtmani oldi`;
-      case "confirmed":
-        return `${getCurierName(curierId)} mijozga yetkazdi`;
+      case "en_route_to_kitchen":
+        return `${courierName} olish uchun yo'lda`;
+      case "picked_up_from_kitchen":
+        return `${courierName} buyurtmani oldi`;
+      case "delivered_to_customer":
+        return `${courierName} mijozga yetkazdi`;
       case "cancelled":
-        return `${getCurierName(curierId)} buyurtmani bekor qildi`; // Yangilangan qism
+        return `${courierName} buyurtmani bekor qildi`;
       default:
         return "Noma'lum";
     }
@@ -120,8 +125,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
+      <div className="flex flex-col items-start sm:flex-row gap-4">
+        <div className="">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -135,11 +140,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                 <SelectItem value="new" className="text-blue-400">
                   Yangi
                 </SelectItem>
-                <SelectItem value="on_the_way" className="text-orange-400">
-                  Yo'lda
+                <SelectItem value="en_route_to_kitchen" className="text-yellow-400">
+                  Olish uchun yo'lda
                 </SelectItem>
-                <SelectItem value="confirmed" className="text-green-400">
-                  Yetkazildi
+                <SelectItem value="picked_up_from_kitchen" className="text-orange-400">
+                  Buyurtma menda
+                </SelectItem>
+                <SelectItem value="delivered_to_customer" className="text-green-400">
+                  Mijozda
                 </SelectItem>
                 <SelectItem value="cancelled" className="text-red-400">
                   Bekor qilingan
@@ -185,8 +193,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
             </Card>
           ) : (
             filteredOrders.map((order) => {
-              const isProcessed = order.status !== "new";
-              const isFinal = order.status === "confirmed" || order.status === "cancelled";
+              const isFinal = order.status === "delivered_to_customer" || order.status === "cancelled";
               return (
                 <motion.div
                   key={order.id}
@@ -197,12 +204,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                 >
                   <Card
                     className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
-                      order.status === "confirmed"
+                      order.status === "delivered_to_customer"
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
                         : order.status === "cancelled"
                         ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
-                        : order.status === "on_the_way"
+                        : order.status === "picked_up_from_kitchen"
                         ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
+                        : order.status === "en_route_to_kitchen"
+                        ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
                         : "from-white/10 to-white/5"
                     }`}
                   >
@@ -213,7 +222,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                             className={`w-3 h-3 rounded-full ${getStatusColor(
                               order.status
                             )} ${
-                              order.status === "new" ? "animate-pulse" : ""
+                              order.status === "new" || order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" ? "animate-pulse" : ""
                             }`}
                           ></span>
                           Buyurtma{" "}
@@ -232,36 +241,48 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                   variant="ghost"
                                   size="sm"
                                   className="text-white hover:bg-white/20"
+                                  disabled={!!order.curier_id && order.status !== "new"} // Agar kuryer olgan bo'lsa, admin o'zgartira olmaydi
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent className="bg-slate-800 border-white/20">
                                 {order.status === "new" && (
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      onUpdateOrderStatus(order.id, "on_the_way", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
-                                    }
-                                    className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
-                                  >
-                                    <Package className="mr-2 h-4 w-4" />
-                                    Buyurtma menda (Admin)
-                                  </DropdownMenuItem>
-                                )}
-                                {order.status === "on_the_way" && (
                                   <>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        onUpdateOrderStatus(order.id, "confirmed", order.curier_id)
+                                        onUpdateOrderStatus(order.id, "en_route_to_kitchen", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                      }
+                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
+                                    >
+                                      <Truck className="mr-2 h-4 w-4" />
+                                      Olish uchun yo'lda (Admin)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "picked_up_from_kitchen", null) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                      }
+                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                    >
+                                      <Package className="mr-2 h-4 w-4" />
+                                      Buyurtma menda (Admin)
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {(order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen") && !order.curier_id && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(order.id, "delivered_to_customer", null)
                                       }
                                       className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                     >
                                       <CheckCircle className="mr-2 h-4 w-4" />
-                                      Yetkazib berildi (Admin)
+                                      Mijozda (Admin)
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        onUpdateOrderStatus(order.id, "cancelled", order.curier_id)
+                                        onUpdateOrderStatus(order.id, "cancelled", null)
                                       }
                                       className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
                                     >
@@ -270,35 +291,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {/* Admin uchun qo'shimcha statuslar */}
-                                {order.status !== "new" && order.status !== "on_the_way" && (
-                                  <>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "confirmed", order.curier_id)
-                                      }
-                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                    >
-                                      <CheckCircle className="mr-2 h-4 w-4" />
-                                      Tasdiqlash
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(order.id, "cancelled", order.curier_id)
-                                      }
-                                      className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                    >
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                      Bekor qilish
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           ) : (
                             <span className="text-xs text-gray-400 italic">
-                              {order.status === "confirmed"
-                                ? "✓ Yetkazib berildi"
+                              {order.status === "delivered_to_customer"
+                                ? "✓ Mijozga yetkazildi"
                                 : "✗ Bekor qilingan"}
                             </span>
                           )}
@@ -374,9 +372,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                           className={`text-sm font-medium px-2 py-1 rounded ${
                             order.status === "new"
                               ? "bg-blue-500/20 text-blue-400"
-                              : order.status === "on_the_way"
+                              : order.status === "en_route_to_kitchen"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : order.status === "picked_up_from_kitchen"
                               ? "bg-orange-500/20 text-orange-400"
-                              : order.status === "confirmed"
+                              : order.status === "delivered_to_customer"
                               ? "bg-green-500/20 text-green-400"
                               : "bg-red-500/20 text-red-400"
                           }`}

@@ -366,50 +366,76 @@ function App() {
     let canUpdate = false;
     let updateData = { status: newStatus };
 
-    if (newStatus === "on_the_way") {
-      // Faqat "new" statusdagi buyurtmani "on_the_way" ga o'tkazish mumkin
-      // Va faqat agar buyurtma hali hech kim tomonidan olinmagan bo'lsa
-      if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
-        canUpdate = true;
-        updateData.curier_id = curierId; // Kuryer ID'sini saqlash
-      } else if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
+    // Kuryer tomonidan status o'zgarishlari uchun qoidalar
+    if (curierId) {
+      if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
         toast({
           title: "Xatolik!",
           description: "Bu buyurtma allaqachon boshqa kuryer tomonidan qabul qilingan.",
           variant: "destructive",
         });
         return;
-      } else {
-        toast({
-          title: "Xatolik!",
-          description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
-          variant: "destructive",
-        });
-        return;
       }
-    } else if (newStatus === "confirmed" || newStatus === "cancelled") {
-      // Faqat "on_the_way" statusdagi buyurtmani "confirmed" yoki "cancelled" ga o'tkazish mumkin
-      // Va faqat buyurtmani olgan kuryer tomonidan
-      if (orderToUpdate.status === "on_the_way" && orderToUpdate.curier_id === curierId) {
-        canUpdate = true;
-        updateData.curier_id = curierId; // Kuryer ID'sini saqlash
-      } else if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
-        toast({
-          title: "Xatolik!",
-          description: "Bu buyurtmani faqat uni qabul qilgan kuryer yakunlashi mumkin.",
-          variant: "destructive",
-        });
-        return;
-      } else {
-        toast({
-          title: "Xatolik!",
-          description: "Buyurtma hali kuryer tomonidan qabul qilinmagan yoki yakunlangan.",
-          variant: "destructive",
-        });
-        return;
+
+      switch (newStatus) {
+        case "en_route_to_kitchen": // BUYURTMANI OLISH UCHUN YO'LGA CHIQDIM
+          if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
+            canUpdate = true;
+            updateData.curier_id = curierId;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "picked_up_from_kitchen": // BUYURTMA MENDA
+          if (orderToUpdate.status === "en_route_to_kitchen" && orderToUpdate.curier_id === curierId) {
+            canUpdate = true;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description: "Buyurtma hali kuryer tomonidan olinmagan yoki boshqa statusda.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "delivered_to_customer": // MIJOZDA
+        case "cancelled": // BEKOR QILINGAN
+          if (orderToUpdate.status === "picked_up_from_kitchen" && orderToUpdate.curier_id === curierId) {
+            canUpdate = true;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description: "Buyurtma hali kuryer tomonidan olinmagan yoki yakunlangan.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        default:
+          toast({
+            title: "Xatolik!",
+            description: "Noto'g'ri status o'zgarishi.",
+            variant: "destructive",
+          });
+          return;
       }
     } else {
-      // Admin panelidan status o'zgarishlari uchun (agar kerak bo'lsa, qo'shimcha tekshiruvlar qo'shish mumkin)
+      // Admin tomonidan status o'zgarishlari uchun qoidalar
+      // Agar buyurtma kuryerga biriktirilgan bo'lsa, admin uni o'zgartira olmaydi
+      if (orderToUpdate.curier_id) {
+        toast({
+          title: "Xatolik!",
+          description: "Bu buyurtma kuryerga biriktirilgan. Faqat kuryer o'zgartira oladi.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Agar kuryerga biriktirilmagan bo'lsa, admin istalgan statusga o'tkazishi mumkin (yoki o'ziga olishi mumkin)
       canUpdate = true;
     }
 
@@ -439,13 +465,22 @@ function App() {
     const order = orders.find((o) => o.id === orderId);
     if (order) {
       let message = "";
-      if (newStatus === "on_the_way") {
-        message = `Sizning buyurtmangiz kuryer tomonidan qabul qilindi va yo'lda!`;
-      } else if (newStatus === "confirmed") {
-        const itemNames = order.items.map((item) => item.name).join(", ");
-        message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
-      } else if (newStatus === "cancelled") {
-        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+      switch (newStatus) {
+        case "en_route_to_kitchen":
+          message = `Sizning buyurtmangizni olish uchun kuryer yo'lga chiqdi!`;
+          break;
+        case "picked_up_from_kitchen":
+          message = `Sizning buyurtmangiz kuryer tomonidan olindi va manzilingizga yo'lga chiqdi!`;
+          break;
+        case "delivered_to_customer":
+          const itemNames = order.items.map((item) => item.name).join(", ");
+          message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+          break;
+        case "cancelled":
+          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+          break;
+        default:
+          break;
       }
 
       if (message) {
