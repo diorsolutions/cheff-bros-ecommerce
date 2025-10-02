@@ -191,7 +191,11 @@ function App() {
 
     fetchInitialData();
 
-    let productChannel, orderChannel, messageChannel, curierChannel, chefChannel;
+    let productChannel,
+      orderChannel,
+      messageChannel,
+      curierChannel,
+      chefChannel;
     try {
       productChannel = supabase
         .channel("realtime-products")
@@ -392,15 +396,19 @@ function App() {
         .eq("id", item.id);
     }
 
-    const { error: orderError, data: insertedOrder } = await supabase.from("orders").insert([
-      {
-        customer_info: customer,
-        items: items,
-        location,
-        total_price: totalPrice,
-        status: "new",
-      },
-    ]).select('id').single();
+    const { error: orderError, data: insertedOrder } = await supabase
+      .from("orders")
+      .insert([
+        {
+          customer_info: customer,
+          items: items,
+          location,
+          total_price: totalPrice,
+          status: "new",
+        },
+      ])
+      .select("id")
+      .single();
 
     if (orderError) {
       toast({
@@ -453,7 +461,7 @@ function App() {
       updateData.cancellation_reason = cancellationReason;
     }
 
-    if (actorRole === 'curier') {
+    if (actorRole === "curier") {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
           title: "Xatolik!",
@@ -520,7 +528,7 @@ function App() {
           });
           return;
       }
-    } else if (actorRole === 'chef') {
+    } else if (actorRole === "chef") {
       if (orderToUpdate.chef_id && orderToUpdate.chef_id !== actorId) {
         toast({
           title: "Xatolik!",
@@ -555,8 +563,7 @@ function App() {
           } else {
             toast({
               title: "Xatolik!",
-              description:
-                "Buyurtma hali tayyorlanmagan yoki boshqa statusda.",
+              description: "Buyurtma hali tayyorlanmagan yoki boshqa statusda.",
               variant: "destructive",
             });
             return;
@@ -564,7 +571,8 @@ function App() {
           break;
         case "cancelled": // Bekor qilish (chef tomonidan)
           if (
-            (orderToUpdate.status === "new" || orderToUpdate.status === "preparing") &&
+            (orderToUpdate.status === "new" ||
+              orderToUpdate.status === "preparing") &&
             (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
           ) {
             canUpdate = true;
@@ -587,7 +595,8 @@ function App() {
           });
           return;
       }
-    } else { // Admin tomonidan status o'zgarishlari
+    } else {
+      // Admin tomonidan status o'zgarishlari
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",
@@ -645,7 +654,9 @@ function App() {
           message = `Sizning buyurtmangiz tayyor! Kuryer yetkazib berish uchun yo'lga chiqishini kuting.`;
           break;
         case "cancelled":
-          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${cancellationReason || "ko'rsatilmagan"}. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${
+            cancellationReason || "ko'rsatilmagan"
+          }. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
           break;
         default:
           break;
@@ -685,7 +696,8 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/curier-login" element={<CurierLoginPage />} />
-        <Route path="/chef-login" element={<ChefLoginPage />} /> {/* Yangi: Chef login route */}
+        <Route path="/chef-login" element={<ChefLoginPage />} />{" "}
+        {/* Yangi: Chef login route */}
         <Route
           path="/curier"
           element={
@@ -700,7 +712,9 @@ function App() {
         <Route
           path="/chef"
           element={
-            <ProtectedRouteChef> {/* Yangi: Chef uchun himoyalangan marshrut */}
+            <ProtectedRouteChef>
+              {" "}
+              {/* Yangi: Chef uchun himoyalangan marshrut */}
               <ChefInterface
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
@@ -718,7 +732,7 @@ function App() {
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
-                chefs={chefs} {/* Yangi: Chefs ro'yxatini Dashboardga uzatish */}
+                chefs={chefs}
               />
             </ProtectedRoute>
           }

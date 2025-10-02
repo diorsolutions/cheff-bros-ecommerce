@@ -10,7 +10,8 @@ import {
   Package,
   Truck,
   Search,
-  Utensils, // Chef iconi
+  Utensils,
+  ChefHat, // ChefHat ikonasi qo'shildi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
