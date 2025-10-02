@@ -7,6 +7,7 @@ import {
   LogOut,
   User,
   Package,
+  ChefHat, // ChefHat ikonasi qo'shildi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
+const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs propini ham qabul qilish
   const navigate = useNavigate();
   const [curierName, setCurierName] = useState("Kuryer");
   const [curierPhone, setCurierPhone] = useState("");
@@ -85,6 +86,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     setCurierPhone(newPhone);
   };
 
+  const getChefInfo = (id) => {
+    return chefs.find((c) => c.id === id);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
@@ -106,20 +111,23 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, orderChefId, orderCurierId) => {
+    const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
+    const assignedCurierName = orderCurierId ? chefs.find(c => c.id === orderCurierId)?.name : null; // Kuryer ma'lumotini olish
+
     switch (status) {
       case "new":
         return "Yangi";
       case "preparing":
-        return "Tayyorlanmoqda";
+        return assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
       case "ready":
-        return "Tayyor";
+        return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
       case "en_route_to_kitchen":
-        return "Olish uchun yo'lda";
+        return assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Olish uchun yo'lda";
       case "picked_up_from_kitchen":
-        return "Buyurtma menda";
+        return assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Buyurtma menda";
       case "delivered_to_customer":
-        return "Mijozda";
+        return assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozda";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -155,7 +163,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       if (!order.curier_id && (order.status === "new" || order.status === "ready")) {
         return true;
       }
-      return false;
+      // Orders cancelled by chef should disappear from courier's view
+      if (order.status === "cancelled" && order.chef_id) {
+        return false;
+      }
+      return false; // Default to not showing
     });
 
     // Sort: new/ready unassigned first (oldest first), then this courier's active (oldest first), then this courier's completed (newest first)
@@ -418,9 +430,19 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {getStatusText(order.status)}
+                            {getStatusText(order.status, order.chef_id, order.curier_id)}
                           </span>
                         </div>
+
+                        {order.chef_id && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <ChefHat className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-500">Oshpaz:</span>
+                            <span className="text-sm font-medium text-gray-800">
+                              {getChefInfo(order.chef_id)?.name || "Noma'lum"}
+                            </span>
+                          </div>
+                        )}
 
                         {!isFinal && (
                           <div className="flex gap-2 mt-4 flex-wrap">

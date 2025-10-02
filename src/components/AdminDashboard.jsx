@@ -94,28 +94,48 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     }
   };
 
-  const getStatusText = (status, curierId, chefId) => {
+  const getDetailedStatusText = (status, curierId, chefId, cancellationReason) => {
     const courierName = curierId ? getCurierInfo(curierId)?.name : null;
     const chefName = chefId ? getChefInfo(chefId)?.name : null;
 
+    let chefStatus = "";
+    let courierStatus = "";
+    let generalStatus = "";
+
     switch (status) {
       case "new":
-        return "Yangi";
+        generalStatus = "Yangi";
+        break;
       case "preparing":
-        return chefName ? `${chefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+        chefStatus = chefName ? `${chefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+        generalStatus = chefStatus;
+        break;
       case "ready":
-        return chefName ? `${chefName} tayyorladi` : "Tayyor";
+        chefStatus = chefName ? `${chefName} tayyorladi` : "Tayyor";
+        generalStatus = chefStatus;
+        break;
       case "en_route_to_kitchen":
-        return courierName ? `${courierName} olish uchun yo'lda` : "Olish uchun yo'lda";
+        courierStatus = courierName ? `${courierName} olish uchun yo'lda` : "Olish uchun yo'lda";
+        generalStatus = courierStatus;
+        break;
       case "picked_up_from_kitchen":
-        return courierName ? `${courierName} buyurtmani oldi` : "Buyurtma menda";
+        courierStatus = courierName ? `${courierName} buyurtmani oldi` : "Buyurtma menda";
+        generalStatus = courierStatus;
+        break;
       case "delivered_to_customer":
-        return courierName ? `${courierName} mijozga yetkazdi` : "Mijozda";
+        courierStatus = courierName ? `${courierName} mijozga yetkazdi` : "Mijozda";
+        generalStatus = courierStatus;
+        break;
       case "cancelled":
-        return (courierName || chefName) ? `${courierName || chefName} bekor qildi` : "Bekor qilingan";
+        generalStatus = "Bekor qilingan";
+        if (chefName) generalStatus += ` (Oshpaz: ${chefName})`;
+        if (courierName) generalStatus += ` (Kuryer: ${courierName})`;
+        break;
       default:
-        return "Noma'lum";
+        generalStatus = "Noma'lum";
     }
+
+    return { chefStatus, courierStatus, generalStatus };
   };
 
   const handleShowUserInfo = (user, role) => {
@@ -302,6 +322,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order.status === "cancelled";
               const courierInfo = order.curier_id ? getCurierInfo(order.curier_id) : null;
               const chefInfo = order.chef_id ? getChefInfo(order.chef_id) : null;
+              const { chefStatus, courierStatus, generalStatus } = getDetailedStatusText(order.status, order.curier_id, order.chef_id, order.cancellation_reason);
 
               return (
                 <motion.div
@@ -350,16 +371,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           <span className="text-sm text-gray-400 hidden sm:inline">
                             {new Date(order.created_at).toLocaleString("uz-UZ")}
                           </span>
-                          {!isFinal ? (
+                          {!isFinal && (!order.curier_id && !order.chef_id) ? ( // Admin faqat hech kimga biriktirilmagan buyurtmani o'zgartira oladi
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   className="text-white hover:bg-white/20"
-                                  disabled={
-                                    !!order.curier_id || !!order.chef_id // Agar kuryer yoki oshpaz olgan bo'lsa, admin o'zgartira olmaydi
-                                  }
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
@@ -467,11 +485,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             </DropdownMenu>
                           ) : (
                             <span className="text-xs text-gray-400 italic">
-                              {order.status === "delivered_to_customer"
-                                ? "✓ Mijozga yetkazildi"
-                                : order.status === "cancelled"
-                                ? "✗ Bekor qilingan"
-                                : ""}
+                              {isFinal
+                                ? (order.status === "delivered_to_customer" ? "✓ Mijozga yetkazildi" : "✗ Bekor qilingan")
+                                : "Biriktirilgan"}
                             </span>
                           )}
                         </div>
@@ -566,11 +582,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               : "bg-red-500/20 text-red-400"
                           }`}
                         >
-                          {getStatusText(order.status, order.curier_id, order.chef_id)}
+                          {generalStatus}
                         </span>
                       </div>
 
-                      {order.chef_id && (order.status === "preparing" || order.status === "ready" || order.status === "cancelled") && (
+                      {order.chef_id && (
                         <div className="flex items-center gap-2 mt-2">
                           <ChefHat className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Oshpaz:</span>
@@ -581,10 +597,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           >
                             {chefInfo?.name || "Noma'lum"}
                           </Button>
+                          {order.status === "preparing" && <span className="text-sm text-yellow-400">tayyorlanmoqda</span>}
+                          {order.status === "ready" && <span className="text-sm text-green-400">tayyorladi</span>}
+                          {order.status === "cancelled" && order.chef_id && <span className="text-sm text-red-400">bekor qildi</span>}
                         </div>
                       )}
 
-                      {order.curier_id && (order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" || order.status === "delivered_to_customer" || order.status === "cancelled") && (
+                      {order.curier_id && (
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
@@ -595,6 +614,10 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           >
                             {courierInfo?.name || "Noma'lum"}
                           </Button>
+                          {order.status === "en_route_to_kitchen" && <span className="text-sm text-yellow-400">olish uchun yo'lda</span>}
+                          {order.status === "picked_up_from_kitchen" && <span className="text-sm text-orange-400">buyurtmani oldi</span>}
+                          {order.status === "delivered_to_customer" && <span className="text-sm text-green-400">mijozga yetkazdi</span>}
+                          {order.status === "cancelled" && order.curier_id && <span className="text-sm text-red-400">bekor qildi</span>}
                         </div>
                       )}
 

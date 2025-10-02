@@ -535,7 +535,7 @@ function App() {
       // Oshpaz logikasi: Buyurtma oshpazga biriktirilgan bo'lsa ham, boshqa oshpazlar uni ko'rishi mumkin.
       // Faqat biriktirilgan oshpaz statusni o'zgartira oladi.
       // Agar buyurtma kuryerga biriktirilgan bo'lsa, oshpaz uni o'zgartira olmaydi.
-      if (orderToUpdate.curier_id) {
+      if (orderToUpdate.curier_id && newStatus !== "cancelled") { // Chef can cancel even if courier is assigned
         toast({
           title: "Xatolik!",
           description: "Bu buyurtma allaqachon kuryerga biriktirilgan.",
@@ -590,16 +590,20 @@ function App() {
         case "cancelled":
           if (
             (orderToUpdate.status === "new" ||
-              orderToUpdate.status === "preparing") &&
+              orderToUpdate.status === "preparing" ||
+              orderToUpdate.status === "ready" ||
+              orderToUpdate.status === "en_route_to_kitchen" ||
+              orderToUpdate.status === "picked_up_from_kitchen") &&
             (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
           ) {
             canUpdate = true;
             updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
+            updateData.curier_id = null; // Bekor qilinganda kuryer biriktiruvi olib tashlanadi
           } else {
             toast({
               title: "Xatolik!",
               description:
-                "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
+                "Buyurtma bekor qilinishi mumkin emas (allaqachon yakunlangan bo'lishi mumkin).",
               variant: "destructive",
             });
             return;

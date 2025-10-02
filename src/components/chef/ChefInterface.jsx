@@ -8,7 +8,8 @@ import {
   User,
   Clock,
   ChefHat,
-  Search, // Search icon qo'shildi
+  Search,
+  Truck, // Kuryer statusini ko'rsatish uchun
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,9 +29,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input"; // Input komponenti qo'shildi
+import { Input } from "@/components/ui/input";
 
-const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs propini qabul qilish
+const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // curiers propini ham qabul qilish
   const navigate = useNavigate();
   const [chefName, setChefName] = useState("Oshpaz");
   const [chefPhone, setChefPhone] = useState("");
@@ -39,7 +40,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
-  const [searchTerm, setSearchTerm] = useState(""); // Yangi: Qidiruv so'zi holati
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -93,6 +94,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
     return chefs.find((c) => c.id === id);
   };
 
+  const getCurierInfo = (id) => {
+    return curiers.find((c) => c.id === id);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
@@ -101,14 +106,14 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         return "bg-yellow-500";
       case "ready":
         return "bg-green-500";
-      case "cancelled":
-        return "bg-red-500";
       case "en_route_to_kitchen":
         return "bg-yellow-500";
       case "picked_up_from_kitchen":
         return "bg-orange-500";
       case "delivered_to_customer":
         return "bg-green-500";
+      case "cancelled":
+        return "bg-red-500";
       default:
         return "bg-gray-500";
     }
@@ -116,9 +121,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
 
   const getStatusText = (status, orderChefId, orderCurierId) => {
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
-    // Kuryer ma'lumotini olish uchun App.jsx dan curiers propini ham uzatish kerak bo'ladi
-    // Hozircha faqat oshpaz ma'lumotini ko'rsatamiz
-    // const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
+    const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
 
     switch (status) {
       case "new":
@@ -128,11 +131,11 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
       case "ready":
         return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
       case "en_route_to_kitchen":
-        return "Kuryer olish uchun yo'lda"; // Kuryerga biriktirilgan
+        return assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Kuryer olish uchun yo'lda";
       case "picked_up_from_kitchen":
-        return "Kuryer buyurtmani oldi"; // Kuryerga biriktirilgan
+        return assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Kuryer buyurtmani oldi";
       case "delivered_to_customer":
-        return "Mijozga yetkazildi"; // Kuryerga biriktirilgan
+        return assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozga yetkazildi";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -164,10 +167,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         order.status === "new" ||
         order.status === "preparing" ||
         order.status === "ready" ||
-        order.status === "cancelled" ||
         order.status === "en_route_to_kitchen" ||
         order.status === "picked_up_from_kitchen" ||
-        order.status === "delivered_to_customer"
+        order.status === "delivered_to_customer" ||
+        order.status === "cancelled"
     );
 
     // Qidiruv filtri
@@ -280,7 +283,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
               <Card className="bg-white/40 border-gray-100">
                 <CardContent className="p-8 text-center ">
                   <p className="text-gray-600 text-lg">
-                    Hozircha tayyorlanadigan buyurtmalar yo'q.
+                    Hozircha buyurtmalar yo'q.
                   </p>
                 </CardContent>
               </Card>
@@ -295,7 +298,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                 // Tugmalar uchun harakatlarni o'chirish logikasi
                 const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
                 const canMarkReady = isPreparing && order.chef_id === chefId && !isCourierAssigned;
-                const canCancel = (isNew || isPreparing) && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
+                const canCancel = (isNew || isPreparing || isReady) && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned; // Chef can cancel even if ready, but not if courier picked up
 
                 return (
                   <motion.div
@@ -307,13 +310,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isReady ? "opacity-60" : "" // Tayyor bo'lganda xiralashadi
-                      } ${
-                        isCancelled ? "bg-red-100 border-red-300 opacity-60" : "" // Bekor qilinganda xiralashadi va qizil fon
-                      } ${
-                        isPreparing ? "bg-yellow-100 border-yellow-300" : ""
-                      } ${
-                        isNew && !isPreparing && !isReady && !isCancelled ? "bg-white" : ""
+                        isReady || isCancelled ? "opacity-60" : "" // Tayyor yoki bekor bo'lganda xiralashadi
                       }`}
                     >
                       <CardHeader className="pb-3">
@@ -373,7 +370,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                           </a>
                         </p>
 
-                        {/* Buyurtma mahsulotlari */}
                         <div className="border-t border-gray-300 pt-2 mt-2">
                           <h4 className="font-medium text-gray-800 mb-2 text-base">
                             Buyurtma tafsilotlari
@@ -425,7 +421,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                           </span>
                         </div>
 
-                        {order.chef_id && (isPreparing || isReady || isCancelled) && (
+                        {order.chef_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <ChefHat className="h-4 w-4 text-gray-500" />
                             <span className="text-sm text-gray-500">Oshpaz:</span>
@@ -434,13 +430,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                             </span>
                           </div>
                         )}
-                        {order.curier_id && (order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" || order.status === "delivered_to_customer" || order.status === "cancelled") && (
+                        {order.curier_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
                             <span className="text-sm text-gray-500">Kuryer:</span>
                             <span className="text-sm font-medium text-gray-800">
-                              {/* Kuryer ma'lumotini ko'rsatish uchun App.jsx dan curiers propini ham uzatish kerak */}
-                              {order.curier_id || "Noma'lum"}
+                              {getCurierInfo(order.curier_id)?.name || "Noma'lum"}
                             </span>
                           </div>
                         )}
