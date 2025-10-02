@@ -15,10 +15,12 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import OrderDialog from "@/components/OrderDialog";
 import Dashboard from "@/components/Dashboard";
-import AdminLoginPage from "@/components/AdminLoginPage"; // Import new AdminLoginPage
-import CurierLoginPage from "@/components/CurierLoginPage"; // Import new CurierLoginPage
+import AdminLoginPage from "@/components/AdminLoginPage";
+import CurierLoginPage from "@/components/CurierLoginPage";
+import ChefLoginPage from "@/components/ChefLoginPage"; // Import new ChefLoginPage
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteCurier from "@/components/ProtectedRouteCurier";
+import ProtectedRouteChef from "@/components/ProtectedRouteChef"; // Import new ProtectedRouteChef
 import MiniChat from "@/components/MiniChat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +28,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
+import ChefInterface from "./components/chef/ChefInterface"; // Import new ChefInterface
 import { useWindowSize } from "react-use";
 import { generateShortOrderId } from "@/lib/utils";
 
@@ -37,6 +40,7 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [curiers, setCuriers] = useState([]);
+  const [chefs, setChefs] = useState([]); // Yangi: Chefs ro'yxati
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -110,7 +114,7 @@ function App() {
             });
           } else {
             productsData = fallbackData;
-            setProducts(productsData || []);
+            setProducts(fallbackData || []);
           }
         } else {
           setProducts(productsData || []);
@@ -146,7 +150,7 @@ function App() {
             );
           } else {
             ordersData = fbOrders;
-            setOrders(ordersData || []);
+            setOrders(fbOrders || []);
           }
         } else {
           setOrders(ordersData || []);
@@ -169,11 +173,25 @@ function App() {
       } catch (e) {
         console.error("Kuryerlarni yuklashda kutilmagan xatolik:", e);
       }
+
+      // Yangi: Chefs ro'yxatini yuklash
+      try {
+        const { data: chefsData, error: chefsErr } = await supabase
+          .from("chefs")
+          .select("id, name, phone");
+        if (chefsErr) {
+          console.error("Oshpazlarni yuklashda xatolik:", chefsErr);
+        } else {
+          setChefs(chefsData || []);
+        }
+      } catch (e) {
+        console.error("Oshpazlarni yuklashda kutilmagan xatolik:", e);
+      }
     };
 
     fetchInitialData();
 
-    let productChannel, orderChannel, messageChannel, curierChannel;
+    let productChannel, orderChannel, messageChannel, curierChannel, chefChannel;
     try {
       productChannel = supabase
         .channel("realtime-products")
@@ -247,7 +265,6 @@ function App() {
           "postgres_changes",
           { event: "*", schema: "public", table: "curiers" },
           (payload) => {
-            console.log("Curier real-time event received:", payload);
             if (payload.eventType === "INSERT") {
               setCuriers((prev) => [...prev, payload.new]);
             } else if (payload.eventType === "UPDATE") {
@@ -264,11 +281,36 @@ function App() {
       console.error("Error subscribing to curier real-time channel:", e);
     }
 
+    // Yangi: Chefs ro'yxatini real-time yangilash
+    try {
+      chefChannel = supabase
+        .channel("realtime-chefs")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "chefs" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setChefs((prev) => [...prev, payload.new]);
+            } else if (payload.eventType === "UPDATE") {
+              setChefs((prev) =>
+                prev.map((c) => (c.id === payload.new.id ? payload.new : c))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setChefs((prev) => prev.filter((c) => c.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.error("Error subscribing to chef real-time channel:", e);
+    }
+
     return () => {
       if (productChannel) supabase.removeChannel(productChannel);
       if (orderChannel) supabase.removeChannel(orderChannel);
       if (messageChannel) supabase.removeChannel(messageChannel);
       if (curierChannel) supabase.removeChannel(curierChannel);
+      if (chefChannel) supabase.removeChannel(chefChannel); // Yangi: Chef channelni tozalash
     };
   }, [customerInfo.phone]);
 
@@ -389,7 +431,9 @@ function App() {
   const handleUpdateOrderStatus = async (
     orderId,
     newStatus,
-    curierId = null
+    actorId = null, // curierId yoki chefId bo'lishi mumkin
+    actorRole = null, // 'curier' yoki 'chef'
+    cancellationReason = null // Bekor qilish sababi
   ) => {
     const orderToUpdate = orders.find((o) => o.id === orderId);
 
@@ -405,8 +449,12 @@ function App() {
     let canUpdate = false;
     let updateData = { status: newStatus };
 
-    if (curierId) {
-      if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
+    if (cancellationReason) {
+      updateData.cancellation_reason = cancellationReason;
+    }
+
+    if (actorRole === 'curier') {
+      if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
           title: "Xatolik!",
           description:
@@ -420,7 +468,7 @@ function App() {
         case "en_route_to_kitchen":
           if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
             canUpdate = true;
-            updateData.curier_id = curierId;
+            updateData.curier_id = actorId;
           } else {
             toast({
               title: "Xatolik!",
@@ -434,7 +482,7 @@ function App() {
         case "picked_up_from_kitchen":
           if (
             orderToUpdate.status === "en_route_to_kitchen" &&
-            orderToUpdate.curier_id === curierId
+            orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
           } else {
@@ -451,7 +499,7 @@ function App() {
         case "cancelled":
           if (
             orderToUpdate.status === "picked_up_from_kitchen" &&
-            orderToUpdate.curier_id === curierId
+            orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
           } else {
@@ -472,12 +520,79 @@ function App() {
           });
           return;
       }
-    } else {
-      if (orderToUpdate.curier_id) {
+    } else if (actorRole === 'chef') {
+      if (orderToUpdate.chef_id && orderToUpdate.chef_id !== actorId) {
         toast({
           title: "Xatolik!",
           description:
-            "Bu buyurtma kuryerga biriktirilgan. Faqat kuryer o'zgartira oladi.",
+            "Bu buyurtma allaqachon boshqa oshpaz tomonidan qabul qilingan.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      switch (newStatus) {
+        case "preparing": // Tayyorlanmoqda
+          if (orderToUpdate.status === "new" && !orderToUpdate.chef_id) {
+            canUpdate = true;
+            updateData.chef_id = actorId;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "ready": // Tayyor
+          if (
+            orderToUpdate.status === "preparing" &&
+            orderToUpdate.chef_id === actorId
+          ) {
+            canUpdate = true;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma hali tayyorlanmagan yoki boshqa statusda.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "cancelled": // Bekor qilish (chef tomonidan)
+          if (
+            (orderToUpdate.status === "new" || orderToUpdate.status === "preparing") &&
+            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
+          ) {
+            canUpdate = true;
+            updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        default:
+          toast({
+            title: "Xatolik!",
+            description: "Noto'g'ri status o'zgarishi.",
+            variant: "destructive",
+          });
+          return;
+      }
+    } else { // Admin tomonidan status o'zgarishlari
+      if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
+        toast({
+          title: "Xatolik!",
+          description:
+            "Bu buyurtma kuryer yoki oshpazga biriktirilgan. Faqat ular o'zgartira oladi.",
           variant: "destructive",
         });
         return;
@@ -494,7 +609,6 @@ function App() {
       return;
     }
 
-    console.log("Sending update to Supabase:", { orderId, updateData });
     const { error } = await supabase
       .from("orders")
       .update(updateData)
@@ -524,8 +638,14 @@ function App() {
           const itemNames = order.items.map((item) => item.name).join(", ");
           message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
           break;
+        case "preparing":
+          message = `Sizning buyurtmangiz tayyorlanmoqda!`;
+          break;
+        case "ready":
+          message = `Sizning buyurtmangiz tayyor! Kuryer yetkazib berish uchun yo'lga chiqishini kuting.`;
+          break;
         case "cancelled":
-          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi, sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${cancellationReason || "ko'rsatilmagan"}. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
           break;
         default:
           break;
@@ -563,8 +683,9 @@ function App() {
       </Helmet>
 
       <Routes>
-        <Route path="/admin" element={<AdminLoginPage />} /> {/* Admin login route */}
-        <Route path="/curier-login" element={<CurierLoginPage />} /> {/* Courier login route */}
+        <Route path="/admin" element={<AdminLoginPage />} />
+        <Route path="/curier-login" element={<CurierLoginPage />} />
+        <Route path="/chef-login" element={<ChefLoginPage />} /> {/* Yangi: Chef login route */}
         <Route
           path="/curier"
           element={
@@ -577,6 +698,18 @@ function App() {
           }
         />
         <Route
+          path="/chef"
+          element={
+            <ProtectedRouteChef> {/* Yangi: Chef uchun himoyalangan marshrut */}
+              <ChefInterface
+                orders={orders}
+                onUpdateOrderStatus={handleUpdateOrderStatus}
+                chefs={chefs}
+              />
+            </ProtectedRouteChef>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -585,6 +718,7 @@ function App() {
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
+                chefs={chefs} {/* Yangi: Chefs ro'yxatini Dashboardga uzatish */}
               />
             </ProtectedRoute>
           }

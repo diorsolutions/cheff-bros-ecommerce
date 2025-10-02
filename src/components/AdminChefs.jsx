@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
-import { User, Phone, Package, XCircle, Plus, Trash2 } from "lucide-react";
+import { User, Phone, Utensils, XCircle, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -27,11 +27,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const AdminCouriers = ({ curiers, orders }) => {
-  const [courierStats, setCourierStats] = useState({});
+const AdminChefs = ({ chefs, orders }) => {
+  const [chefStats, setChefStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isAddCourierDialogOpen, setIsAddCourierDialogOpen] = useState(false);
-  const [newCourier, setNewCourier] = useState({
+  const [isAddChefDialogOpen, setIsAddChefDialogOpen] = useState(false);
+  const [newChef, setNewChef] = useState({
     username: "",
     password: "",
     name: "",
@@ -40,42 +40,38 @@ const AdminCouriers = ({ curiers, orders }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    console.log(
-      "AdminCouriers useEffect triggered. Current curiers prop:",
-      curiers
-    ); // Debug log
-    if (!curiers || !orders) return;
+    if (!chefs || !orders) return;
 
     setLoading(true);
-    const calculateCourierStats = () => {
+    const calculateChefStats = () => {
       const stats = {};
-      curiers.forEach((curier) => {
-        stats[curier.id] = {
-          name: curier.name,
-          phone: curier.phone,
-          totalDelivered: 0,
+      chefs.forEach((chef) => {
+        stats[chef.id] = {
+          name: chef.name,
+          phone: chef.phone,
+          totalPrepared: 0,
           totalCancelled: 0,
         };
       });
 
       orders.forEach((order) => {
-        if (order.curier_id && stats[order.curier_id]) {
-          if (order.status === "delivered_to_customer") {
-            stats[order.curier_id].totalDelivered++;
-          } else if (order.status === "cancelled") {
-            stats[order.curier_id].totalCancelled++;
+        if (order.chef_id && stats[order.chef_id]) {
+          if (order.status === "ready") {
+            stats[order.chef_id].totalPrepared++;
+          } else if (order.status === "cancelled" && order.chef_id === order.chef_id) { // Only count if cancelled by this chef
+            stats[order.chef_id].totalCancelled++;
           }
         }
       });
-      setCourierStats(stats);
+      setChefStats(stats);
       setLoading(false);
     };
 
-    calculateCourierStats();
-  }, [curiers, orders]);
+    calculateChefStats();
+  }, [chefs, orders]);
 
-  const handleAddCourier = async () => {
-    if (!newCourier.username || !newCourier.password || !newCourier.name) {
+  const handleAddChef = async () => {
+    if (!newChef.username || !newChef.password || !newChef.name) {
       toast({
         title: "Xatolik",
         description: "Login, parol va ism kiritish majburiy.",
@@ -86,13 +82,12 @@ const AdminCouriers = ({ curiers, orders }) => {
 
     setIsSaving(true);
     try {
-      // Haqiqiy ilovalarda parolni xashlash kerak!
-      const { error } = await supabase.from("curiers").insert([
+      const { error } = await supabase.from("chefs").insert([
         {
-          username: newCourier.username,
-          password_hash: newCourier.password, // Bu yerda xashlangan parol bo'lishi kerak
-          name: newCourier.name,
-          phone: newCourier.phone || null,
+          username: newChef.username,
+          password_hash: newChef.password, // Bu yerda xashlangan parol bo'lishi kerak
+          name: newChef.name,
+          phone: newChef.phone || null,
         },
       ]);
 
@@ -100,15 +95,15 @@ const AdminCouriers = ({ curiers, orders }) => {
 
       toast({
         title: "Muvaffaqiyatli!",
-        description: "Yangi kuryer qo'shildi.",
+        description: "Yangi oshpaz qo'shildi.",
       });
-      setIsAddCourierDialogOpen(false);
-      setNewCourier({ username: "", password: "", name: "", phone: "" });
+      setIsAddChefDialogOpen(false);
+      setNewChef({ username: "", password: "", name: "", phone: "" });
     } catch (error) {
-      console.error("Kuryer qo'shishda xatolik:", error);
+      console.error("Oshpaz qo'shishda xatolik:", error);
       toast({
         title: "Xatolik",
-        description: error.message || "Kuryer qo'shishda xatolik yuz berdi.",
+        description: error.message || "Oshpaz qo'shishda xatolik yuz berdi.",
         variant: "destructive",
       });
     } finally {
@@ -116,24 +111,24 @@ const AdminCouriers = ({ curiers, orders }) => {
     }
   };
 
-  const handleDeleteCourier = async (curierId, curierName) => {
+  const handleDeleteChef = async (chefId, chefName) => {
     try {
       const { error } = await supabase
-        .from("curiers")
+        .from("chefs")
         .delete()
-        .eq("id", curierId);
+        .eq("id", chefId);
 
       if (error) throw error;
 
       toast({
         title: "Muvaffaqiyatli!",
-        description: `${curierName} nomli kuryer o'chirildi.`,
+        description: `${chefName} nomli oshpaz o'chirildi.`,
       });
     } catch (error) {
-      console.error("Kuryerni o'chirishda xatolik:", error);
+      console.error("Oshpazni o'chirishda xatolik:", error);
       toast({
         title: "Xatolik",
-        description: error.message || "Kuryerni o'chirishda xatolik yuz berdi.",
+        description: error.message || "Oshpazni o'chirishda xatolik yuz berdi.",
         variant: "destructive",
       });
     }
@@ -142,7 +137,7 @@ const AdminCouriers = ({ curiers, orders }) => {
   if (loading) {
     return (
       <div className="text-center text-gray-600 py-8">
-        Kuryerlar yuklanmoqda...
+        Oshpazlar yuklanmoqda...
       </div>
     );
   }
@@ -150,31 +145,31 @@ const AdminCouriers = ({ curiers, orders }) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-white/90">Kuryerlar</h1>
+        <h1 className="text-3xl font-bold text-white/90">Oshpazlar</h1>
         <Button
-          onClick={() => setIsAddCourierDialogOpen(true)}
+          onClick={() => setIsAddChefDialogOpen(true)}
           className="bg-gradient-to-r from-orange-500 to-red-500"
         >
-          <Plus className="mr-2 h-4 w-4" /> Yangi kuryer
+          <Plus className="mr-2 h-4 w-4" /> Yangi oshpaz
         </Button>
       </div>
 
       <div className="grid gap-4">
         <AnimatePresence>
-          {Object.values(courierStats).length === 0 ? (
+          {Object.values(chefStats).length === 0 ? (
             <Card className="bg-white/10 border-gray-600">
               <CardContent className="p-8 text-center">
                 <p className="text-gray-600 text-lg">
-                  Hozircha kuryerlar yo'q.
+                  Hozircha oshpazlar yo'q.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            Object.keys(courierStats).map((curierId) => {
-              const courier = courierStats[curierId];
+            Object.keys(chefStats).map((chefId) => {
+              const chef = chefStats[chefId];
               return (
                 <motion.div
-                  key={curierId}
+                  key={chefId}
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -185,7 +180,7 @@ const AdminCouriers = ({ curiers, orders }) => {
                       <CardTitle className="text-gray-800 flex justify-between items-center">
                         <div className="flex items-center gap-2 text-white text-xl">
                           <User className="h-5 w-5 text-purple-100" />
-                          {courier.name}
+                          {chef.name}
                         </div>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -203,7 +198,7 @@ const AdminCouriers = ({ curiers, orders }) => {
                                 O'chirishni tasdiqlang
                               </AlertDialogTitle>
                               <AlertDialogDescription className="text-gray-600">
-                                "{courier.name}" nomli kuryerni o'chirishga
+                                "{chef.name}" nomli oshpazni o'chirishga
                                 ishonchingiz komilmi? Bu amalni orqaga qaytarib
                                 bo'lmaydi.
                               </AlertDialogDescription>
@@ -214,7 +209,7 @@ const AdminCouriers = ({ curiers, orders }) => {
                               </AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() =>
-                                  handleDeleteCourier(curierId, courier.name)
+                                  handleDeleteChef(chefId, chef.name)
                                 }
                                 className="bg-red-600 hover:bg-red-700 text-white"
                               >
@@ -230,16 +225,16 @@ const AdminCouriers = ({ curiers, orders }) => {
                         <Phone className="h-4 w-4 text-white/80" />
                         <span className="text-white/80">Telefon: </span>
                         <span className="font-medium text-white">
-                          {courier.phone || "Kiritilmagan"}
+                          {chef.phone || "Kiritilmagan"}
                         </span>
                       </p>
                       <p className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-green-600" />
+                        <Utensils className="h-4 w-4 text-green-600" />
                         <span className="text-white/80">
-                          Jami yetkazilgan:{" "}
+                          Jami tayyorlangan:{" "}
                         </span>
                         <span className="font-bold text-green-600">
-                          {courier.totalDelivered}
+                          {chef.totalPrepared}
                         </span>{" "}
                       </p>
                       <p className="flex items-center gap-2">
@@ -248,7 +243,7 @@ const AdminCouriers = ({ curiers, orders }) => {
                           Jami bekor qilingan:{" "}
                         </span>
                         <span className="font-bold text-red-600">
-                          {courier.totalCancelled}
+                          {chef.totalCancelled}
                         </span>{" "}
                       </p>
                     </CardContent>
@@ -261,21 +256,21 @@ const AdminCouriers = ({ curiers, orders }) => {
       </div>
 
       <Dialog
-        open={isAddCourierDialogOpen}
-        onOpenChange={setIsAddCourierDialogOpen}
+        open={isAddChefDialogOpen}
+        onOpenChange={setIsAddChefDialogOpen}
       >
         <DialogContent className="bg-white border-gray-300 sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-gray-800">
-              Yangi kuryer qo'shish
+              Yangi oshpaz qo'shish
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input
               placeholder="Login (Username)"
-              value={newCourier.username}
+              value={newChef.username}
               onChange={(e) =>
-                setNewCourier({ ...newCourier, username: e.target.value })
+                setNewChef({ ...newChef, username: e.target.value })
               }
               className="bg-gray-100 border-gray-300 text-gray-800"
               required
@@ -283,27 +278,27 @@ const AdminCouriers = ({ curiers, orders }) => {
             <Input
               type="password"
               placeholder="Parol (Password)"
-              value={newCourier.password}
+              value={newChef.password}
               onChange={(e) =>
-                setNewCourier({ ...newCourier, password: e.target.value })
+                setNewChef({ ...newChef, password: e.target.value })
               }
               className="bg-gray-100 border-gray-300 text-gray-800"
               required
             />
             <Input
               placeholder="Ism Familiya (Name)"
-              value={newCourier.name}
+              value={newChef.name}
               onChange={(e) =>
-                setNewCourier({ ...newCourier, name: e.target.value })
+                setNewChef({ ...newChef, name: e.target.value })
               }
               className="bg-gray-100 border-gray-300 text-gray-800"
               required
             />
             <Input
               placeholder="Telefon raqami (Phone)"
-              value={newCourier.phone}
+              value={newChef.phone}
               onChange={(e) =>
-                setNewCourier({ ...newCourier, phone: e.target.value })
+                setNewChef({ ...newChef, phone: e.target.value })
               }
               className="bg-gray-100 border-gray-300 text-gray-800"
             />
@@ -319,7 +314,7 @@ const AdminCouriers = ({ curiers, orders }) => {
               </Button>
             </DialogClose>
             <Button
-              onClick={handleAddCourier}
+              onClick={handleAddChef}
               disabled={isSaving}
               className="bg-orange-500 hover:bg-orange-600 text-white"
             >
@@ -332,4 +327,4 @@ const AdminCouriers = ({ curiers, orders }) => {
   );
 };
 
-export default AdminCouriers;
+export default AdminChefs;

@@ -3,17 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
   XCircle,
-  Truck,
+  Utensils,
   LogOut,
   User,
-  Package,
+  Clock,
+  ChefHat, // Oshpaz iconi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
-import CurierSettingsDialog from "./CurierSettingsDialog";
+import ChefSettingsDialog from "./ChefSettingsDialog";
 import { generateShortOrderId } from "@/lib/utils";
 import {
   AlertDialog,
@@ -27,53 +28,53 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
+const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
   const navigate = useNavigate();
-  const [curierName, setCurierName] = useState("Kuryer");
-  const [curierPhone, setCurierPhone] = useState("");
-  const [curierId, setCurierId] = useState(null);
+  const [chefName, setChefName] = useState("Oshpaz");
+  const [chefPhone, setChefPhone] = useState("");
+  const [chefId, setChefId] = useState(null);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
 
   useEffect(() => {
-    const fetchCurierInfo = async () => {
-      const storedUsername = localStorage.getItem("curierUsername");
-      const storedId = localStorage.getItem("curierId");
+    const fetchChefInfo = async () => {
+      const storedUsername = localStorage.getItem("chefUsername");
+      const storedId = localStorage.getItem("chefId");
 
       if (storedUsername && storedId) {
-        setCurierId(storedId);
+        setChefId(storedId);
         const { data, error } = await supabase
-          .from("curiers")
+          .from("chefs")
           .select("name, phone")
           .eq("id", storedId)
           .single();
 
         if (error) {
-          console.error("Kuryer ma'lumotlarini yuklashda xatolik:", error);
+          console.error("Oshpaz ma'lumotlarini yuklashda xatolik:", error);
           toast({
             title: "Xatolik",
-            description: "Kuryer ma'lumotlarini yuklashda xatolik yuz berdi.",
+            description: "Oshpaz ma'lumotlarini yuklashda xatolik yuz berdi.",
             variant: "destructive",
           });
           handleLogout();
         } else if (data) {
-          setCurierName(data.name || storedUsername);
-          setCurierPhone(data.phone || "");
+          setChefName(data.name || storedUsername);
+          setChefPhone(data.phone || "");
         }
       } else {
         handleLogout();
       }
     };
-    fetchCurierInfo();
+    fetchChefInfo();
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("curierLoggedIn");
-    localStorage.removeItem("curierUsername");
-    localStorage.removeItem("curierId");
-    navigate("/curier-login", { replace: true });
+    localStorage.removeItem("chefLoggedIn");
+    localStorage.removeItem("chefUsername");
+    localStorage.removeItem("chefId");
+    navigate("/chef-login", { replace: true });
     toast({
       title: "Chiqish",
       description: "Tizimdan muvaffaqiyatli chiqdingiz.",
@@ -81,19 +82,17 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   };
 
   const handleNameUpdated = (newName, newPhone) => {
-    setCurierName(newName);
-    setCurierPhone(newPhone);
+    setChefName(newName);
+    setChefPhone(newPhone);
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
-      case "en_route_to_kitchen":
+      case "preparing":
         return "bg-yellow-500";
-      case "picked_up_from_kitchen":
-        return "bg-orange-500";
-      case "delivered_to_customer":
+      case "ready":
         return "bg-green-500";
       case "cancelled":
         return "bg-red-500";
@@ -106,12 +105,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "Yangi";
-      case "en_route_to_kitchen":
-        return "Olish uchun yo'lda";
-      case "picked_up_from_kitchen":
-        return "Buyurtma menda";
-      case "delivered_to_customer":
-        return "Mijozda";
+      case "preparing":
+        return "Tayyorlanmoqda";
+      case "ready":
+        return "Tayyor";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -136,34 +133,22 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   };
 
   const sortedOrders = useMemo(() => {
-    if (!curierId || !orders) return [];
+    if (!chefId || !orders) return [];
 
-    const activeCourierOrders = orders.filter(
+    // Oshpazga biriktirilgan va "new" yoki "preparing" statusidagi buyurtmalar
+    const activeChefOrders = orders.filter(
       (order) =>
-        order.curier_id === curierId &&
-        (order.status === "en_route_to_kitchen" ||
-          order.status === "picked_up_from_kitchen")
+        order.chef_id === chefId &&
+        (order.status === "new" || order.status === "preparing")
     ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
+    // Oshpazga biriktirilmagan va "new" statusidagi buyurtmalar
     const newUnassignedOrders = orders.filter(
-      (order) => order.status === "new" && !order.curier_id
+      (order) => order.status === "new" && !order.chef_id
     ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    return [...activeCourierOrders, ...newUnassignedOrders];
-  }, [orders, curierId]);
-
-  const activeOrdersCount = sortedOrders.filter(
-    (order) =>
-      order.curier_id === curierId &&
-      (order.status === "en_route_to_kitchen" ||
-        order.status === "picked_up_from_kitchen")
-  ).length;
-
-  const canTakeNewOrder = activeOrdersCount < 2;
-
-  const firstAvailableNewOrderId = canTakeNewOrder
-    ? sortedOrders.find(order => order.status === "new" && !order.curier_id)?.id
-    : null;
+    return [...activeChefOrders, ...newUnassignedOrders];
+  }, [orders, chefId]);
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
@@ -184,8 +169,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       await onUpdateOrderStatus(
         currentOrderToCancel.id,
         "cancelled",
-        curierId,
-        "curier",
+        chefId,
+        "chef",
         cancellationReason.trim()
       );
     }
@@ -199,9 +184,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       <header className="bg-white border-b border-gray-300 sticky top-0 z-30">
         <div className="mx-auto px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Truck className="h-8 w-8 text-orange-500" />
+            <ChefHat className="h-8 w-8 text-orange-500" />
             <h1 className="text-2xl nor_tablet:text-xl mob:text-lg font-bold text-gray-800">
-              Buyurtmalar Paneli
+              Oshpaz Paneli
             </h1>
           </div>
           <div className="flex justify-end items-center gap-1">
@@ -211,7 +196,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
               className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2 p-2 sm:p-3"
             >
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">{curierName}</span>
+              <span className="hidden sm:inline">{chefName}</span>
             </Button>
             <Button
               onClick={handleLogout}
@@ -231,24 +216,18 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
               <Card className="bg-white/40 border-gray-100">
                 <CardContent className="p-8 text-center ">
                   <p className="text-gray-600 text-lg">
-                    Hozircha yetkazib beriladigan buyurtmalar yo'q.
+                    Hozircha tayyorlanadigan buyurtmalar yo'q.
                   </p>
                 </CardContent>
               </Card>
             ) : (
               sortedOrders.map((order) => {
                 const isNew = order.status === "new";
-                const isEnRouteToKitchen =
-                  order.status === "en_route_to_kitchen";
-                const isPickedUpFromKitchen =
-                  order.status === "picked_up_from_kitchen";
-                const isFinal =
-                  order.status === "delivered_to_customer" ||
-                  order.status === "cancelled";
+                const isPreparing = order.status === "preparing";
+                const isReady = order.status === "ready";
+                const isCancelled = order.status === "cancelled";
 
-                const isOrderDisabled =
-                  isNew &&
-                  (!canTakeNewOrder || order.id !== firstAvailableNewOrderId);
+                const isOrderDisabled = isReady || isCancelled; // Tayyor yoki bekor qilingan bo'lsa disabled
 
                 return (
                   <motion.div
@@ -260,17 +239,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isOrderDisabled
-                          ? "opacity-50 pointer-events-none"
-                          : ""
+                        isOrderDisabled ? "opacity-60 pointer-events-none" : ""
                       } ${
-                        order.status === "delivered_to_customer"
-                          ? "bg-green-100 border-green-300 opacity-80"
-                          : order.status === "cancelled"
-                          ? "bg-red-100 border-red-300 opacity-80"
-                          : order.status === "picked_up_from_kitchen"
-                          ? "bg-orange-100 border-orange-300"
-                          : order.status === "en_route_to_kitchen"
+                        isReady
+                          ? "bg-green-100 border-green-300"
+                          : isCancelled
+                          ? "bg-red-100 border-red-300"
+                          : isPreparing
                           ? "bg-yellow-100 border-yellow-300"
                           : "bg-white"
                       }`}
@@ -281,7 +256,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isFinal ? "animate-pulse" : ""}`}
+                              )} ${!isOrderDisabled ? "animate-pulse" : ""}`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}
@@ -340,7 +315,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                          <Truck className="h-4 w-4 text-gray-500" />{" "}
+                          <Clock className="h-4 w-4 text-gray-500" />{" "}
                           <span className="text-sm text-gray-500">
                             Status:
                           </span>{" "}
@@ -348,11 +323,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
                                 ? "bg-blue-100 text-blue-600"
-                                : order.status === "en_route_to_kitchen"
+                                : order.status === "preparing"
                                 ? "bg-yellow-100 text-yellow-600"
-                                : order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600"
-                                : order.status === "delivered_to_customer"
+                                : order.status === "ready"
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
                             }`}
@@ -361,73 +334,54 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           </span>
                         </div>
 
-                        {!isFinal && (
+                        {!isOrderDisabled && (
                           <div className="flex gap-2 mt-4 flex-wrap">
                             {isNew && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
                                     order.id,
-                                    "en_route_to_kitchen",
-                                    curierId,
-                                    "curier"
+                                    "preparing",
+                                    chefId,
+                                    "chef"
                                   )
                                 }
-                                disabled={isOrderDisabled}
                                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
                               >
-                                <Truck className="mr-2 h-4 w-4" />
-                                Olish uchun yo'lda
+                                <Utensils className="mr-2 h-4 w-4" />
+                                Tayyorlanmoqda
                               </Button>
                             )}
-                            {isEnRouteToKitchen && (
+                            {isPreparing && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
                                     order.id,
-                                    "picked_up_from_kitchen",
-                                    curierId,
-                                    "curier"
+                                    "ready",
+                                    chefId,
+                                    "chef"
                                   )
                                 }
-                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm"
+                                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
                               >
-                                <Package className="mr-2 h-4 w-4" />
-                                Buyurtma menda
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Tayyor
                               </Button>
                             )}
-                            {isPickedUpFromKitchen && (
-                              <>
-                                <Button
-                                  onClick={() =>
-                                    onUpdateOrderStatus(
-                                      order.id,
-                                      "delivered_to_customer",
-                                      curierId,
-                                      "curier"
-                                    )
-                                  }
-                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
-                                >
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Mijozda
-                                </Button>
-                                <Button
-                                  onClick={() => handleCancelClick(order)}
-                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Bekor qilish
-                                </Button>
-                              </>
+                            {(isNew || isPreparing) && (
+                              <Button
+                                onClick={() => handleCancelClick(order)}
+                                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
+                              >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Bekor qilish
+                              </Button>
                             )}
                           </div>
                         )}
-                        {isFinal && (
-                          <p className="text-sm text-gray-500 italic mt-4 text-center">
-                            {order.status === "delivered_to_customer"
-                              ? "✓ Mijozga yetkazildi"
-                              : "✗ Bekor qilingan"}
+                        {isCancelled && order.cancellation_reason && (
+                          <p className="text-sm text-red-600 italic mt-4 text-center">
+                            Bekor qilingan. Sababi: {order.cancellation_reason}
                           </p>
                         )}
                       </CardContent>
@@ -439,13 +393,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           </AnimatePresence>
         </div>
       </main>
-      {curierId && (
-        <CurierSettingsDialog
+      {chefId && (
+        <ChefSettingsDialog
           isOpen={showSettingsDialog}
           onClose={() => setShowSettingsDialog(false)}
-          curierId={curierId}
-          currentName={curierName}
-          currentPhone={curierPhone}
+          chefId={chefId}
+          currentName={chefName}
+          currentPhone={chefPhone}
           onNameUpdated={handleNameUpdated}
           orders={orders}
         />
@@ -493,4 +447,4 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   );
 };
 
-export default CurierInterFace;
+export default ChefInterface;

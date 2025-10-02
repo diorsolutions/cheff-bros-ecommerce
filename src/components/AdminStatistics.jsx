@@ -9,23 +9,25 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
+  ChefHat, // Yangi: Chef iconi
 } from "lucide-react";
 
-const AdminStatistics = ({ orders, products, curiers }) => {
+const AdminStatistics = ({ orders, products, curiers, chefs }) => {
   const [stats, setStats] = useState({
     totalDeliveredOrders: 0,
     totalCancelledOrders: 0,
     dailyRevenue: 0,
     totalRevenue: 0,
     topSellingProducts: [],
-    totalProductsCount: 0, // Yangi: Jami mahsulotlar soni
-    lowStockProductsCount: 0, // Yangi: Kam qolgan mahsulotlar soni
+    totalProductsCount: 0,
+    lowStockProductsCount: 0,
     courierStats: {},
+    chefStats: {}, // Yangi: Oshpazlar statistikasi
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!orders || !products || !curiers) return;
+    if (!orders || !products || !curiers || !chefs) return;
 
     setLoading(true);
     const calculateAdminStats = () => {
@@ -36,8 +38,9 @@ const AdminStatistics = ({ orders, products, curiers }) => {
       let totalCancelledOrders = 0;
       let dailyRevenue = 0;
       let totalRevenue = 0;
-      const productSales = {}; // { productId: { name: '...', count: N, revenue: M } }
-      const courierPerformance = {}; // { curierId: { name: '...', todayDelivered: N, todayCancelled: M, totalDelivered: P, totalCancelled: Q } }
+      const productSales = {};
+      const courierPerformance = {};
+      const chefPerformance = {}; // Yangi: Oshpazlar ishlashi
 
       // Initialize courier stats
       curiers.forEach((curier) => {
@@ -50,12 +53,22 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         };
       });
 
+      // Initialize chef stats
+      chefs.forEach((chef) => {
+        chefPerformance[chef.id] = {
+          name: chef.name,
+          todayPrepared: 0,
+          todayCancelled: 0,
+          totalPrepared: 0,
+          totalCancelled: 0,
+        };
+      });
+
       orders.forEach((order) => {
         const orderDate = new Date(order.created_at);
         orderDate.setHours(0, 0, 0, 0);
 
         if (order.status === "delivered_to_customer") {
-          // Yangi status nomi
           totalDeliveredOrders++;
           totalRevenue += order.total_price;
           if (orderDate.getTime() === now.getTime()) {
@@ -87,6 +100,20 @@ const AdminStatistics = ({ orders, products, curiers }) => {
               courierPerformance[order.curier_id].todayCancelled++;
             }
           }
+          // Chef performance for cancelled orders
+          if (order.chef_id && chefPerformance[order.chef_id]) {
+            chefPerformance[order.chef_id].totalCancelled++;
+            if (orderDate.getTime() === now.getTime()) {
+              chefPerformance[order.chef_id].todayCancelled++;
+            }
+          }
+        } else if (order.status === "ready") { // Chef tayyorlagan buyurtmalar
+          if (order.chef_id && chefPerformance[order.chef_id]) {
+            chefPerformance[order.chef_id].totalPrepared++;
+            if (orderDate.getTime() === now.getTime()) {
+              chefPerformance[order.chef_id].todayPrepared++;
+            }
+          }
         }
       });
 
@@ -94,7 +121,7 @@ const AdminStatistics = ({ orders, products, curiers }) => {
       const totalProductsCount = products.length;
       const lowStockProductsCount = products.filter(
         (p) => p.stock > 0 && p.stock < 5
-      ).length; // Zaxirasi 0 dan katta va 5 tadan kam
+      ).length;
 
       // Sort products by sales count
       const sortedProducts = Object.values(productSales).sort(
@@ -111,12 +138,13 @@ const AdminStatistics = ({ orders, products, curiers }) => {
         totalProductsCount,
         lowStockProductsCount,
         courierStats: courierPerformance,
+        chefStats: chefPerformance, // Yangi: Oshpazlar statistikasi
       });
       setLoading(false);
     };
 
     calculateAdminStats();
-  }, [orders, products, curiers]);
+  }, [orders, products, curiers, chefs]);
 
   if (loading) {
     return (
@@ -147,61 +175,40 @@ const AdminStatistics = ({ orders, products, curiers }) => {
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-gray-600">
-          {" "}
-          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white/70">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Jami Bekor Qilingan
             </CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />{" "}
-            {/* Icon rangi yangilandi */}
+            <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {" "}
-              {/* Matn rangi yangilandi */}
               {stats.totalCancelledOrders}
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-gray-600">
-          {" "}
-          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white/70">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Bugungi Daromad
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-orange-500" />{" "}
-            {/* Icon rangi yangilandi */}
+            <DollarSign className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {" "}
-              {/* Matn rangi yangilandi */}
               {stats.dailyRevenue.toLocaleString()} so'm
             </div>
           </CardContent>
         </Card>
         <Card className="bg-white/10 border-gray-600">
-          {" "}
-          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white/70">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Jami Daromad
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-purple-600" />{" "}
-            {/* Icon rangi yangilandi */}
+            <DollarSign className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {" "}
-              {/* Matn rangi yangilandi */}
               {stats.totalRevenue.toLocaleString()} so'm
             </div>
           </CardContent>
@@ -210,12 +217,8 @@ const AdminStatistics = ({ orders, products, curiers }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-white/10 border-gray-600">
-          {" "}
-          {/* Card rangi va chegarasi yangilandi */}
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-white/70">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Eng ko'p sotilgan mahsulotlar
             </CardTitle>
           </CardHeader>
@@ -260,63 +263,46 @@ const AdminStatistics = ({ orders, products, curiers }) => {
               </span>
               <span className="font-medium text-red-600">
                 {stats.lowStockProductsCount}
-              </span>{" "}
-              {/* Matn rangi yangilandi */}
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <h2 className="text-3xl font-bold text-white/90 mb-6 mt-8">
-        {" "}
-        {/* Matn rangi yangilandi */}
         Kuryerlar Statistikasi
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Object.values(stats.courierStats).length > 0 ? (
           Object.values(stats.courierStats).map((courier, index) => (
             <Card key={index} className="bg-white/10 border-gray-600">
-              {" "}
-              {/* Card rangi va chegarasi yangilandi */}
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-white">
-                  {" "}
-                  {/* Matn rangi yangilandi */}
                   {courier.name}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-white/70">
-                {" "}
-                {/* Matn rangi yangilandi */}
                 <p>
                   Bugun yetkazilgan:{" "}
                   <span className="font-bold text-green-600">
-                    {" "}
-                    {/* Matn rangi yangilandi */}
                     {courier.todayDelivered}
                   </span>
                 </p>
                 <p>
                   Bugun bekor qilingan:{" "}
                   <span className="font-bold text-red-600">
-                    {" "}
-                    {/* Matn rangi yangilandi */}
                     {courier.todayCancelled}
                   </span>
                 </p>
                 <p>
                   Jami yetkazilgan:{" "}
                   <span className="font-bold text-orange-500">
-                    {" "}
-                    {/* Matn rangi yangilandi */}
                     {courier.totalDelivered}
                   </span>
                 </p>
                 <p>
                   Jami bekor qilingan:{" "}
                   <span className="font-bold text-red-600">
-                    {" "}
-                    {/* Matn rangi yangilandi */}
                     {courier.totalCancelled}
                   </span>
                 </p>
@@ -325,9 +311,54 @@ const AdminStatistics = ({ orders, products, curiers }) => {
           ))
         ) : (
           <p className="text-gray-600 col-span-full">
-            {" "}
-            {/* Matn rangi yangilandi */}
             Kuryerlar haqida ma'lumotlar yo'q
+          </p>
+        )}
+      </div>
+
+      <h2 className="text-3xl font-bold text-white/90 mb-6 mt-8">
+        Oshpazlar Statistikasi
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Object.values(stats.chefStats).length > 0 ? (
+          Object.values(stats.chefStats).map((chef, index) => (
+            <Card key={index} className="bg-white/10 border-gray-600">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-white">
+                  {chef.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-white/70">
+                <p>
+                  Bugun tayyorlangan:{" "}
+                  <span className="font-bold text-green-600">
+                    {chef.todayPrepared}
+                  </span>
+                </p>
+                <p>
+                  Bugun bekor qilingan:{" "}
+                  <span className="font-bold text-red-600">
+                    {chef.todayCancelled}
+                  </span>
+                </p>
+                <p>
+                  Jami tayyorlangan:{" "}
+                  <span className="font-bold text-orange-500">
+                    {chef.totalPrepared}
+                  </span>
+                </p>
+                <p>
+                  Jami bekor qilingan:{" "}
+                  <span className="font-bold text-red-600">
+                    {chef.totalCancelled}
+                  </span>
+                </p>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <p className="text-gray-600 col-span-full">
+            Oshpazlar haqida ma'lumotlar yo'q
           </p>
         )}
       </div>

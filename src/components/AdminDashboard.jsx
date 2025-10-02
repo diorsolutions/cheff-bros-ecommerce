@@ -9,7 +9,8 @@ import {
   Filter,
   Package,
   Truck,
-  Search, // Search ikonasi import qilindi
+  Search,
+  Utensils, // Chef iconi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,16 +27,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input"; // Input komponenti import qilindi
+import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId } from "@/lib/utils"; // Import the new utility function
+import { generateShortOrderId } from "@/lib/utils";
+import InfoModal from "./InfoModal"; // Yangi InfoModal import qilindi
 
-const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
+const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchBy, setSearchBy] = useState("id"); // Default search by ID
+  const [searchBy, setSearchBy] = useState("id");
+
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoModalTitle, setInfoModalTitle] = useState("");
+  const [infoModalDescription, setInfoModalDescription] = useState("");
+  const [infoModalDetails, setInfoModalDetails] = useState([]);
 
   useEffect(() => {
     const newOrders = orders.filter((order) => order.status === "new");
@@ -57,15 +64,22 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
     setPrevOrdersCount(orders.length);
   }, [orders]);
 
-  const getCurierName = (curierId) => {
-    const curier = curiers.find((c) => c.id === curierId);
-    return curier ? curier.name : "Noma'lum kuryer";
+  const getCurierInfo = (curierId) => {
+    return curiers.find((c) => c.id === curierId);
+  };
+
+  const getChefInfo = (chefId) => {
+    return chefs.find((c) => c.id === chefId);
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
+      case "preparing":
+        return "bg-yellow-500";
+      case "ready":
+        return "bg-green-500";
       case "en_route_to_kitchen":
         return "bg-yellow-500";
       case "picked_up_from_kitchen":
@@ -79,22 +93,45 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
     }
   };
 
-  const getStatusText = (status, curierId) => {
-    const courierName = getCurierName(curierId);
+  const getStatusText = (status, curierId, chefId) => {
+    const courierName = curierId ? getCurierInfo(curierId)?.name : null;
+    const chefName = chefId ? getChefInfo(chefId)?.name : null;
+
     switch (status) {
       case "new":
         return "Yangi";
+      case "preparing":
+        return chefName ? `${chefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+      case "ready":
+        return chefName ? `${chefName} tayyorladi` : "Tayyor";
       case "en_route_to_kitchen":
-        return `${courierName} olish uchun yo'lda`;
+        return courierName ? `${courierName} olish uchun yo'lda` : "Olish uchun yo'lda";
       case "picked_up_from_kitchen":
-        return `${courierName} buyurtmani oldi`;
+        return courierName ? `${courierName} buyurtmani oldi` : "Buyurtma menda";
       case "delivered_to_customer":
-        return `${courierName} mijozga yetkazdi`;
+        return courierName ? `${courierName} mijozga yetkazdi` : "Mijozda";
       case "cancelled":
-        return `${courierName} buyurtmani bekor qildi`;
+        return (courierName || chefName) ? `${courierName || chefName} bekor qildi` : "Bekor qilingan";
       default:
         return "Noma'lum";
     }
+  };
+
+  const handleShowUserInfo = (user, role) => {
+    setInfoModalTitle(`${role === 'curier' ? 'Kuryer' : 'Oshpaz'} ma'lumotlari`);
+    setInfoModalDescription("");
+    setInfoModalDetails([
+      { label: "Ism", value: user.name },
+      { label: "Telefon", value: user.phone || "Kiritilmagan" },
+    ]);
+    setShowInfoModal(true);
+  };
+
+  const handleShowCancellationReason = (reason) => {
+    setInfoModalTitle("Bekor qilish sababi");
+    setInfoModalDescription(reason);
+    setInfoModalDetails([]);
+    setShowInfoModal(true);
   };
 
   const newOrdersCount = orders.filter((o) => o.status === "new").length;
@@ -105,17 +142,16 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
       return order.status === statusFilter;
     })
     .filter((order) => {
-      if (searchTerm.length < 3) return true; // Only filter if search term is 3+ chars
+      if (searchTerm.length < 3) return true;
 
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
       switch (searchBy) {
         case "id":
-          return generateShortOrderId(order.id).includes(lowerCaseSearchTerm); // Search by short ID
+          return generateShortOrderId(order.id).includes(lowerCaseSearchTerm);
         case "customerName":
           return order.customer_info.name.toLowerCase().includes(lowerCaseSearchTerm);
         case "customerPhone":
-          // Normalize phone numbers for comparison (remove non-numeric characters)
           const normalizedOrderPhone = order.customer_info.phone.replace(/[^0-9]/g, '');
           const normalizedSearchTerm = lowerCaseSearchTerm.replace(/[^0-9]/g, '');
           return normalizedOrderPhone.includes(normalizedSearchTerm);
@@ -167,23 +203,29 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                 <SelectItem value="new" className="text-blue-400">
                   Yangi
                 </SelectItem>
+                <SelectItem value="preparing" className="text-yellow-400">
+                  Tayyorlanmoqda (Oshpaz)
+                </SelectItem>
+                <SelectItem value="ready" className="text-green-400">
+                  Tayyor (Oshpaz)
+                </SelectItem>
                 <SelectItem
                   value="en_route_to_kitchen"
                   className="text-yellow-400"
                 >
-                  Olish uchun yo'lda
+                  Olish uchun yo'lda (Kuryer)
                 </SelectItem>
                 <SelectItem
                   value="picked_up_from_kitchen"
                   className="text-orange-400"
                 >
-                  Buyurtma menda
+                  Buyurtma menda (Kuryer)
                 </SelectItem>
                 <SelectItem
                   value="delivered_to_customer"
                   className="text-green-400"
                 >
-                  Mijozda
+                  Mijozda (Kuryer)
                 </SelectItem>
                 <SelectItem value="cancelled" className="text-red-400">
                   Bekor qilingan
@@ -215,7 +257,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
         </div>
       </div>
 
-      {/* Search Section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="w-full sm:w-auto">
           <Select value={searchBy} onValueChange={setSearchBy}>
@@ -258,6 +299,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
               const isFinal =
                 order.status === "delivered_to_customer" ||
                 order.status === "cancelled";
+              const courierInfo = order.curier_id ? getCurierInfo(order.curier_id) : null;
+              const chefInfo = order.chef_id ? getChefInfo(order.chef_id) : null;
+
               return (
                 <motion.div
                   key={order.id}
@@ -272,9 +316,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
                         : order.status === "cancelled"
                         ? "from-red-500/10 to-red-500/5 border-red-500/30 opacity-80"
+                        : order.status === "ready"
+                        ? "from-green-500/10 to-green-500/5 border-green-500/30"
                         : order.status === "picked_up_from_kitchen"
                         ? "from-orange-500/10 to-orange-500/5 border-orange-500/30"
-                        : order.status === "en_route_to_kitchen"
+                        : order.status === "en_route_to_kitchen" || order.status === "preparing"
                         ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/30"
                         : "from-white/10 to-white/5"
                     }`}
@@ -287,6 +333,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                               order.status
                             )} ${
                               order.status === "new" ||
+                              order.status === "preparing" ||
                               order.status === "en_route_to_kitchen" ||
                               order.status === "picked_up_from_kitchen"
                                 ? "animate-pulse"
@@ -310,8 +357,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                   size="sm"
                                   className="text-white hover:bg-white/20"
                                   disabled={
-                                    !!order.curier_id && order.status !== "new"
-                                  } // Agar kuryer olgan bo'lsa, admin o'zgartira olmaydi
+                                    !!order.curier_id || !!order.chef_id // Agar kuryer yoki oshpaz olgan bo'lsa, admin o'zgartira olmaydi
+                                  }
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
@@ -324,70 +371,106 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                                         () =>
                                           onUpdateOrderStatus(
                                             order.id,
-                                            "en_route_to_kitchen",
+                                            "preparing",
+                                            null, // Admin o'zi chef bo'lmaydi
                                             null
-                                          ) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                          )
                                       }
                                       className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
                                     >
-                                      <Truck className="mr-2 h-4 w-4" />
-                                      Olish uchun yo'lda (Admin)
+                                      <Utensils className="mr-2 h-4 w-4" />
+                                      Tayyorlanmoqda (Admin)
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={
                                         () =>
                                           onUpdateOrderStatus(
                                             order.id,
-                                            "picked_up_from_kitchen",
+                                            "en_route_to_kitchen",
+                                            null, // Admin o'zi curier bo'lmaydi
                                             null
-                                          ) // Admin o'zi buyurtma olmaydi, shuning uchun curierId null
+                                          )
                                       }
-                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
                                     >
-                                      <Package className="mr-2 h-4 w-4" />
-                                      Buyurtma menda (Admin)
+                                      <Truck className="mr-2 h-4 w-4" />
+                                      Olish uchun yo'lda (Admin)
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {(order.status === "en_route_to_kitchen" ||
-                                  order.status === "picked_up_from_kitchen") &&
-                                  !order.curier_id && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          onUpdateOrderStatus(
-                                            order.id,
-                                            "delivered_to_customer",
-                                            null
-                                          )
-                                        }
-                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
-                                      >
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Mijozda (Admin)
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          onUpdateOrderStatus(
-                                            order.id,
-                                            "cancelled",
-                                            null
-                                          )
-                                        }
-                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                      >
-                                        <XCircle className="mr-2 h-4 w-4" />
-                                        Bekor qilish (Admin)
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
+                                {(order.status === "preparing" && !order.chef_id) && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      onUpdateOrderStatus(
+                                        order.id,
+                                        "ready",
+                                        null,
+                                        null
+                                      )
+                                    }
+                                    className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                  >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Tayyor (Admin)
+                                  </DropdownMenuItem>
+                                )}
+                                {(order.status === "en_route_to_kitchen" && !order.curier_id) && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      onUpdateOrderStatus(
+                                        order.id,
+                                        "picked_up_from_kitchen",
+                                        null,
+                                        null
+                                      )
+                                    }
+                                    className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                  >
+                                    <Package className="mr-2 h-4 w-4" />
+                                    Buyurtma menda (Admin)
+                                  </DropdownMenuItem>
+                                )}
+                                {(order.status === "picked_up_from_kitchen" && !order.curier_id) && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(
+                                          order.id,
+                                          "delivered_to_customer",
+                                          null,
+                                          null
+                                        )
+                                      }
+                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                    >
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Mijozda (Admin)
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        onUpdateOrderStatus(
+                                          order.id,
+                                          "cancelled",
+                                          null,
+                                          null
+                                        )
+                                      }
+                                      className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Bekor qilish (Admin)
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           ) : (
                             <span className="text-xs text-gray-400 italic">
                               {order.status === "delivered_to_customer"
                                 ? "✓ Mijozga yetkazildi"
-                                : "✗ Bekor qilingan"}
+                                : order.status === "cancelled"
+                                ? "✗ Bekor qilingan"
+                                : ""}
                             </span>
                           )}
                         </div>
@@ -469,6 +552,10 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                           className={`text-sm font-medium px-2 py-1 rounded ${
                             order.status === "new"
                               ? "bg-blue-500/20 text-blue-400"
+                              : order.status === "preparing"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : order.status === "ready"
+                              ? "bg-green-500/20 text-green-400"
                               : order.status === "en_route_to_kitchen"
                               ? "bg-yellow-500/20 text-yellow-400"
                               : order.status === "picked_up_from_kitchen"
@@ -478,9 +565,51 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                               : "bg-red-500/20 text-red-400"
                           }`}
                         >
-                          {getStatusText(order.status, order.curier_id)}
+                          {getStatusText(order.status, order.curier_id, order.chef_id)}
                         </span>
                       </div>
+
+                      {order.chef_id && (order.status === "preparing" || order.status === "ready" || order.status === "cancelled") && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <ChefHat className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">Oshpaz:</span>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            onClick={() => handleShowUserInfo(chefInfo, 'chef')}
+                          >
+                            {chefInfo?.name || "Noma'lum"}
+                          </Button>
+                        </div>
+                      )}
+
+                      {order.curier_id && (order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" || order.status === "delivered_to_customer" || order.status === "cancelled") && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Truck className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">Kuryer:</span>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            onClick={() => handleShowUserInfo(courierInfo, 'curier')}
+                          >
+                            {courierInfo?.name || "Noma'lum"}
+                          </Button>
+                        </div>
+                      )}
+
+                      {order.status === "cancelled" && order.cancellation_reason && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <XCircle className="h-4 w-4 text-red-400" />
+                          <span className="text-sm text-red-400">Sababi:</span>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-red-300 hover:text-red-200"
+                            onClick={() => handleShowCancellationReason(order.cancellation_reason)}
+                          >
+                            Ko'rish
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -489,6 +618,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
           )}
         </AnimatePresence>
       </div>
+      <InfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title={infoModalTitle}
+        description={infoModalDescription}
+        details={infoModalDetails}
+      />
     </div>
   );
 };
