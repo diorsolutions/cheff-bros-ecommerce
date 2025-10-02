@@ -89,6 +89,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
+      case "preparing":
+        return "bg-yellow-500";
+      case "ready":
+        return "bg-green-500";
       case "en_route_to_kitchen":
         return "bg-yellow-500";
       case "picked_up_from_kitchen":
@@ -106,6 +110,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "Yangi";
+      case "preparing":
+        return "Tayyorlanmoqda";
+      case "ready":
+        return "Tayyor";
       case "en_route_to_kitchen":
         return "Olish uchun yo'lda";
       case "picked_up_from_kitchen":
@@ -138,18 +146,40 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   const sortedOrders = useMemo(() => {
     if (!curierId || !orders) return [];
 
-    const activeCourierOrders = orders.filter(
-      (order) =>
-        order.curier_id === curierId &&
-        (order.status === "en_route_to_kitchen" ||
-          order.status === "picked_up_from_kitchen")
-    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const relevantOrders = orders.filter(order => {
+      // Orders assigned to this courier (any status)
+      if (order.curier_id === curierId) {
+        return true;
+      }
+      // New or Ready orders not assigned to any courier
+      if (!order.curier_id && (order.status === "new" || order.status === "ready")) {
+        return true;
+      }
+      return false;
+    });
 
-    const newUnassignedOrders = orders.filter(
-      (order) => order.status === "new" && !order.curier_id
-    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Sort: new/ready unassigned first (oldest first), then this courier's active (oldest first), then this courier's completed (newest first)
+    return relevantOrders.sort((a, b) => {
+      const statusOrder = { "new": 1, "ready": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "delivered_to_customer": 5, "cancelled": 6 };
 
-    return [...activeCourierOrders, ...newUnassignedOrders];
+      const aIsAvailable = !a.curier_id && (a.status === "new" || a.status === "ready");
+      const bIsAvailable = !b.curier_id && (b.status === "new" || b.status === "ready");
+
+      if (aIsAvailable && !bIsAvailable) return -1;
+      if (!aIsAvailable && bIsAvailable) return 1;
+
+      // If both are available or both are not, sort by status order, then by date
+      if (statusOrder[a.status] !== statusOrder[b.status]) {
+        return statusOrder[a.status] - statusOrder[b.status];
+      }
+
+      // For new/ready, oldest first. For active/completed, newest first.
+      if (a.status === "new" || a.status === "ready") {
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
+      } else {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Newest first
+      }
+    });
   }, [orders, curierId]);
 
   const activeOrdersCount = sortedOrders.filter(
@@ -161,8 +191,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  const firstAvailableNewOrderId = canTakeNewOrder
-    ? sortedOrders.find(order => order.status === "new" && !order.curier_id)?.id
+  const firstAvailableNewOrReadyOrderId = canTakeNewOrder
+    ? sortedOrders.find(order => !order.curier_id && (order.status === "new" || order.status === "ready"))?.id
     : null;
 
   const handleCancelClick = (order) => {
@@ -238,6 +268,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
             ) : (
               sortedOrders.map((order) => {
                 const isNew = order.status === "new";
+                const isReady = order.status === "ready";
                 const isEnRouteToKitchen =
                   order.status === "en_route_to_kitchen";
                 const isPickedUpFromKitchen =
@@ -246,9 +277,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   order.status === "delivered_to_customer" ||
                   order.status === "cancelled";
 
-                const isOrderDisabled =
-                  isNew &&
-                  (!canTakeNewOrder || order.id !== firstAvailableNewOrderId);
+                const isAssignedToThisCourier = order.curier_id === curierId;
+                const isUnassignedAndAvailable = !order.curier_id && (isNew || isReady);
+
+                const isOrderDisabledForPickup =
+                  isUnassignedAndAvailable &&
+                  (!canTakeNewOrder || order.id !== firstAvailableNewOrReadyOrderId);
 
                 return (
                   <motion.div
@@ -260,7 +294,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isOrderDisabled
+                        isOrderDisabledForPickup
                           ? "opacity-50 pointer-events-none"
                           : ""
                       } ${
@@ -272,6 +306,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           ? "bg-orange-100 border-orange-300"
                           : order.status === "en_route_to_kitchen"
                           ? "bg-yellow-100 border-yellow-300"
+                          : order.status === "ready"
+                          ? "bg-green-50/50 border-green-100" // Tayyor buyurtmalar uchun yengil fon
                           : "bg-white"
                       }`}
                     >
@@ -331,6 +367,27 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             Ochish
                           </a>
                         </p>
+                        {/* Buyurtma mahsulotlari */}
+                        <div className="border-t border-gray-300 pt-2 mt-2">
+                          <h4 className="font-medium text-gray-800 mb-2 text-base">
+                            Buyurtma tafsilotlari
+                          </h4>
+                          <div className="space-y-1">
+                            {order.items.map((item, itemIndex) => (
+                              <div
+                                key={itemIndex}
+                                className="flex justify-between text-sm text-gray-600"
+                              >
+                                <span>
+                                  {item.name} x{item.quantity}
+                                </span>
+                                <span className="font-medium text-orange-500">
+                                  {(item.price * item.quantity).toLocaleString()} so'm
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
                           <span className="text-gray-800 font-bold text-base">
                             Jami:
@@ -348,6 +405,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
                                 ? "bg-blue-100 text-blue-600"
+                                : order.status === "preparing"
+                                ? "bg-yellow-100 text-yellow-600"
+                                : order.status === "ready"
+                                ? "bg-green-100 text-green-600"
                                 : order.status === "en_route_to_kitchen"
                                 ? "bg-yellow-100 text-yellow-600"
                                 : order.status === "picked_up_from_kitchen"
@@ -363,7 +424,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
 
                         {!isFinal && (
                           <div className="flex gap-2 mt-4 flex-wrap">
-                            {isNew && (
+                            {(isNew || isReady) && isUnassignedAndAvailable && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
@@ -373,14 +434,14 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                     "curier"
                                   )
                                 }
-                                disabled={isOrderDisabled}
+                                disabled={isOrderDisabledForPickup}
                                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
                               >
                                 <Truck className="mr-2 h-4 w-4" />
                                 Olish uchun yo'lda
                               </Button>
                             )}
-                            {isEnRouteToKitchen && (
+                            {isEnRouteToKitchen && isAssignedToThisCourier && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
@@ -396,7 +457,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                 Buyurtma menda
                               </Button>
                             )}
-                            {isPickedUpFromKitchen && (
+                            {isPickedUpFromKitchen && isAssignedToThisCourier && (
                               <>
                                 <Button
                                   onClick={() =>

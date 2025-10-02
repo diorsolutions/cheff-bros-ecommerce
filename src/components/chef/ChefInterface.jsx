@@ -103,13 +103,22 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         return "bg-green-500";
       case "cancelled":
         return "bg-red-500";
+      case "en_route_to_kitchen":
+        return "bg-yellow-500";
+      case "picked_up_from_kitchen":
+        return "bg-orange-500";
+      case "delivered_to_customer":
+        return "bg-green-500";
       default:
         return "bg-gray-500";
     }
   };
 
-  const getStatusText = (status, orderChefId) => {
+  const getStatusText = (status, orderChefId, orderCurierId) => {
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
+    // Kuryer ma'lumotini olish uchun App.jsx dan curiers propini ham uzatish kerak bo'ladi
+    // Hozircha faqat oshpaz ma'lumotini ko'rsatamiz
+    // const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
 
     switch (status) {
       case "new":
@@ -118,6 +127,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         return assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
       case "ready":
         return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
+      case "en_route_to_kitchen":
+        return "Kuryer olish uchun yo'lda"; // Kuryerga biriktirilgan
+      case "picked_up_from_kitchen":
+        return "Kuryer buyurtmani oldi"; // Kuryerga biriktirilgan
+      case "delivered_to_customer":
+        return "Mijozga yetkazildi"; // Kuryerga biriktirilgan
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -149,10 +164,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         order.status === "new" ||
         order.status === "preparing" ||
         order.status === "ready" ||
-        order.status === "cancelled" || // Bekor qilingan buyurtmalar ham ko'rinishi kerak
-        order.status === "en_route_to_kitchen" || // Kuryer olib ketgan bo'lsa ham ko'rinishi kerak
-        order.status === "picked_up_from_kitchen" || // Kuryer olib ketgan bo'lsa ham ko'rinishi kerak
-        order.status === "delivered_to_customer" // Yetkazilgan bo'lsa ham ko'rinishi kerak
+        order.status === "cancelled" ||
+        order.status === "en_route_to_kitchen" ||
+        order.status === "picked_up_from_kitchen" ||
+        order.status === "delivered_to_customer"
     );
 
     // Qidiruv filtri
@@ -163,17 +178,25 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
       );
     }
 
-    // Saralash: yangi buyurtmalar birinchi, keyin tayyorlanmoqda, keyin tayyor, keyin bekor qilingan.
-    // Har bir status ichida yaratilish sanasi bo'yicha saralash.
+    // Saralash: yangi buyurtmalar birinchi, keyin tayyorlanmoqda, keyin tayyor, keyin kuryer statuslari, keyin bekor qilingan.
+    // Har bir status ichida yaratilish sanasi bo'yicha saralash (eng eskisi birinchi).
     return filtered.sort((a, b) => {
-      const statusOrder = { "new": 1, "preparing": 2, "ready": 3, "en_route_to_kitchen": 4, "picked_up_from_kitchen": 5, "delivered_to_customer": 6, "cancelled": 7 };
+      const statusOrder = {
+        "new": 1,
+        "preparing": 2,
+        "ready": 3,
+        "en_route_to_kitchen": 4,
+        "picked_up_from_kitchen": 5,
+        "delivered_to_customer": 6,
+        "cancelled": 7
+      };
       const statusA = statusOrder[a.status] || 99;
       const statusB = statusOrder[b.status] || 99;
 
       if (statusA !== statusB) {
         return statusA - statusB;
       }
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
     });
   }, [orders, searchTerm]);
 
@@ -270,9 +293,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                 const isCourierAssigned = order.curier_id !== null;
 
                 // Tugmalar uchun harakatlarni o'chirish logikasi
-                const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId);
-                const canMarkReady = isPreparing && order.chef_id === chefId;
-                const canCancel = (isNew || isPreparing) && (!order.chef_id || order.chef_id === chefId);
+                const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
+                const canMarkReady = isPreparing && order.chef_id === chefId && !isCourierAssigned;
+                const canCancel = (isNew || isPreparing) && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
 
                 return (
                   <motion.div
@@ -299,7 +322,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isReady && !isCancelled ? "animate-pulse" : ""}`}
+                              )} ${!isReady && !isCancelled && !isCourierAssigned ? "animate-pulse" : ""}`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}
@@ -393,10 +416,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                                 ? "bg-yellow-100 text-yellow-600"
                                 : isReady
                                 ? "bg-green-100 text-green-600"
+                                : isCourierAssigned
+                                ? "bg-orange-100 text-orange-600" // Kuryerga biriktirilgan statuslar uchun
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {getStatusText(order.status, order.chef_id)}
+                            {getStatusText(order.status, order.chef_id, order.curier_id)}
                           </span>
                         </div>
 
@@ -409,10 +434,20 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                             </span>
                           </div>
                         )}
+                        {order.curier_id && (order.status === "en_route_to_kitchen" || order.status === "picked_up_from_kitchen" || order.status === "delivered_to_customer" || order.status === "cancelled") && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Truck className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-500">Kuryer:</span>
+                            <span className="text-sm font-medium text-gray-800">
+                              {/* Kuryer ma'lumotini ko'rsatish uchun App.jsx dan curiers propini ham uzatish kerak */}
+                              {order.curier_id || "Noma'lum"}
+                            </span>
+                          </div>
+                        )}
 
                         {/* Harakat tugmalari */}
                         <div className="flex gap-2 mt-4 flex-wrap">
-                          {canMarkPreparing && !isCourierAssigned && (
+                          {canMarkPreparing && (
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
@@ -428,7 +463,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                               Tayyorlanmoqda
                             </Button>
                           )}
-                          {canMarkReady && !isCourierAssigned && (
+                          {canMarkReady && (
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
@@ -444,7 +479,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                               Tayyor
                             </Button>
                           )}
-                          {canCancel && !isCourierAssigned && (
+                          {canCancel && (
                             <Button
                               onClick={() => handleCancelClick(order)}
                               className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"

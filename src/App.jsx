@@ -476,7 +476,8 @@ function App() {
 
       switch (newStatus) {
         case "en_route_to_kitchen":
-          if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
+          // Kuryer faqat 'new' yoki 'ready' statusidagi buyurtmani olishi mumkin
+          if ((orderToUpdate.status === "new" || orderToUpdate.status === "ready") && !orderToUpdate.curier_id) {
             canUpdate = true;
             updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
           } else {
@@ -533,6 +534,16 @@ function App() {
     } else if (actorRole === "chef") {
       // Oshpaz logikasi: Buyurtma oshpazga biriktirilgan bo'lsa ham, boshqa oshpazlar uni ko'rishi mumkin.
       // Faqat biriktirilgan oshpaz statusni o'zgartira oladi.
+      // Agar buyurtma kuryerga biriktirilgan bo'lsa, oshpaz uni o'zgartira olmaydi.
+      if (orderToUpdate.curier_id) {
+        toast({
+          title: "Xatolik!",
+          description: "Bu buyurtma allaqachon kuryerga biriktirilgan.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       switch (newStatus) {
         case "preparing":
           if (orderToUpdate.status === "new") {
