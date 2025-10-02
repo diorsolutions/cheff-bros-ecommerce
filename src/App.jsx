@@ -848,7 +848,7 @@ function MainLayout({
                           </span>
                         </div>
                         <div className="flex justify-end">
-                          <span
+                          {/* <span
                             className={`text-xs font-semibold px-2 py-0.5 rounded ${
                               stock > 10
                                 ? "bg-green-500/20 text-green-600"
@@ -860,7 +860,7 @@ function MainLayout({
                             }`}
                           >
                             {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
-                          </span>
+                          </span> */}
                         </div>
                       </div>
                     );
