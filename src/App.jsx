@@ -15,10 +15,11 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import OrderDialog from "@/components/OrderDialog";
 import Dashboard from "@/components/Dashboard";
-import LoginPage from "@/components/LoginPage";
+import AdminLoginPage from "@/components/AdminLoginPage"; // Import new AdminLoginPage
+import CurierLoginPage from "@/components/CurierLoginPage"; // Import new CurierLoginPage
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteCurier from "@/components/ProtectedRouteCurier";
-import MiniChat from "@/components/MiniChat"; // MiniChat qaytarildi
+import MiniChat from "@/components/MiniChat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,7 +27,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
 import { useWindowSize } from "react-use";
-import { generateShortOrderId } from "@/lib/utils"; // Import the new utility function
+import { generateShortOrderId } from "@/lib/utils";
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -35,7 +36,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [curiers, setCuriers] = useState([]); // Kuryerlar ro'yxati
+  const [curiers, setCuriers] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -46,32 +47,29 @@ function App() {
   });
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // Default qiymat
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const updateItemsPerPage = () => {
       const width = window.innerWidth;
-      let cols = 2; // mobile default
-      let rows = 5; // default rows for mobile
+      let cols = 2;
+      let rows = 5;
 
       if (width >= 1024) {
-        // laptop/pc
         cols = 4;
-        rows = 2; // 4x2 = 8 items
+        rows = 2;
       } else if (width >= 768) {
-        // tablet
         cols = 3;
-        rows = 3; // 3x3 = 9 items
+        rows = 3;
       } else {
-        // mobile
         cols = 2;
-        rows = 5; // 2x5 = 10 items
+        rows = 5;
       }
 
       const newItemsPerPage = cols * rows;
       setItemsPerPage((prevItemsPerPage) => {
         if (prevItemsPerPage !== newItemsPerPage) {
-          setCurrentPage(1); // itemsPerPage o'zgarganda sahifani 1 ga qaytarish
+          setCurrentPage(1);
         }
         return newItemsPerPage;
       });
@@ -159,11 +157,10 @@ function App() {
         setLoadingOrders(false);
       }
 
-      // Kuryerlar ro'yxatini yuklash
       try {
         const { data: curiersData, error: curiersErr } = await supabase
           .from("curiers")
-          .select("id, name, phone"); // Telefon raqamini ham olamiz
+          .select("id, name, phone");
         if (curiersErr) {
           console.error("Kuryerlarni yuklashda xatolik:", curiersErr);
         } else {
@@ -243,7 +240,6 @@ function App() {
         .subscribe();
     } catch (_) {}
 
-    // Kuryerlar ro'yxatini real-time yangilash
     try {
       curierChannel = supabase
         .channel("realtime-curiers")
@@ -251,7 +247,7 @@ function App() {
           "postgres_changes",
           { event: "*", schema: "public", table: "curiers" },
           (payload) => {
-            console.log("Curier real-time event received:", payload); // Debug log
+            console.log("Curier real-time event received:", payload);
             if (payload.eventType === "INSERT") {
               setCuriers((prev) => [...prev, payload.new]);
             } else if (payload.eventType === "UPDATE") {
@@ -265,7 +261,7 @@ function App() {
         )
         .subscribe();
     } catch (e) {
-      console.error("Error subscribing to curier real-time channel:", e); // Log subscription errors
+      console.error("Error subscribing to curier real-time channel:", e);
     }
 
     return () => {
@@ -362,7 +358,7 @@ function App() {
         total_price: totalPrice,
         status: "new",
       },
-    ]).select('id').single(); // Select the ID of the newly inserted order
+    ]).select('id').single();
 
     if (orderError) {
       toast({
@@ -373,7 +369,7 @@ function App() {
       return;
     }
 
-    const shortOrderId = generateShortOrderId(insertedOrder.id); // Use the new ID
+    const shortOrderId = generateShortOrderId(insertedOrder.id);
 
     const boldItemNames = items.map((item) => `*${item.name}*`).join(", ");
 
@@ -409,7 +405,6 @@ function App() {
     let canUpdate = false;
     let updateData = { status: newStatus };
 
-    // Kuryer tomonidan status o'zgarishlari uchun qoidalar
     if (curierId) {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== curierId) {
         toast({
@@ -422,7 +417,7 @@ function App() {
       }
 
       switch (newStatus) {
-        case "en_route_to_kitchen": // BUYURTMANI OLISH UCHUN YO'LGA CHIQDIM
+        case "en_route_to_kitchen":
           if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
             canUpdate = true;
             updateData.curier_id = curierId;
@@ -436,7 +431,7 @@ function App() {
             return;
           }
           break;
-        case "picked_up_from_kitchen": // BUYURTMA MENDA
+        case "picked_up_from_kitchen":
           if (
             orderToUpdate.status === "en_route_to_kitchen" &&
             orderToUpdate.curier_id === curierId
@@ -452,8 +447,8 @@ function App() {
             return;
           }
           break;
-        case "delivered_to_customer": // MIJOZDA
-        case "cancelled": // BEKOR QILINGAN
+        case "delivered_to_customer":
+        case "cancelled":
           if (
             orderToUpdate.status === "picked_up_from_kitchen" &&
             orderToUpdate.curier_id === curierId
@@ -478,8 +473,6 @@ function App() {
           return;
       }
     } else {
-      // Admin tomonidan status o'zgarishlari uchun qoidalar
-      // Agar buyurtma kuryerga biriktirilgan bo'lsa, admin uni o'zgartira olmaydi
       if (orderToUpdate.curier_id) {
         toast({
           title: "Xatolik!",
@@ -489,7 +482,6 @@ function App() {
         });
         return;
       }
-      // Agar kuryerga biriktirilmagan bo'lsa, admin istalgan statusga o'tkazishi mumkin (yoki o'ziga olishi mumkin)
       canUpdate = true;
     }
 
@@ -502,14 +494,14 @@ function App() {
       return;
     }
 
-    console.log("Sending update to Supabase:", { orderId, updateData }); // Debug log
+    console.log("Sending update to Supabase:", { orderId, updateData });
     const { error } = await supabase
       .from("orders")
       .update(updateData)
       .eq("id", orderId);
 
     if (error) {
-      console.error("Supabase update error:", error); // Debug log
+      console.error("Supabase update error:", error);
       toast({
         title: "Xatolik!",
         description: "Statusni yangilashda xatolik.",
@@ -571,7 +563,8 @@ function App() {
       </Helmet>
 
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin" element={<AdminLoginPage />} /> {/* Admin login route */}
+        <Route path="/curier-login" element={<CurierLoginPage />} /> {/* Courier login route */}
         <Route
           path="/curier"
           element={
@@ -591,7 +584,7 @@ function App() {
                 products={products}
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
-                curiers={curiers} // Kuryerlar ro'yxatini Dashboardga uzatish
+                curiers={curiers}
               />
             </ProtectedRoute>
           }
@@ -616,7 +609,7 @@ function App() {
               itemsPerPage={itemsPerPage}
               loadingProducts={loadingProducts}
               productsError={productsError}
-              messages={messages} // MiniChat uchun messages uzatildi
+              messages={messages}
             />
           }
         />
@@ -649,7 +642,7 @@ function MainLayout({
   itemsPerPage,
   loadingProducts,
   productsError,
-  messages, // MiniChat uchun messages qabul qilindi
+  messages,
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { width } = useWindowSize();
@@ -657,7 +650,6 @@ function MainLayout({
   const handleAddToCart = (product, quantity) => {
     addToCart(product, quantity);
 
-    // faqat desktop (≥1024) bo'lsa toast chiqar
     if (width >= 1024) {
       toast({
         title: "Savatga qo'shildi!mi?",
@@ -668,18 +660,14 @@ function MainLayout({
 
   return (
     <div className="min-h-screen bg-[#ffffff]">
-      {" "}
       <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
-        {" "}
-        {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 extra_small:gap-1 mob_xr:gap-1 text-orange-400">
               <Store className="h-8 w-8 extra_small:w-6 extra_small:h-6 mob_xr:h-6 mob_xr:w-6" />
               <h1 className="text-2xl font-bold extra_small:text-xl mob_xr:text-[1.3rem]">
                 Restoran
-              </h1>{" "}
-              {/* Matn rangi yangilandi */}
+              </h1>
             </div>
 
             <div className="flex items-center gap-4">
@@ -708,13 +696,9 @@ function MainLayout({
         >
           <div className="text-center mob_small:mb-0 mob_xr:mb-0 mid_small:mb-0 extra_small:mb-0 mb-8 sm:mb-12 px-4">
             <h2 className="mob_small:hidden text-3xl sm:text-4xl mob_xr:text-[1.29rem] font-bold text-gray-800 mb-3 sm:mb-4 extra_small:text-[1.2rem]">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Bizning Menyumiz
             </h2>
             <p className=" mob_small:hidden text-base sm:text-xl mob_xr:hidden text-gray-600 max-w-2xl mx-auto extra_small:hidden">
-              {" "}
-              {/* Matn rangi yangilandi */}
               Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
               ingredientlar bilan tayyorlanadi.
             </p>
@@ -745,7 +729,6 @@ function MainLayout({
             ))}
           </div>
 
-          {/* Products Grid with pagination */}
           <div className="px-4 mb-10">
             {productsError ? (
               <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4">
@@ -768,7 +751,6 @@ function MainLayout({
                       ? products
                       : products.filter((p) => p.category === categoryFilter);
 
-                  // endi itemsPerPage dinamik
                   const pageItems = all.slice(
                     (currentPage - 1) * itemsPerPage,
                     currentPage * itemsPerPage
@@ -792,7 +774,6 @@ function MainLayout({
                         </div>
                       )}
 
-                      {/* Pagination */}
                       {(() => {
                         const totalPages =
                           Math.ceil(all.length / itemsPerPage) || 1;
@@ -863,21 +844,6 @@ function MainLayout({
                           <span className="text-orange-500 font-medium">
                             {(item.price * item.quantity).toLocaleString()} so'm
                           </span>
-                        </div>
-                        <div className="flex justify-end">
-                          {/* <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                              stock > 10
-                                ? "bg-green-500/20 text-green-600"
-                                : stock > 5
-                                ? "bg-orange-500/20 text-orange-600"
-                                : stock > 0
-                                ? "bg-red-500/20 text-red-600"
-                                : "bg-gray-500/20 text-gray-600"
-                            }`}
-                          >
-                            {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
-                          </span> */}
                         </div>
                       </div>
                     );

@@ -9,7 +9,6 @@ import { useToast } from "@/components/ui/use-toast";
 const LOCK_ROW_ID = 1; // singleton row
 const MAX_ATTEMPTS = 3; // necha marta xato qilish mumkin
 const BLOCK_DURATION_MS = 2 * 60 * 60 * 1000; // 2 soat blok
-// const BLOCK_DURATION_MS = 60 * 1000; // 1 minut blok (oldin shunday edi)
 
 const secondsToHMS = (s) => {
   const h = Math.floor(s / 3600)
@@ -24,14 +23,13 @@ const secondsToHMS = (s) => {
   return `${h} : ${m} : ${sec}`;
 };
 
-const LoginPage = () => {
+const AdminLoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [blockedUntil, setBlockedUntil] = useState(null);
   const [now, setNow] = useState(Date.now());
-  const [loginMode, setLoginMode] = useState("admin"); // 'admin' or 'curier'
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -113,151 +111,69 @@ const LoginPage = () => {
 
     setLoading(true);
 
-    if (loginMode === "admin") {
-      const ok =
-        username.trim().toLowerCase() === "admin" && password === "cheffbro";
+    const ok =
+      username.trim().toLowerCase() === "admin" && password === "cheffbro";
 
-      if (!ok) {
-        const nextAttempts = attempts + 1;
-        let nextBlockedUntil = null;
+    if (!ok) {
+      const nextAttempts = attempts + 1;
+      let nextBlockedUntil = null;
 
-        if (nextAttempts >= MAX_ATTEMPTS) {
-          nextBlockedUntil = new Date(
-            Date.now() + BLOCK_DURATION_MS
-          ).toISOString();
-          toast({
-            title: "Bloklandi",
-            description: "3 marta xato kiritdingiz. 2 soat kuting.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Kirishda xatolik",
-            description: "Login yoki parol noto'g'ri.",
-            variant: "destructive",
-          });
-        }
-
-        await updateLock(nextAttempts, nextBlockedUntil);
-        setLoading(false);
-        return;
-      }
-
-      // To‘g‘ri login
-      await updateLock(0, null);
-
-      const email = "admin@admin.com";
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
+      if (nextAttempts >= MAX_ATTEMPTS) {
+        nextBlockedUntil = new Date(
+          Date.now() + BLOCK_DURATION_MS
+        ).toISOString();
         toast({
-          title: "Kirish muvaffaqiyatsiz",
-          description:
-            "Hisob topilmadi. Supabase-da admin@admin.com foydalanuvchisini yarating.",
+          title: "Bloklandi",
+          description: "3 marta xato kiritdingiz. 2 soat kuting.",
           variant: "destructive",
         });
-        setLoading(false);
-        return;
-      }
-
-      navigate("/dashboard", { replace: true });
-      setLoading(false);
-    } else if (loginMode === "curier") {
-      // Kuryer login logikasi
-      const { data, error } = await supabase
-        .from("curiers")
-        .select("id, username, password_hash, name") // name ustunini ham olamiz
-        .eq("username", username)
-        .single();
-
-      if (error || !data) {
+      } else {
         toast({
           title: "Kirishda xatolik",
           description: "Login yoki parol noto'g'ri.",
           variant: "destructive",
         });
-        setLoading(false);
-        return;
       }
 
-      // Parolni tekshirish (Haqiqiy ilovalarda xashlangan parolni solishtiring!)
-      const isPasswordCorrect = password === data.password_hash; // Bu yerda xashlangan parolni solishtirish kerak
-
-      if (!isPasswordCorrect) {
-        toast({
-          title: "Kirishda xatolik",
-          description: "Login yoki parol noto'g'ri.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Muvaffaqiyatli kuryer login
-      localStorage.setItem("curierLoggedIn", "true");
-      localStorage.setItem("curierUsername", data.username); // Username'ni saqlaymiz
-      localStorage.setItem("curierId", data.id); // ID'ni saqlaymiz
-      toast({
-        title: "Muvaffaqiyatli!",
-        description: "Kuryer paneliga xush kelibsiz.",
-      });
-      navigate("/curier", { replace: true });
+      await updateLock(nextAttempts, nextBlockedUntil);
       setLoading(false);
+      return;
     }
+
+    // To‘g‘ri login
+    await updateLock(0, null);
+
+    const email = "admin@admin.com";
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast({
+        title: "Kirish muvaffaqiyatsiz",
+        description:
+          "Hisob topilmadi. Supabase-da admin@admin.com foydalanuvchisini yarating.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    navigate("/dashboard", { replace: true });
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-[#f2f2f2] flex items-center justify-center px-4">
-      {" "}
-      {/* Fon rangi yangilandi */}
       <Card className="w-full max-w-[380px] bg-white border-gray-300 text-gray-800">
-        {" "}
-        {/* Card rangi va matn rangi yangilandi */}
         <CardHeader>
           <CardTitle className="text-center text-2xl text-gray-800">
-            {" "}
-            {/* Matn rangi yangilandi */}
-            {loginMode === "admin" ? "Admin Kirishi" : "Kuryer Kirishi"}
+            Admin Kirishi
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center gap-2 mb-6">
-            <Button
-              variant={loginMode === "admin" ? "secondary" : "outline"}
-              onClick={() => {
-                setLoginMode("admin");
-                setUsername("");
-                setPassword("");
-              }}
-              className={`flex-1 ${
-                loginMode === "admin"
-                  ? "bg-orange-500 text-white"
-                  : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"
-              }`}
-            >
-              Admin
-            </Button>
-            <Button
-              variant={loginMode === "curier" ? "secondary" : "outline"}
-              onClick={() => {
-                setLoginMode("curier");
-                setUsername("");
-                setPassword("");
-              }}
-              className={`flex-1 ${
-                loginMode === "curier"
-                  ? "bg-orange-500 text-white"
-                  : "text-gray-800 hover:bg-gray-200 hover:text-orange-500"
-              }`}
-            >
-              Kuryer
-            </Button>
-          </div>
-
-          {isBlocked && loginMode === "admin" ? (
+          {isBlocked ? (
             <div className="space-y-4">
               <div className="p-4 rounded-md border border-red-500 bg-red-100 text-red-600 text-sm sm:text-base">
                 Siz 3 marta noto'g'ri login yoki parol kiritdingiz, keyinroq
@@ -304,4 +220,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default AdminLoginPage;

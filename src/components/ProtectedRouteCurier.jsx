@@ -7,7 +7,7 @@ const ProtectedRouteCurier = ({ children }) => {
 
   useEffect(() => {
     if (!isCurierLoggedIn) {
-      navigate("/login", { replace: true });
+      navigate("/curier-login", { replace: true }); // Redirect to courier login page
     }
   }, [isCurierLoggedIn, navigate]);
 

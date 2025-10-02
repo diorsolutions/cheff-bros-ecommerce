@@ -8,7 +8,7 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login", { replace: true });
+      navigate("/admin", { replace: true }); // Redirect to admin login page
     }
   }, [user, loading, navigate]);
 
