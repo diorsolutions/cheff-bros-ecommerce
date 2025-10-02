@@ -462,6 +462,8 @@ function App() {
     }
 
     if (actorRole === "curier") {
+      // Kuryer logikasi: Buyurtma boshqa kuryerga biriktirilgan bo'lsa, o'zgartirish mumkin emas.
+      // Faqat o'ziga biriktirilgan buyurtmani yoki yangi buyurtmani olishi mumkin.
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
           title: "Xatolik!",
@@ -476,7 +478,7 @@ function App() {
         case "en_route_to_kitchen":
           if (orderToUpdate.status === "new" && !orderToUpdate.curier_id) {
             canUpdate = true;
-            updateData.curier_id = actorId;
+            updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
           } else {
             toast({
               title: "Xatolik!",
@@ -529,65 +531,80 @@ function App() {
           return;
       }
     } else if (actorRole === "chef") {
-      // Oshpaz logikasi
-      // Oshpaz buyurtmani qabul qilganda yoki statusini o'zgartirganda,
-      // buyurtma boshqa oshpazlardan yo'qolmaydi, faqat statusi yangilanadi.
-      // chef_id faqat kim tayyorlayotganini ko'rsatadi.
-      if (newStatus === "preparing") {
-        if (orderToUpdate.status === "new" && !orderToUpdate.chef_id) {
-          canUpdate = true;
-          updateData.chef_id = actorId; // Oshpazga biriktirish
-        } else if (orderToUpdate.status === "new" && orderToUpdate.chef_id !== actorId) {
+      // Oshpaz logikasi: Buyurtma oshpazga biriktirilgan bo'lsa ham, boshqa oshpazlar uni ko'rishi mumkin.
+      // Faqat biriktirilgan oshpaz statusni o'zgartira oladi.
+      switch (newStatus) {
+        case "preparing":
+          if (orderToUpdate.status === "new") {
+            if (!orderToUpdate.chef_id) {
+              canUpdate = true;
+              updateData.chef_id = actorId; // Oshpaz buyurtmani o'ziga biriktiradi
+            } else if (orderToUpdate.chef_id === actorId) {
+              canUpdate = true; // Oshpaz o'zining buyurtmasini qayta tasdiqlashi mumkin
+            } else {
+              toast({
+                title: "Xatolik!",
+                description:
+                  "Bu buyurtma allaqachon boshqa oshpaz tomonidan qabul qilingan.",
+                variant: "destructive",
+              });
+              return;
+            }
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma allaqachon tayyorlanmoqda yoki boshqa statusda.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "ready":
+          if (
+            orderToUpdate.status === "preparing" &&
+            orderToUpdate.chef_id === actorId
+          ) {
+            canUpdate = true;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma hali tayyorlanmagan yoki boshqa oshpazga biriktirilgan.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        case "cancelled":
+          if (
+            (orderToUpdate.status === "new" ||
+              orderToUpdate.status === "preparing") &&
+            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
+          ) {
+            canUpdate = true;
+            updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
+        default:
           toast({
             title: "Xatolik!",
-            description: "Bu buyurtma allaqachon boshqa oshpaz tomonidan qabul qilingan.",
+            description: "Noto'g'ri status o'zgarishi.",
             variant: "destructive",
           });
           return;
-        } else if (orderToUpdate.status === "new" && orderToUpdate.chef_id === actorId) {
-          // Agar oshpaz o'zi qabul qilgan yangi buyurtmani yana "tayyorlanmoqda" qilsa, ruxsat berish
-          canUpdate = true;
-        } else {
-          toast({
-            title: "Xatolik!",
-            description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else if (newStatus === "ready") {
-        if (orderToUpdate.status === "preparing" && orderToUpdate.chef_id === actorId) {
-          canUpdate = true;
-        } else {
-          toast({
-            title: "Xatolik!",
-            description: "Buyurtma hali tayyorlanmagan yoki boshqa oshpazga biriktirilgan.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else if (newStatus === "cancelled") {
-        if ((orderToUpdate.status === "new" || orderToUpdate.status === "preparing") && (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)) {
-          canUpdate = true;
-          updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
-        } else {
-          toast({
-            title: "Xatolik!",
-            description: "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else {
-        toast({
-          title: "Xatolik!",
-          description: "Noto'g'ri status o'zgarishi.",
-          variant: "destructive",
-        });
-        return;
       }
     } else {
       // Admin tomonidan status o'zgarishlari
+      // Agar buyurtma kuryer yoki oshpazga biriktirilgan bo'lsa, admin statusni o'zgartira olmaydi.
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",

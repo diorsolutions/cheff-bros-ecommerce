@@ -149,7 +149,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
         order.status === "new" ||
         order.status === "preparing" ||
         order.status === "ready" ||
-        order.status === "cancelled" // Bekor qilingan buyurtmalar ham ko'rinishi kerak
+        order.status === "cancelled" || // Bekor qilingan buyurtmalar ham ko'rinishi kerak
+        order.status === "en_route_to_kitchen" || // Kuryer olib ketgan bo'lsa ham ko'rinishi kerak
+        order.status === "picked_up_from_kitchen" || // Kuryer olib ketgan bo'lsa ham ko'rinishi kerak
+        order.status === "delivered_to_customer" // Yetkazilgan bo'lsa ham ko'rinishi kerak
     );
 
     // Qidiruv filtri
@@ -163,7 +166,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
     // Saralash: yangi buyurtmalar birinchi, keyin tayyorlanmoqda, keyin tayyor, keyin bekor qilingan.
     // Har bir status ichida yaratilish sanasi bo'yicha saralash.
     return filtered.sort((a, b) => {
-      const statusOrder = { "new": 1, "preparing": 2, "ready": 3, "cancelled": 4 };
+      const statusOrder = { "new": 1, "preparing": 2, "ready": 3, "en_route_to_kitchen": 4, "picked_up_from_kitchen": 5, "delivered_to_customer": 6, "cancelled": 7 };
       const statusA = statusOrder[a.status] || 99;
       const statusB = statusOrder[b.status] || 99;
 
@@ -264,6 +267,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
                 const isCancelled = order.status === "cancelled";
+                const isCourierAssigned = order.curier_id !== null;
 
                 // Tugmalar uchun harakatlarni o'chirish logikasi
                 const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId);
@@ -408,7 +412,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
 
                         {/* Harakat tugmalari */}
                         <div className="flex gap-2 mt-4 flex-wrap">
-                          {canMarkPreparing && (
+                          {canMarkPreparing && !isCourierAssigned && (
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
@@ -424,7 +428,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                               Tayyorlanmoqda
                             </Button>
                           )}
-                          {canMarkReady && (
+                          {canMarkReady && !isCourierAssigned && (
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
@@ -440,7 +444,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs pro
                               Tayyor
                             </Button>
                           )}
-                          {canCancel && (
+                          {canCancel && !isCourierAssigned && (
                             <Button
                               onClick={() => handleCancelClick(order)}
                               className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
