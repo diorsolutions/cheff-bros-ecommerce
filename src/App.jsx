@@ -26,6 +26,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
 import { useWindowSize } from "react-use";
+import { generateShortOrderId } from "@/lib/utils"; // Import the new utility function
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -353,7 +354,7 @@ function App() {
         .eq("id", item.id);
     }
 
-    const { error: orderError } = await supabase.from("orders").insert([
+    const { error: orderError, data: insertedOrder } = await supabase.from("orders").insert([
       {
         customer_info: customer,
         items: items,
@@ -361,7 +362,7 @@ function App() {
         total_price: totalPrice,
         status: "new",
       },
-    ]);
+    ]).select('id').single(); // Select the ID of the newly inserted order
 
     if (orderError) {
       toast({
@@ -372,19 +373,20 @@ function App() {
       return;
     }
 
-    // const itemNames = items.map((item) => item.name).join(", ");
+    const shortOrderId = generateShortOrderId(insertedOrder.id); // Use the new ID
+
     const boldItemNames = items.map((item) => `*${item.name}*`).join(", ");
 
     const systemMessage = `Sizning 
     ${boldItemNames}
-    nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
+    nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Buyurtma ID: *${shortOrderId}*. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
 
     await handleSendMessage(customer.phone, systemMessage);
 
     setCartItems([]);
     toast({
       title: "Buyurtma qabul qilindi!",
-      description: "Sizning buyurtmangiz muvaffaqiyatli yuborildi.",
+      description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
     });
   };
 

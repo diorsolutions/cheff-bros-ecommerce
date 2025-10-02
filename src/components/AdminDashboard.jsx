@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input"; // Input komponenti import qilindi
 import { toast } from "@/components/ui/use-toast";
+import { generateShortOrderId } from "@/lib/utils"; // Import the new utility function
 
 const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
@@ -110,7 +111,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
 
       switch (searchBy) {
         case "id":
-          return order.id.toLowerCase().includes(lowerCaseSearchTerm);
+          return generateShortOrderId(order.id).includes(lowerCaseSearchTerm); // Search by short ID
         case "customerName":
           return order.customer_info.name.toLowerCase().includes(lowerCaseSearchTerm);
         case "customerPhone":
@@ -294,7 +295,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                           ></span>
                           Buyurtma{" "}
                           <span className="text-gray-400 text-sm">
-                            {order.id.substring(0, 8)}
+                            {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">

@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import CurierSettingsDialog from "./CurierSettingsDialog"; // Yangi nom
+import { generateShortOrderId } from "@/lib/utils"; // Import the new utility function
 
 const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
   const navigate = useNavigate();
@@ -255,7 +256,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               Buyurtma{" "}
                             </span>
                             <span className="text-gray-500 text-xs sm:text-sm">
-                              {order.id.substring(0, 8)}
+                              {generateShortOrderId(order.id)}
                             </span>
                           </CardTitle>
                           <div className="flex items-center gap-1">
