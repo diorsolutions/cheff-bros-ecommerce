@@ -21,6 +21,8 @@ const ProductCard = ({ product, onAddToCart }) => {
   const isMob_xr = useMediaQuery({ maxWidth: 415 });
   const isMob_se = useMediaQuery({ maxWidth: 373 });
 
+  //last comment
+
   let sliceLength = 40;
   if (isBigTablet) sliceLength = 30;
   if (isMob_se) sliceLength = 18;
