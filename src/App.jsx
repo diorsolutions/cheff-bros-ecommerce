@@ -45,7 +45,26 @@ function App() {
   });
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  // const itemsPerPage = 20;
+
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      const width = window.innerWidth;
+
+      let cols = 2; // mobile default
+      if (width >= 1024) cols = 4; // laptop/pc
+      else if (width >= 768) cols = 3; // tablet
+
+      const rows = 3; // nechta qator ko‘rsatmoqchisan → 3 qator qilib qo‘ydim
+      setItemsPerPage(cols * rows);
+    };
+
+    updateItemsPerPage();
+    window.addEventListener("resize", updateItemsPerPage);
+    return () => window.removeEventListener("resize", updateItemsPerPage);
+  }, []);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -710,11 +729,9 @@ function MainLayout({
           </div>
 
           {/* Products Grid with pagination */}
-          <div className="px-4">
+          <div className="px-4 mb-10">
             {productsError ? (
               <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4">
-                {" "}
-                {/* Ranglar yangilandi */}
                 {productsError}
               </div>
             ) : loadingProducts ? (
@@ -722,7 +739,7 @@ function MainLayout({
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-48 rounded-lg bg-gray-200 animate-pulse" // Rang yangilandi
+                    className="h-48 rounded-lg bg-gray-200 animate-pulse"
                   />
                 ))}
               </div>
@@ -733,16 +750,17 @@ function MainLayout({
                     categoryFilter === "all"
                       ? products
                       : products.filter((p) => p.category === categoryFilter);
+
+                  // endi itemsPerPage dinamik
                   const pageItems = all.slice(
                     (currentPage - 1) * itemsPerPage,
                     currentPage * itemsPerPage
                   );
+
                   return (
                     <>
                       {all.length === 0 ? (
                         <div className="text-center text-gray-300 py-16">
-                          {" "}
-                          {/* Matn rangi yangilandi */}
                           Hozircha mahsulotlar yo'q.
                         </div>
                       ) : (
@@ -759,9 +777,8 @@ function MainLayout({
 
                       {/* Pagination */}
                       {(() => {
-                        const totalItems = all.length;
                         const totalPages =
-                          Math.ceil(totalItems / itemsPerPage) || 1;
+                          Math.ceil(all.length / itemsPerPage) || 1;
                         const canPrev = currentPage > 1;
                         const canNext = currentPage < totalPages;
                         return (

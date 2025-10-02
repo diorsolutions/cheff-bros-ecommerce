@@ -77,7 +77,6 @@ const ProductDetail = ({ onAddToCart }) => {
 
   const stock = product.stock || 0;
   const isOutOfStock = stock === 0;
-  const { width } = useWindowSize();
 
   const handleAddToCart = () => {
     if (quantity > stock) {
@@ -89,12 +88,10 @@ const ProductDetail = ({ onAddToCart }) => {
       return;
     }
     onAddToCart({ ...product, quantity });
-    if (width >= 1024) {
-      toast({
-        title: "Savatga qo'shildimi aaa?",
-        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
-      });
-    }
+    toast({
+      title: "Savatga qo'shildi!",
+      description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+    });
   };
 
   const incrementQuantity = () => {
@@ -106,14 +103,14 @@ const ProductDetail = ({ onAddToCart }) => {
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5]">
+    <div className="min-h-screen bg-[#eaeaea]">
       {" "}
       {/* Fon rangi yangilandi */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="text-gray-800 mb-6 hover:bg-gray-200"
+          className="text-gray-800 mb-6 bg-white hover:bg-gray-200 border border-black/10 shadow-lg rounded-xl"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Orqaga
@@ -124,7 +121,7 @@ const ProductDetail = ({ onAddToCart }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white/50 border border-gray-100 rounded-2xl shadow-lg">
+          <Card className="bg-white/90 border border-black/20 rounded-2xl shadow-lg">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 sm:p-6 lg:p-10">
                 <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 shadow-md">
@@ -140,19 +137,20 @@ const ProductDetail = ({ onAddToCart }) => {
 
                 <div className="flex flex-col justify-start space-y-6">
                   <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 leading-tight">
+                    <h1 className="text-2xl big_tablet:text-[1.2rem] laptop:text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 leading-tight">
                       {" "}
                       {product.name}
                     </h1>
                     {product.category && (
-                      <div className="mb-3">
-                        <span className="inline-block text-xs sm:text-sm font-semibold px-3 py-1 rounded bg-gray-100 text-gray-800 border border-gray-300">
+                      <div className="mb-3 big_tablet:text-[.94rem] flex items-center justify-start gap-2">
+                        <p>Kategoriya:</p>
+                        <span className="inline-block big_tablet:text-[.9rem] text-xs sm:text-sm font-semibold px-3 py-1 laptop:text-[0.9rem] rounded bg-gray-200 shadow-lg  text-gray-800 border border-gray-300">
                           {" "}
-                          Kategoriya: {product.category}
+                          {product.category}
                         </span>
                       </div>
                     )}
-                    <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed">
+                    <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed big_tablet:text-[.96rem]">
                       {" "}
                       {/* Matn rangi yangilandi */}
                       {product.description}
@@ -177,7 +175,7 @@ const ProductDetail = ({ onAddToCart }) => {
                     </div>
 
                     <div className="mb-6">
-                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500">
+                      <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500 big_tablet:text-[1.4rem]">
                         {" "}
                         {/* Matn rangi yangilandi */}
                         {Number(product.price).toLocaleString()} so'm
@@ -190,7 +188,7 @@ const ProductDetail = ({ onAddToCart }) => {
                     <div className="flex flex-wrap items-center gap-4">
                       <span className="text-gray-800 font-medium">Miqdor:</span>{" "}
                       {/* Matn rangi yangilandi */}
-                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+                      <div className="flex items-center gap-2 big_tablet:gap-0 bg-gray-200/40 rounded-lg px-2">
                         {" "}
                         {/* Rang yangilandi */}
                         <Button
@@ -198,11 +196,11 @@ const ProductDetail = ({ onAddToCart }) => {
                           variant="ghost"
                           onClick={decrementQuantity}
                           disabled={isOutOfStock}
-                          className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="h-10 w-10 big_tablet:h-5 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Minus className="h-5 w-5" />
                         </Button>
-                        <span className="text-gray-800 font-bold text-xl w-12 text-center">
+                        <span className="text-gray-800 big_tablet:text-[.94rem] font-bold text-xl w-12 text-center">
                           {quantity}
                         </span>
                         <Button
@@ -222,7 +220,7 @@ const ProductDetail = ({ onAddToCart }) => {
                       disabled={
                         isOutOfStock || quantity > stock || quantity === 0
                       } // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
-                      className="w-full h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full h-12 big_tablet:text-[.94rem] big_tablet:h-10 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="mr-2 h-5 w-5" />
                       {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}

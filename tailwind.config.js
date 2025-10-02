@@ -18,7 +18,7 @@ module.exports = {
     extend: {
       screens: {
         laptop: {
-          max: "1024px",
+          max: "1025px",
         },
         big_tablet: {
           max: "954px",
