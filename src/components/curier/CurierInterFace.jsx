@@ -11,12 +11,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -151,7 +145,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
           <div className="flex items-center gap-3">
             <Truck className="h-8 w-8 text-orange-500" />{" "}
             {/* Icon rangi yangilandi */}
-            <h1 className="text-2xl nor_tablet:text-xs font-bold text-gray-800">
+            <h1 className="text-2xl nor_tablet:text-xl mob:text-lg font-bold text-gray-800">
               Buyurtmalar Paneli
             </h1>{" "}
             {/* Matn rangi yangilandi */}
@@ -160,23 +154,23 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
             <Button
               variant="ghost"
               onClick={() => setShowSettingsDialog(true)} // Dialogni ochish
-              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2"
+              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2 p-2 sm:p-3"
             >
               <User className="h-4 w-4" />
-              <span className="nor_tablet:hidden">{curierName}</span>
+              <span className="hidden sm:inline">{curierName}</span>
             </Button>
             <Button
               onClick={handleLogout}
               variant="ghost"
-              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2"
+              className="text-gray-800 hover:bg-gray-300 bg-gray-200 rounded-[0.3rem] gap-2 p-2 sm:p-3"
             >
               <LogOut className="h-4 w-4" />
-              <span className="nor_tablet:hidden">Chiqish</span>
+              <span className="hidden sm:inline">Chiqish</span>
             </Button>
           </div>
         </div>
       </header>
-      <main className="p-6 bg-[#f6f6f6]">
+      <main className="p-4 sm:p-6 bg-[#f6f6f6]">
         {" "}
         {/* Asosiy kontent foni yangilandi */}
         <div className="grid gap-4">
@@ -235,21 +229,21 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-gray-800 flex items-center gap-3 text-base">
+                          <CardTitle className="text-gray-800 flex items-center gap-3 text-base sm:text-lg">
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
                               )} ${!isFinal ? "animate-pulse" : ""}`}
                             ></span>
-                            <span className="nor_tablet:text-[0.9rem]">
+                            <span className="text-sm sm:text-base">
                               Buyurtma{" "}
                             </span>
-                            <span className="text-gray-500 nor_tablet:hidden">
+                            <span className="text-gray-500 text-xs sm:text-sm">
                               {order.id.substring(0, 8)}
                             </span>
                           </CardTitle>
-                          <div className="flex items-center gap-1 mr-[-0.9rem]">
-                            <span className="text-gray-500 nor_tablet:text-[0.7rem]">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500 text-xs sm:text-sm">
                               {new Date(order.created_at).toLocaleString(
                                 "uz-UZ"
                               )}
@@ -260,52 +254,52 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
 
                       <CardContent className="space-y-2">
                         <div className="flex justify-between items-center text-sm text-gray-600">
-                          <p className="flex items-center mob_small:text-[0.8rem]">
+                          <p className="flex items-center text-sm">
                             <span className="font-bold text-gray-800">
                               Mijoz:
                             </span>{" "}
                             {order.customer_info.name}
                           </p>
-                          <p>
-                            <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
+                          <p className="text-sm">
+                            <span className="font-bold text-gray-800">
                               Tel:
                             </span>{" "}
-                            <span className="mob_small:text-[0.8rem]">
-                              <a
-                                href={`tel:${order.customer_info.phone}`}
-                                className="text-blue-600 hover:underline"
-                              >
-                                {order.customer_info.phone}
-                              </a>
-                            </span>
+                            <a
+                              href={`tel:${order.customer_info.phone}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              {order.customer_info.phone}
+                            </a>
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">
-                          <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
+                          <span className="font-bold text-gray-800">
                             Manzil:
                           </span>{" "}
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
                             className="text-blue-600 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
                             Ochish
                           </a>
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
-                          <span className="text-gray-800 font-bold mob_small:text-[0.8rem]">
+                          <span className="text-gray-800 font-bold text-base">
                             Jami:
                           </span>{" "}
-                          <span className="text-orange-500 text-lg nor_tablet:text-[0.9rem] font-bold">
+                          <span className="text-orange-500 text-lg font-bold">
                             {order.total_price.toLocaleString()} so'm
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-500" />{" "}
-                          <span className="text-sm text-gray-500 mob_small:text-[0.8rem]">
+                          <span className="text-sm text-gray-500">
                             Status:
                           </span>{" "}
                           <span
-                            className={`text-sm font-medium px-2 py-1 rounded mob_small:text-[0.8rem] ${
+                            className={`text-sm font-medium px-2 py-1 rounded ${
                               order.status === "new"
                                 ? "bg-blue-100 text-blue-600"
                                 : order.status === "en_route_to_kitchen"
@@ -333,7 +327,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                   )
                                 }
                                 disabled={isOrderDisabled}
-                                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
                               >
                                 <Truck className="mr-2 h-4 w-4" />
                                 Olish uchun yo'lda
@@ -348,7 +342,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                     curierId
                                   )
                                 }
-                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm"
                               >
                                 <Package className="mr-2 h-4 w-4" />
                                 Buyurtma menda
@@ -364,7 +358,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                       curierId
                                     )
                                   }
-                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
                                   Mijozda
@@ -377,7 +371,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                                       curierId
                                     )
                                   }
-                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
                                   Bekor qilish

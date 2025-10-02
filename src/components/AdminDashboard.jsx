@@ -126,12 +126,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
         </div>
       </div>
 
-      <div className="flex flex-col items-start sm:flex-row gap-4">
-        <div className="">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-white/20">
@@ -166,9 +166,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
             </Select>
           </div>
         </div>
-        <div className="flex-1">
+        <div className="w-full sm:w-auto">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[200px] bg-white/10 border-white/20 text-white">
+            <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
               <SelectValue placeholder="Tartiblash" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-white/20">
@@ -229,7 +229,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-white flex items-center gap-3 text-base">
+                        <CardTitle className="text-white flex items-center gap-3 text-base sm:text-lg">
                           <span
                             className={`w-3 h-3 rounded-full ${getStatusColor(
                               order.status
@@ -242,12 +242,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                             }`}
                           ></span>
                           Buyurtma{" "}
-                          <span className="text-gray-400">
+                          <span className="text-gray-400 text-sm">
                             {order.id.substring(0, 8)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-400 hidden sm:inline">
                             {new Date(order.created_at).toLocaleString("uz-UZ")}
                           </span>
                           {!isFinal ? (
@@ -343,9 +343,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid sm:grid-cols-2 gap-4">
                         <div>
-                          <h4 className="font-medium text-white mb-2">
+                          <h4 className="font-medium text-white mb-2 text-base">
                             Mijoz ma'lumotlari
                           </h4>
                           <div className="space-y-2 text-sm text-gray-300">
@@ -368,13 +368,17 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
                               <a
                                 className="underline text-blue-300"
                                 href={`https://maps.google.com/?q=${order.location}`}
-                              >Xaritada ochish</a>
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Xaritada ochish
+                              </a>
                             </p>
                           </div>
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-white mb-2">
+                          <h4 className="font-medium text-white mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
                           <div className="space-y-1">

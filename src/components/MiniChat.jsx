@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,35 +6,33 @@ import { Button } from "@/components/ui/button";
 
 const MiniChat = ({ messages }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [readMessageIds, setReadMessageIds] = useState({}); // Stores IDs of messages that have been read
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Calculate unread count based on messages and readMessageIds
+  const currentUnreadCount = useMemo(() => {
+    if (isOpen) return 0; // If chat is open, no unread count
+    return messages.filter(msg => !readMessageIds[msg.id]).length;
+  }, [messages, isOpen, readMessageIds]);
+
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      // Mark all current messages as read when chat is opened
+      const newReadIds = {};
+      messages.forEach(msg => {
+        newReadIds[msg.id] = true;
+      });
+      setReadMessageIds(prev => ({ ...prev, ...newReadIds }));
     }
-  }, [messages, isOpen]);
-
-  useEffect(() => {
-    // Only update unread count if new messages arrived and chat is closed
-    if (messages.length > lastMessageCount && !isOpen) {
-      const newMessagesCount = messages.length - lastMessageCount;
-      setUnreadCount((prev) => prev + newMessagesCount);
-    }
-    setLastMessageCount(messages.length);
-  }, [messages.length, isOpen]); // isOpen ni ham dependency ga qo'shdik
+  }, [isOpen, messages]); // messages is a dependency to ensure all current messages are marked read
 
   const handleToggleChat = () => {
     setIsOpen(!isOpen);
-    if (!isOpen) {
-      // Chat ochilganda o'qilmagan xabarlar sonini nolga qaytarish
-      setUnreadCount(0);
-    }
   };
 
   return (
@@ -55,13 +53,13 @@ const MiniChat = ({ messages }) => {
             <MessageCircle className="h-6 w-6" />
           )}
         </Button>
-        {unreadCount > 0 && !isOpen && (
+        {currentUnreadCount > 0 && !isOpen && (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"
           >
-            <span className="text-xs text-white font-bold">{unreadCount}</span>
+            <span className="text-xs text-white font-bold">{currentUnreadCount}</span>
           </motion.div>
         )}
       </motion.div>
@@ -106,7 +104,7 @@ const MiniChat = ({ messages }) => {
                       layout
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600" /* Ranglar yangilandi */
+                      className={`p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600 ${readMessageIds[message.id] ? 'opacity-50' : 'opacity-100'}`}
                     >
                       <p className="text-sm">{message.text}</p>
                       <span className="text-xs opacity-70 block text-right mt-1">

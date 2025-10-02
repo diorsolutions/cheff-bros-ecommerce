@@ -149,7 +149,7 @@ const AdminCouriers = ({ curiers, orders }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-white/90">Kuryerlar</h1>
         <Button
           onClick={() => setIsAddCourierDialogOpen(true)}
@@ -266,7 +266,7 @@ const AdminCouriers = ({ curiers, orders }) => {
         open={isAddCourierDialogOpen}
         onOpenChange={setIsAddCourierDialogOpen}
       >
-        <DialogContent className="bg-white border-gray-300">
+        <DialogContent className="bg-white border-gray-300 sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-gray-800">
               Yangi kuryer qo'shish

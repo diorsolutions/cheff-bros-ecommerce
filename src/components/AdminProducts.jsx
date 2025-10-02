@@ -180,7 +180,7 @@ const AdminProducts = memo(({ products }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold text-white">Mahsulotlar</h1>
         <Button
           onClick={() => openDialog()}
@@ -190,7 +190,7 @@ const AdminProducts = memo(({ products }) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
           {products.map((product) => (
             <motion.div
@@ -297,7 +297,7 @@ const AdminProducts = memo(({ products }) => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white border-gray-300 text-gray-800">
+        <DialogContent className="bg-white border-gray-300 text-gray-800 sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle className="text-gray-800">
               {currentProduct?.id

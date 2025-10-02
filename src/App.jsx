@@ -667,7 +667,7 @@ function MainLayout({
   return (
     <div className="min-h-screen bg-[#ffffff]">
       {" "}
-      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 extra_small:static mob_small:static mob_xr:static mid_small:static sticky top-0 z-30">
+      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
         {" "}
         {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4">
@@ -837,7 +837,7 @@ function MainLayout({
               animate={{ opacity: 1, y: 0 }}
               className="fixed bottom-6 left-6 z-20"
             >
-              <Card className="laptop:hidden w-[15rem] flex flex-col justify-start bg-white border-orange-500/90">
+              <Card className="laptop:hidden w-full max-w-[15rem] mob:max-w-[12rem] extra_small:max-w-[10rem] flex flex-col justify-start bg-white border-orange-500/90">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-gray-800 text-center text-lg">
                     Savat

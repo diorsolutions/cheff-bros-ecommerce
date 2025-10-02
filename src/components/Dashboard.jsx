@@ -25,6 +25,20 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Toggle sidebar on smaller screens by default
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) { // md breakpoint
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    handleResize(); // Set initial state
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -42,24 +56,24 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white">
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Admin Paneli</h1>
-          <Button onClick={handleSignOut} variant="ghost">
+          <h1 className="text-2xl md:text-3xl font-bold">Admin Paneli</h1>
+          <Button onClick={handleSignOut} variant="ghost" className="text-white hover:bg-white/10">
             <LogOut className="mr-2 h-4 w-4" />
-            Chiqish
+            <span className="hidden sm:inline">Chiqish</span>
           </Button>
         </div>
       </header>
-      <main className="flex">
+      <main className="flex flex-col md:flex-row">
         <aside
           className={`transition-all duration-300 ${
             isSidebarOpen ? "w-64" : "w-20"
-          } border-r border-white/20 p-4 pt-2`}
+          } md:w-64 border-r border-white/20 p-4 pt-2 flex-shrink-0 ${!isSidebarOpen && 'overflow-hidden'}`}
         >
           <nav className="flex flex-col items-start gap-2 sticky top-[81px]">
             <Button
               variant="ghost"
               size="icon"
-              className="self-end mb-4"
+              className="self-end mb-4 text-white hover:bg-white/10"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
               {isSidebarOpen ? (
@@ -118,7 +132,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
             </Button>
           </nav>
         </aside>
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 md:p-6">
           <motion.div
             key={adminView}
             initial={{ opacity: 0, y: 20 }}
