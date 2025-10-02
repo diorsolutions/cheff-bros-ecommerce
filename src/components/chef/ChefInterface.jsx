@@ -7,7 +7,8 @@ import {
   LogOut,
   User,
   Clock,
-  ChefHat, // Oshpaz iconi
+  ChefHat,
+  Search, // Search icon qo'shildi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,8 +28,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input"; // Input komponenti qo'shildi
 
-const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
+const ChefInterface = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs propini qabul qilish
   const navigate = useNavigate();
   const [chefName, setChefName] = useState("Oshpaz");
   const [chefPhone, setChefPhone] = useState("");
@@ -37,6 +39,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Yangi: Qidiruv so'zi holati
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -86,6 +89,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
     setChefPhone(newPhone);
   };
 
+  const getChefInfo = (id) => {
+    return chefs.find((c) => c.id === id);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
@@ -101,14 +108,16 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, orderChefId) => {
+    const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
+
     switch (status) {
       case "new":
         return "Yangi";
       case "preparing":
-        return "Tayyorlanmoqda";
+        return assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
       case "ready":
-        return "Tayyor";
+        return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
       case "cancelled":
         return "Bekor qilingan";
       default:
@@ -133,22 +142,37 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
   };
 
   const sortedOrders = useMemo(() => {
-    if (!chefId || !orders) return [];
+    if (!orders) return [];
 
-    // Oshpazga biriktirilgan va "new" yoki "preparing" statusidagi buyurtmalar
-    const activeChefOrders = orders.filter(
+    let filtered = orders.filter(
       (order) =>
-        order.chef_id === chefId &&
-        (order.status === "new" || order.status === "preparing")
-    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        order.status === "new" ||
+        order.status === "preparing" ||
+        order.status === "ready" ||
+        order.status === "cancelled" // Bekor qilingan buyurtmalar ham ko'rinishi kerak
+    );
 
-    // Oshpazga biriktirilmagan va "new" statusidagi buyurtmalar
-    const newUnassignedOrders = orders.filter(
-      (order) => order.status === "new" && !order.chef_id
-    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    // Qidiruv filtri
+    if (searchTerm.trim()) {
+      const lowerCaseSearchTerm = searchTerm.trim().toLowerCase();
+      filtered = filtered.filter(order =>
+        generateShortOrderId(order.id).includes(lowerCaseSearchTerm)
+      );
+    }
 
-    return [...activeChefOrders, ...newUnassignedOrders];
-  }, [orders, chefId]);
+    // Saralash: yangi buyurtmalar birinchi, keyin tayyorlanmoqda, keyin tayyor, keyin bekor qilingan.
+    // Har bir status ichida yaratilish sanasi bo'yicha saralash.
+    return filtered.sort((a, b) => {
+      const statusOrder = { "new": 1, "preparing": 2, "ready": 3, "cancelled": 4 };
+      const statusA = statusOrder[a.status] || 99;
+      const statusB = statusOrder[b.status] || 99;
+
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+  }, [orders, searchTerm]);
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
@@ -210,6 +234,20 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
         </div>
       </header>
       <main className="p-4 sm:p-6 bg-[#f6f6f6]">
+        {/* Qidiruv maydoni */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              type="number"
+              placeholder="Buyurtma ID bo'yicha qidirish..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-4">
           <AnimatePresence>
             {sortedOrders.length === 0 ? (
@@ -227,7 +265,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
                 const isReady = order.status === "ready";
                 const isCancelled = order.status === "cancelled";
 
-                const isOrderDisabled = isReady || isCancelled; // Tayyor yoki bekor qilingan bo'lsa disabled
+                // Tugmalar uchun harakatlarni o'chirish logikasi
+                const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId);
+                const canMarkReady = isPreparing && order.chef_id === chefId;
+                const canCancel = (isNew || isPreparing) && (!order.chef_id || order.chef_id === chefId);
 
                 return (
                   <motion.div
@@ -239,15 +280,13 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isOrderDisabled ? "opacity-60 pointer-events-none" : ""
+                        isReady ? "opacity-60" : "" // Tayyor bo'lganda xiralashadi
                       } ${
-                        isReady
-                          ? "bg-green-100 border-green-300"
-                          : isCancelled
-                          ? "bg-red-100 border-red-300"
-                          : isPreparing
-                          ? "bg-yellow-100 border-yellow-300"
-                          : "bg-white"
+                        isCancelled ? "bg-red-100 border-red-300 opacity-60" : "" // Bekor qilinganda xiralashadi va qizil fon
+                      } ${
+                        isPreparing ? "bg-yellow-100 border-yellow-300" : ""
+                      } ${
+                        isNew && !isPreparing && !isReady && !isCancelled ? "bg-white" : ""
                       }`}
                     >
                       <CardHeader className="pb-3">
@@ -256,7 +295,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isOrderDisabled ? "animate-pulse" : ""}`}
+                              )} ${!isReady && !isCancelled ? "animate-pulse" : ""}`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}
@@ -306,6 +345,29 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
                             Ochish
                           </a>
                         </p>
+
+                        {/* Buyurtma mahsulotlari */}
+                        <div className="border-t border-gray-300 pt-2 mt-2">
+                          <h4 className="font-medium text-gray-800 mb-2 text-base">
+                            Buyurtma tafsilotlari
+                          </h4>
+                          <div className="space-y-1">
+                            {order.items.map((item, itemIndex) => (
+                              <div
+                                key={itemIndex}
+                                className="flex justify-between text-sm text-gray-600"
+                              >
+                                <span>
+                                  {item.name} x{item.quantity}
+                                </span>
+                                <span className="font-medium text-orange-500">
+                                  {(item.price * item.quantity).toLocaleString()} so'm
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
                           <span className="text-gray-800 font-bold text-base">
                             Jami:
@@ -321,64 +383,73 @@ const ChefInterface = ({ orders, onUpdateOrderStatus }) => {
                           </span>{" "}
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded ${
-                              order.status === "new"
+                              isNew
                                 ? "bg-blue-100 text-blue-600"
-                                : order.status === "preparing"
+                                : isPreparing
                                 ? "bg-yellow-100 text-yellow-600"
-                                : order.status === "ready"
+                                : isReady
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {getStatusText(order.status)}
+                            {getStatusText(order.status, order.chef_id)}
                           </span>
                         </div>
 
-                        {!isOrderDisabled && (
-                          <div className="flex gap-2 mt-4 flex-wrap">
-                            {isNew && (
-                              <Button
-                                onClick={() =>
-                                  onUpdateOrderStatus(
-                                    order.id,
-                                    "preparing",
-                                    chefId,
-                                    "chef"
-                                  )
-                                }
-                                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
-                              >
-                                <Utensils className="mr-2 h-4 w-4" />
-                                Tayyorlanmoqda
-                              </Button>
-                            )}
-                            {isPreparing && (
-                              <Button
-                                onClick={() =>
-                                  onUpdateOrderStatus(
-                                    order.id,
-                                    "ready",
-                                    chefId,
-                                    "chef"
-                                  )
-                                }
-                                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
-                              >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Tayyor
-                              </Button>
-                            )}
-                            {(isNew || isPreparing) && (
-                              <Button
-                                onClick={() => handleCancelClick(order)}
-                                className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
-                              >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Bekor qilish
-                              </Button>
-                            )}
+                        {order.chef_id && (isPreparing || isReady || isCancelled) && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <ChefHat className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-500">Oshpaz:</span>
+                            <span className="text-sm font-medium text-gray-800">
+                              {getChefInfo(order.chef_id)?.name || "Noma'lum"}
+                            </span>
                           </div>
                         )}
+
+                        {/* Harakat tugmalari */}
+                        <div className="flex gap-2 mt-4 flex-wrap">
+                          {canMarkPreparing && (
+                            <Button
+                              onClick={() =>
+                                onUpdateOrderStatus(
+                                  order.id,
+                                  "preparing",
+                                  chefId,
+                                  "chef"
+                                )
+                              }
+                              className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
+                            >
+                              <Utensils className="mr-2 h-4 w-4" />
+                              Tayyorlanmoqda
+                            </Button>
+                          )}
+                          {canMarkReady && (
+                            <Button
+                              onClick={() =>
+                                onUpdateOrderStatus(
+                                  order.id,
+                                  "ready",
+                                  chefId,
+                                  "chef"
+                                )
+                              }
+                              className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Tayyor
+                            </Button>
+                          )}
+                          {canCancel && (
+                            <Button
+                              onClick={() => handleCancelClick(order)}
+                              className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Bekor qilish
+                            </Button>
+                          )}
+                        </div>
                         {isCancelled && order.cancellation_reason && (
                           <p className="text-sm text-red-600 italic mt-4 text-center">
                             Bekor qilingan. Sababi: {order.cancellation_reason}

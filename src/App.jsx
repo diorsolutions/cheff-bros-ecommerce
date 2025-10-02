@@ -529,71 +529,62 @@ function App() {
           return;
       }
     } else if (actorRole === "chef") {
-      if (orderToUpdate.chef_id && orderToUpdate.chef_id !== actorId) {
-        toast({
-          title: "Xatolik!",
-          description:
-            "Bu buyurtma allaqachon boshqa oshpaz tomonidan qabul qilingan.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      switch (newStatus) {
-        case "preparing": // Tayyorlanmoqda
-          if (orderToUpdate.status === "new" && !orderToUpdate.chef_id) {
-            canUpdate = true;
-            updateData.chef_id = actorId;
-          } else {
-            toast({
-              title: "Xatolik!",
-              description:
-                "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
-              variant: "destructive",
-            });
-            return;
-          }
-          break;
-        case "ready": // Tayyor
-          if (
-            orderToUpdate.status === "preparing" &&
-            orderToUpdate.chef_id === actorId
-          ) {
-            canUpdate = true;
-          } else {
-            toast({
-              title: "Xatolik!",
-              description: "Buyurtma hali tayyorlanmagan yoki boshqa statusda.",
-              variant: "destructive",
-            });
-            return;
-          }
-          break;
-        case "cancelled": // Bekor qilish (chef tomonidan)
-          if (
-            (orderToUpdate.status === "new" ||
-              orderToUpdate.status === "preparing") &&
-            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
-          ) {
-            canUpdate = true;
-            updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
-          } else {
-            toast({
-              title: "Xatolik!",
-              description:
-                "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
-              variant: "destructive",
-            });
-            return;
-          }
-          break;
-        default:
+      // Oshpaz logikasi
+      // Oshpaz buyurtmani qabul qilganda yoki statusini o'zgartirganda,
+      // buyurtma boshqa oshpazlardan yo'qolmaydi, faqat statusi yangilanadi.
+      // chef_id faqat kim tayyorlayotganini ko'rsatadi.
+      if (newStatus === "preparing") {
+        if (orderToUpdate.status === "new" && !orderToUpdate.chef_id) {
+          canUpdate = true;
+          updateData.chef_id = actorId; // Oshpazga biriktirish
+        } else if (orderToUpdate.status === "new" && orderToUpdate.chef_id !== actorId) {
           toast({
             title: "Xatolik!",
-            description: "Noto'g'ri status o'zgarishi.",
+            description: "Bu buyurtma allaqachon boshqa oshpaz tomonidan qabul qilingan.",
             variant: "destructive",
           });
           return;
+        } else if (orderToUpdate.status === "new" && orderToUpdate.chef_id === actorId) {
+          // Agar oshpaz o'zi qabul qilgan yangi buyurtmani yana "tayyorlanmoqda" qilsa, ruxsat berish
+          canUpdate = true;
+        } else {
+          toast({
+            title: "Xatolik!",
+            description: "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (newStatus === "ready") {
+        if (orderToUpdate.status === "preparing" && orderToUpdate.chef_id === actorId) {
+          canUpdate = true;
+        } else {
+          toast({
+            title: "Xatolik!",
+            description: "Buyurtma hali tayyorlanmagan yoki boshqa oshpazga biriktirilgan.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (newStatus === "cancelled") {
+        if ((orderToUpdate.status === "new" || orderToUpdate.status === "preparing") && (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)) {
+          canUpdate = true;
+          updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
+        } else {
+          toast({
+            title: "Xatolik!",
+            description: "Buyurtma bekor qilinishi mumkin emas (allaqachon kuryer olgan bo'lishi mumkin).",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
+        toast({
+          title: "Xatolik!",
+          description: "Noto'g'ri status o'zgarishi.",
+          variant: "destructive",
+        });
+        return;
       }
     } else {
       // Admin tomonidan status o'zgarishlari
@@ -718,7 +709,7 @@ function App() {
               <ChefInterface
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
-                chefs={chefs}
+                chefs={chefs} {/* chefs propini uzatish */}
               />
             </ProtectedRouteChef>
           }
