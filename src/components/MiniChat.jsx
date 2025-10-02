@@ -21,16 +21,18 @@ const MiniChat = ({ messages }) => {
   }, [messages, isOpen]);
 
   useEffect(() => {
-    if (messages.length > lastMessageCount && !isOpen && lastMessageCount > 0) {
+    // Only update unread count if new messages arrived and chat is closed
+    if (messages.length > lastMessageCount && !isOpen) {
       const newMessagesCount = messages.length - lastMessageCount;
       setUnreadCount((prev) => prev + newMessagesCount);
     }
     setLastMessageCount(messages.length);
-  }, [messages.length]);
+  }, [messages.length, isOpen]); // isOpen ni ham dependency ga qo'shdik
 
   const handleToggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
+      // Chat ochilganda o'qilmagan xabarlar sonini nolga qaytarish
       setUnreadCount(0);
     }
   };

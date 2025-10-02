@@ -121,6 +121,25 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
         order.curier_id === curierId)
   );
 
+  // Kuryerning faol buyurtmalarini hisoblash
+  const activeOrdersCount = orders.filter(
+    (order) =>
+      order.curier_id === curierId &&
+      (order.status === "en_route_to_kitchen" ||
+        order.status === "picked_up_from_kitchen")
+  ).length;
+
+  const canTakeNewOrder = activeOrdersCount < 2;
+
+  // Navbatdagi eng eski yangi buyurtmani topish
+  const newOrdersInQueue = orders
+    .filter((order) => order.status === "new" && !order.curier_id)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+  const firstAvailableNewOrderId = canTakeNewOrder
+    ? newOrdersInQueue[0]?.id
+    : null;
+
   return (
     <div className="min-h-screen bg-[#fefefe] text-gray-800">
       {" "}
@@ -185,6 +204,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   order.status === "delivered_to_customer" ||
                   order.status === "cancelled";
 
+                const isOrderDisabled =
+                  isNew &&
+                  (!canTakeNewOrder || order.id !== firstAvailableNewOrderId);
+
                 return (
                   <motion.div
                     key={order.id}
@@ -195,23 +218,24 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        /* Card rangi va chegarasi yangilandi */
+                        isOrderDisabled
+                          ? "opacity-50 pointer-events-none"
+                          : ""
+                      } ${
                         order.status === "delivered_to_customer"
-                          ? "bg-green-100 border-green-300 opacity-80" /* Ranglar yangilandi */
+                          ? "bg-green-100 border-green-300 opacity-80"
                           : order.status === "cancelled"
-                          ? "bg-red-100 border-red-300 opacity-80" /* Ranglar yangilandi */
+                          ? "bg-red-100 border-red-300 opacity-80"
                           : order.status === "picked_up_from_kitchen"
-                          ? "bg-orange-100 border-orange-300" /* Ranglar yangilandi */
+                          ? "bg-orange-100 border-orange-300"
                           : order.status === "en_route_to_kitchen"
-                          ? "bg-yellow-100 border-yellow-300" /* Ranglar yangilandi */
+                          ? "bg-yellow-100 border-yellow-300"
                           : "bg-white"
                       }`}
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-gray-800 flex items-center gap-3 text-base">
-                            {" "}
-                            {/* Matn rangi yangilandi */}
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
@@ -221,123 +245,31 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                               Buyurtma{" "}
                             </span>
                             <span className="text-gray-500 nor_tablet:hidden">
-                              {" "}
-                              {/* Matn rangi yangilandi */}
                               {order.id.substring(0, 8)}
                             </span>
                           </CardTitle>
                           <div className="flex items-center gap-1 mr-[-0.9rem]">
                             <span className="text-gray-500 nor_tablet:text-[0.7rem]">
-                              {" "}
-                              {/* Matn rangi yangilandi */}
                               {new Date(order.created_at).toLocaleString(
                                 "uz-UZ"
                               )}
                             </span>
-                            {!isFinal && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-gray-800 hover:bg-gray-200"
-                                  >
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-white border-gray-300">
-                                  {isNew && (
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(
-                                          order.id,
-                                          "en_route_to_kitchen",
-                                          curierId
-                                        )
-                                      }
-                                      className="text-yellow-600 hover:!bg-yellow-100 focus:bg-yellow-100 focus:text-yellow-700" /* Ranglar yangilandi */
-                                    >
-                                      <Truck className="mr-2 h-4 w-4" />
-                                      Olish uchun yo'lda
-                                    </DropdownMenuItem>
-                                  )}
-                                  {isEnRouteToKitchen && (
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        onUpdateOrderStatus(
-                                          order.id,
-                                          "picked_up_from_kitchen",
-                                          curierId
-                                        )
-                                      }
-                                      className="text-orange-600 hover:!bg-orange-100 focus:bg-orange-100 focus:text-orange-700" /* Ranglar yangilandi */
-                                    >
-                                      <Package className="mr-2 h-4 w-4" />
-                                      Buyurtma menda
-                                    </DropdownMenuItem>
-                                  )}
-                                  {isPickedUpFromKitchen && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          onUpdateOrderStatus(
-                                            order.id,
-                                            "delivered_to_customer",
-                                            curierId
-                                          )
-                                        }
-                                        className="text-green-600 hover:!bg-green-100 focus:bg-green-100 focus:text-green-700" /* Ranglar yangilandi */
-                                      >
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Mijozda
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          onUpdateOrderStatus(
-                                            order.id,
-                                            "cancelled",
-                                            curierId
-                                          )
-                                        }
-                                        className="text-red-600 hover:!bg-red-100 focus:bg-red-100 focus:text-red-700" /* Ranglar yangilandi */
-                                      >
-                                        <XCircle className="mr-2 h-4 w-4" />
-                                        Bekor qilish
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                            {isFinal && (
-                              <span className="text-xs text-gray-500 italic">
-                                {" "}
-                                {/* Matn rangi yangilandi */}
-                                {order.status === "delivered_to_customer"
-                                  ? "✓ Mijozga yetkazildi"
-                                  : "✗ Bekor qilingan"}
-                              </span>
-                            )}
                           </div>
                         </div>
                       </CardHeader>
 
                       <CardContent className="space-y-2">
                         <div className="flex justify-between items-center text-sm text-gray-600">
-                          {" "}
-                          {/* Matn rangi yangilandi */}
                           <p className="flex items-center mob_small:text-[0.8rem]">
                             <span className="font-bold text-gray-800">
                               Mijoz:
                             </span>{" "}
-                            {/* Matn rangi yangilandi */}
                             {order.customer_info.name}
                           </p>
                           <p>
                             <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
                               Tel:
                             </span>{" "}
-                            {/* Matn rangi yangilandi */}
                             <span className="mob_small:text-[0.8rem]">
                               <a
                                 href={`tel:${order.customer_info.phone}`}
@@ -349,12 +281,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">
-                          {" "}
-                          {/* Matn rangi yangilandi */}
                           <span className="font-bold text-gray-800 mob_small:text-[0.8rem]">
                             Manzil:
                           </span>{" "}
-                          {/* Matn rangi yangilandi */}
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
                             className="text-blue-600 hover:underline"
@@ -363,41 +292,107 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           </a>
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
-                          {" "}
-                          {/* Chegara rangi yangilandi */}
                           <span className="text-gray-800 font-bold mob_small:text-[0.8rem]">
                             Jami:
                           </span>{" "}
-                          {/* Matn rangi yangilandi */}
                           <span className="text-orange-500 text-lg nor_tablet:text-[0.9rem] font-bold">
-                            {" "}
-                            {/* Matn rangi yangilandi */}
                             {order.total_price.toLocaleString()} so'm
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-500" />{" "}
-                          {/* Icon rangi yangilandi */}
                           <span className="text-sm text-gray-500 mob_small:text-[0.8rem]">
                             Status:
                           </span>{" "}
-                          {/* Matn rangi yangilandi */}
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded mob_small:text-[0.8rem] ${
                               order.status === "new"
-                                ? "bg-blue-100 text-blue-600" /* Ranglar yangilandi */
+                                ? "bg-blue-100 text-blue-600"
                                 : order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-100 text-yellow-600" /* Ranglar yangilandi */
+                                ? "bg-yellow-100 text-yellow-600"
                                 : order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
+                                ? "bg-orange-100 text-orange-600"
                                 : order.status === "delivered_to_customer"
-                                ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
-                                : "bg-red-100 text-red-600" /* Ranglar yangilandi */
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
                             }`}
                           >
                             {getStatusText(order.status)}
                           </span>
                         </div>
+
+                        {!isFinal && (
+                          <div className="flex gap-2 mt-4 flex-wrap">
+                            {isNew && (
+                              <Button
+                                onClick={() =>
+                                  onUpdateOrderStatus(
+                                    order.id,
+                                    "en_route_to_kitchen",
+                                    curierId
+                                  )
+                                }
+                                disabled={isOrderDisabled}
+                                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                              >
+                                <Truck className="mr-2 h-4 w-4" />
+                                Olish uchun yo'lda
+                              </Button>
+                            )}
+                            {isEnRouteToKitchen && (
+                              <Button
+                                onClick={() =>
+                                  onUpdateOrderStatus(
+                                    order.id,
+                                    "picked_up_from_kitchen",
+                                    curierId
+                                  )
+                                }
+                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                              >
+                                <Package className="mr-2 h-4 w-4" />
+                                Buyurtma menda
+                              </Button>
+                            )}
+                            {isPickedUpFromKitchen && (
+                              <>
+                                <Button
+                                  onClick={() =>
+                                    onUpdateOrderStatus(
+                                      order.id,
+                                      "delivered_to_customer",
+                                      curierId
+                                    )
+                                  }
+                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Mijozda
+                                </Button>
+                                <Button
+                                  onClick={() =>
+                                    onUpdateOrderStatus(
+                                      order.id,
+                                      "cancelled",
+                                      curierId
+                                    )
+                                  }
+                                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Bekor qilish
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {isFinal && (
+                          <p className="text-sm text-gray-500 italic mt-4 text-center">
+                            {order.status === "delivered_to_customer"
+                              ? "✓ Mijozga yetkazildi"
+                              : "✗ Bekor qilingan"}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   </motion.div>

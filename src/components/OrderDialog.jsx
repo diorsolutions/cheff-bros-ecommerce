@@ -80,14 +80,28 @@ const OrderDialog = ({
           description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi",
         });
       },
-      () => {
+      (error) => {
+        console.error("Geolocation error:", error);
         setIsGettingLocation(false);
         setLocationMethod("manual");
+        let errorMessage = "Iltimos, manzilni qo'lda kiriting";
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage = "Joylashuvga ruxsat berilmagan. Iltimos, brauzer sozlamalarini tekshiring.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMessage = "Joylashuv ma'lumotlari mavjud emas.";
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage = "Joylashuvni aniqlash vaqti tugadi.";
+        }
         toast({
           title: "Joylashuvni aniqlab bo'lmadi",
-          description: "Iltimos, manzilni qo'lda kiriting",
+          description: errorMessage,
           variant: "destructive",
         });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
       }
     );
   };
@@ -281,7 +295,10 @@ const OrderDialog = ({
                   variant={
                     locationMethod === "manual" ? "secondary" : "outline"
                   }
-                  onClick={() => setLocationMethod("manual")}
+                  onClick={() => {
+                    setLocationMethod("manual");
+                    setShowLocationAlert(false); // Alertni yopish
+                  }}
                   className="flex-1 min-w-[140px] mob:text-sm"
                 >
                   <Edit3 className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
@@ -323,6 +340,37 @@ const OrderDialog = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showLocationAlert} onOpenChange={setShowLocationAlert}>
+        <AlertDialogContent className="bg-white border-gray-300">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-800">
+              Joylashuvga ruxsat berish
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Joylashuvingizni avtomatik aniqlash uchun brauzeringizdan ruxsat
+              berishingiz kerak. Davom etasizmi?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowLocationAlert(false);
+                setLocationMethod("manual");
+              }}
+              className="text-gray-800 border-gray-300 hover:bg-gray-200"
+            >
+              Bekor qilish
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLocationPermission}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Ruxsat berish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
