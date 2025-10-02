@@ -25,20 +25,6 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Toggle sidebar on smaller screens by default
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) { // md breakpoint
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
-    };
-    handleResize(); // Set initial state
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
