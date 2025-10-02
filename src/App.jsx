@@ -25,6 +25,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
+import { useWindowSize } from "react-use";
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -615,18 +616,31 @@ function MainLayout({
   messages, // MiniChat uchun messages qabul qilindi
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { width } = useWindowSize();
+
+  const handleAddToCart = (product, quantity) => {
+    addToCart(product, quantity);
+
+    // faqat desktop (≥1024) bo'lsa toast chiqar
+    if (width >= 1024) {
+      toast({
+        title: "Savatga qo'shildi!mi?",
+        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#ffffff]">
       {" "}
-      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
+      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 extra_small:static mob_small:static mob_xr:static mid_small:static sticky top-0 z-30">
         {" "}
         {/* Header rangi yangilandi */}
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Store className="h-8 w-8 text-orange-400" />
-              <h1 className="text-2xl font-bold text-gray-800">
+            <div className="flex items-center gap-3 extra_small:gap-1 mob_xr:gap-1 text-orange-400">
+              <Store className="h-8 w-8 extra_small:w-6 extra_small:h-6 mob_xr:h-6 mob_xr:w-6" />
+              <h1 className="text-2xl font-bold extra_small:text-xl mob_xr:text-[1.3rem]">
                 Restoran
               </h1>{" "}
               {/* Matn rangi yangilandi */}
@@ -636,7 +650,7 @@ function MainLayout({
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
+                className="extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
                 Buyurtma berish
@@ -656,13 +670,13 @@ function MainLayout({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="text-center mb-8 sm:mb-12 px-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-3 sm:mb-4">
+          <div className="text-center mob_small:mb-0 mob_xr:mb-0 mid_small:mb-0 extra_small:mb-0 mb-8 sm:mb-12 px-4">
+            <h2 className="mob_small:hidden text-3xl sm:text-4xl mob_xr:text-[1.29rem] font-bold text-gray-800 mb-3 sm:mb-4 extra_small:text-[1.2rem]">
               {" "}
               {/* Matn rangi yangilandi */}
               Bizning Menyumiz
             </h2>
-            <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className=" mob_small:hidden text-base sm:text-xl mob_xr:hidden text-gray-600 max-w-2xl mx-auto extra_small:hidden">
               {" "}
               {/* Matn rangi yangilandi */}
               Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
@@ -670,12 +684,11 @@ function MainLayout({
             </p>
           </div>
 
-          {/* Category Filters */}
-          <div className="px-4 mb-6 justify-center flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="mob_small:bg-white mob_xr:bg-white mid_small:bg-white mob_small:py-[.5rem] mob_xr:py-[.5rem] mid_small:py-[.5rem] extra_small:sticky mob_small:sticky mob_xr:sticky mid_small:sticky mob_small:top-0 mob_xr:top-0 mid_small:top-0  mob_small:z-50 mob_xr:z-50 mid_small:z-50 extra_small:top-0 extra_small:z-30 extra_small:bg-white extra_small:py-2 px-4 extra_small:mb-1 mb-6 mob_xr:gap-1 focus:*:bg-orange-500 *:rounded-[0.3rem] justify-center flex flex-wrap items-center gap-2 extra_small:gap-1 sm:gap-3">
             {[
               { key: "all", label: "Barchasi" },
               { key: "Hoddog", label: "Hoddog" },
-              { key: "Ichimlillar", label: "Ichimlillar" },
+              { key: "Ichimliklar", label: "Ichimliklar" },
               { key: "Disertlar", label: "Disertlar" },
             ].map((c) => (
               <Button
@@ -683,8 +696,8 @@ function MainLayout({
                 variant={categoryFilter === c.key ? "secondary" : "ghost"}
                 className={
                   categoryFilter === c.key
-                    ? "bg-orange-500 text-white"
-                    : "text-gray-800 hover:bg-gray-200 hover:text-orange-500 border border-gray-300"
+                    ? "bg-orange-500 extra_small:p-2 mid_small:text-[0.7rem] text-white extra_small:text-[0.8rem] mob_xr:text-[0.9rem]"
+                    : "text-gray-800 mid_small:text-[0.7rem] hover:bg-gray-300 hover:text-orange-400 border border-gray-300 extra_small:text-[0.7rem] mob_xr:text-[0.8rem]"
                 }
                 onClick={() => {
                   setCategoryFilter(c.key);
@@ -733,7 +746,7 @@ function MainLayout({
                           Hozircha mahsulotlar yo'q.
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div className="grid mt-[-13px] extra_small:mt-[0px] mob_small:gap-[0.4rem] grid-cols-2 mob_xr:gap-[0.4rem] md:grid-cols-3 extra_small:gap-[0.5rem] lg:grid-cols-4 sm:gap-2">
                           {pageItems.map((product) => (
                             <ProductCard
                               key={product.id}
@@ -792,7 +805,7 @@ function MainLayout({
               animate={{ opacity: 1, y: 0 }}
               className="fixed bottom-6 left-6 z-20"
             >
-              <Card className=" w-[15rem] flex flex-col justify-start bg-white border-orange-500/90">
+              <Card className="laptop:hidden w-[15rem] flex flex-col justify-start bg-white border-orange-500/90">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-gray-800 text-center text-lg">
                     Savat

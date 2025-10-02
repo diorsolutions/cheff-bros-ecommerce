@@ -17,6 +17,9 @@ module.exports = {
     },
     extend: {
       screens: {
+        laptop: {
+          max: "1024px",
+        },
         big_tablet: {
           max: "954px",
         },
@@ -29,8 +32,14 @@ module.exports = {
         mob_small: {
           max: "431px",
         },
+        mob_xr: {
+          max: "415px",
+        },
+        mid_small: {
+          max: "391px",
+        },
         extra_small: {
-          max: "280px",
+          max: "377px",
         },
       },
       colors: {

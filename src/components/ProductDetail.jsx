@@ -5,6 +5,7 @@ import { ArrowLeft, ShoppingCart, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
+import { useWindowSize } from "react-use";
 import { supabase } from "@/lib/supabase";
 
 const ProductDetail = ({ onAddToCart }) => {
@@ -76,6 +77,7 @@ const ProductDetail = ({ onAddToCart }) => {
 
   const stock = product.stock || 0;
   const isOutOfStock = stock === 0;
+  const { width } = useWindowSize();
 
   const handleAddToCart = () => {
     if (quantity > stock) {
@@ -87,10 +89,12 @@ const ProductDetail = ({ onAddToCart }) => {
       return;
     }
     onAddToCart({ ...product, quantity });
-    toast({
-      title: "Savatga qo'shildi!",
-      description: `${product.name} (${quantity} dona) savatga qo'shildi`,
-    });
+    if (width >= 1024) {
+      toast({
+        title: "Savatga qo'shildimi aaa?",
+        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+      });
+    }
   };
 
   const incrementQuantity = () => {
