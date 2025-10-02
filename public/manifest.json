@@ -1,0 +1,9 @@
+{
+  "short_name": "Cheffbro",
+  "name": "Sheff-hoddog || Tez ishonchli & Sifatli",
+  "theme_color": "#f97316",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/"
+}
