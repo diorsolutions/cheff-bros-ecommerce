@@ -45,20 +45,35 @@ function App() {
   });
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  // const itemsPerPage = 20;
-
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Default qiymat
 
   useEffect(() => {
     const updateItemsPerPage = () => {
       const width = window.innerWidth;
-
       let cols = 2; // mobile default
-      if (width >= 1024) cols = 4; // laptop/pc
-      else if (width >= 768) cols = 3; // tablet
+      let rows = 5; // default rows for mobile
 
-      const rows = 3; // nechta qator ko‘rsatmoqchisan → 3 qator qilib qo‘ydim
-      setItemsPerPage(cols * rows);
+      if (width >= 1024) {
+        // laptop/pc
+        cols = 4;
+        rows = 2; // 4x2 = 8 items
+      } else if (width >= 768) {
+        // tablet
+        cols = 3;
+        rows = 3; // 3x3 = 9 items
+      } else {
+        // mobile
+        cols = 2;
+        rows = 5; // 2x5 = 10 items
+      }
+
+      const newItemsPerPage = cols * rows;
+      setItemsPerPage((prevItemsPerPage) => {
+        if (prevItemsPerPage !== newItemsPerPage) {
+          setCurrentPage(1); // itemsPerPage o'zgarganda sahifani 1 ga qaytarish
+        }
+        return newItemsPerPage;
+      });
     };
 
     updateItemsPerPage();
@@ -736,7 +751,7 @@ function MainLayout({
               </div>
             ) : loadingProducts ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {Array.from({ length: 8 }).map((_, i) => (
+                {Array.from({ length: itemsPerPage }).map((_, i) => (
                   <div
                     key={i}
                     className="h-48 rounded-lg bg-gray-200 animate-pulse"
