@@ -65,9 +65,9 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
       </header>
       <main className="flex flex-col md:flex-row">
         <aside
-          className={`transition-all duration-300 ${
-            isSidebarOpen ? "w-64" : "w-20"
-          } md:w-64 border-r border-white/20 p-4 pt-2 flex-shrink-0 ${!isSidebarOpen && 'overflow-hidden'}`}
+          className={`transition-all duration-300 flex-shrink-0 border-r border-white/20 p-4 pt-2 ${
+            isSidebarOpen ? "w-64 md:w-64" : "w-20 md:w-20"
+          } ${!isSidebarOpen && 'overflow-hidden'}`}
         >
           <nav className="flex flex-col items-start gap-2 sticky top-[81px]">
             <Button

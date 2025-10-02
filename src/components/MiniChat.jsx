@@ -22,12 +22,14 @@ const MiniChat = ({ messages }) => {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
-      // Mark all current messages as read when chat is opened
-      const newReadIds = {};
-      messages.forEach(msg => {
-        newReadIds[msg.id] = true;
+      // Mark all current messages as read when chat is opened, merging with previous read messages
+      setReadMessageIds(prev => {
+        const newReadIds = { ...prev }; // Start with previously read messages
+        messages.forEach(msg => {
+          newReadIds[msg.id] = true;
+        });
+        return newReadIds;
       });
-      setReadMessageIds(prev => ({ ...prev, ...newReadIds }));
     }
   }, [isOpen, messages]); // messages is a dependency to ensure all current messages are marked read
 

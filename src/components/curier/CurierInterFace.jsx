@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
   XCircle,
-  MoreVertical,
   Truck,
   LogOut,
   User,
@@ -75,11 +74,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     switch (status) {
       case "new":
         return "bg-blue-500";
-      case "en_route_to_kitchen": // Yangi status
+      case "en_route_to_kitchen":
         return "bg-yellow-500";
-      case "picked_up_from_kitchen": // Yangi status
+      case "picked_up_from_kitchen":
         return "bg-orange-500";
-      case "delivered_to_customer": // Yangi status
+      case "delivered_to_customer":
         return "bg-green-500";
       case "cancelled":
         return "bg-red-500";
@@ -105,18 +104,24 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
-  // Faqat "new", "en_route_to_kitchen" yoki "picked_up_from_kitchen" statusdagi buyurtmalarni ko'rsatish
-  const relevantOrders = orders.filter(
-    (order) =>
-      order.status === "new" ||
-      (order.status === "en_route_to_kitchen" &&
-        order.curier_id === curierId) ||
-      (order.status === "picked_up_from_kitchen" &&
-        order.curier_id === curierId)
-  );
+  const sortedOrders = useMemo(() => {
+    if (!curierId || !orders) return [];
 
-  // Kuryerning faol buyurtmalarini hisoblash
-  const activeOrdersCount = orders.filter(
+    const activeCourierOrders = orders.filter(
+      (order) =>
+        order.curier_id === curierId &&
+        (order.status === "en_route_to_kitchen" ||
+          order.status === "picked_up_from_kitchen")
+    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); // Sort active by oldest first
+
+    const newUnassignedOrders = orders.filter(
+      (order) => order.status === "new" && !order.curier_id
+    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); // Sort new by oldest first
+
+    return [...activeCourierOrders, ...newUnassignedOrders];
+  }, [orders, curierId]);
+
+  const activeOrdersCount = sortedOrders.filter(
     (order) =>
       order.curier_id === curierId &&
       (order.status === "en_route_to_kitchen" ||
@@ -125,13 +130,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  // Navbatdagi eng eski yangi buyurtmani topish
-  const newOrdersInQueue = orders
-    .filter((order) => order.status === "new" && !order.curier_id)
-    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
   const firstAvailableNewOrderId = canTakeNewOrder
-    ? newOrdersInQueue[0]?.id
+    ? sortedOrders.find(order => order.status === "new" && !order.curier_id)?.id
     : null;
 
   return (
@@ -141,7 +141,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
       <header className="bg-white border-b border-gray-300 sticky top-0 z-30">
         {" "}
         {/* Header rangi yangilandi */}
-        <div className="mx-auto px-5 py-3 flex items-center justify-between border border-violet-300">
+        <div className="mx-auto px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Truck className="h-8 w-8 text-orange-500" />{" "}
             {/* Icon rangi yangilandi */}
@@ -175,7 +175,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
         {/* Asosiy kontent foni yangilandi */}
         <div className="grid gap-4">
           <AnimatePresence>
-            {relevantOrders.length === 0 ? (
+            {sortedOrders.length === 0 ? (
               <Card className="bg-white/40 border-gray-100">
                 {" "}
                 {/* Card rangi va chegarasi yangilandi */}
@@ -188,7 +188,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                 </CardContent>
               </Card>
             ) : (
-              relevantOrders.map((order) => {
+              sortedOrders.map((order) => {
                 const isNew = order.status === "new";
                 const isEnRouteToKitchen =
                   order.status === "en_route_to_kitchen";
