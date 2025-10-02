@@ -66,8 +66,8 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers }) => {
       <main className="flex flex-col md:flex-row">
         <aside
           className={`transition-all duration-300 flex-shrink-0 border-r border-white/20 p-4 pt-2 ${
-            isSidebarOpen ? "w-64 md:w-64" : "w-20 md:w-20"
-          } ${!isSidebarOpen && 'overflow-hidden'}`}
+            isSidebarOpen ? "w-64" : "w-20"
+          } md:w-64 ${!isSidebarOpen && 'overflow-hidden'}`}
         >
           <nav className="flex flex-col items-start gap-2 sticky top-[81px]">
             <Button

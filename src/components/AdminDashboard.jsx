@@ -8,7 +8,8 @@ import {
   Bell,
   Filter,
   Package,
-  Truck, // Truck ikonasi import qilindi
+  Truck,
+  Search, // Search ikonasi import qilindi
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,12 +26,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input"; // Input komponenti import qilindi
 import { toast } from "@/components/ui/use-toast";
 
 const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchBy, setSearchBy] = useState("id"); // Default search by ID
 
   useEffect(() => {
     const newOrders = orders.filter((order) => order.status === "new");
@@ -98,6 +102,27 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
     .filter((order) => {
       if (statusFilter === "all") return true;
       return order.status === statusFilter;
+    })
+    .filter((order) => {
+      if (searchTerm.length < 3) return true; // Only filter if search term is 3+ chars
+
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+      switch (searchBy) {
+        case "id":
+          return order.id.toLowerCase().includes(lowerCaseSearchTerm);
+        case "customerName":
+          return order.customer_info.name.toLowerCase().includes(lowerCaseSearchTerm);
+        case "customerPhone":
+          // Normalize phone numbers for comparison (remove non-numeric characters)
+          const normalizedOrderPhone = order.customer_info.phone.replace(/[^0-9]/g, '');
+          const normalizedSearchTerm = lowerCaseSearchTerm.replace(/[^0-9]/g, '');
+          return normalizedOrderPhone.includes(normalizedSearchTerm);
+        case "location":
+          return order.location.toLowerCase().includes(lowerCaseSearchTerm);
+        default:
+          return true;
+      }
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -189,15 +214,41 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers }) => {
         </div>
       </div>
 
+      {/* Search Section */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
+          <Select value={searchBy} onValueChange={setSearchBy}>
+            <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
+              <SelectValue placeholder="Qidirish bo'yicha" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-white/20">
+              <SelectItem value="id" className="text-white">ID</SelectItem>
+              <SelectItem value="customerName" className="text-white">Mijoz Ismi</SelectItem>
+              <SelectItem value="customerPhone" className="text-white">Mijoz Telefon</SelectItem>
+              <SelectItem value="location" className="text-white">Manzil</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-full sm:w-auto flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Qidirish..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+          />
+        </div>
+      </div>
+
       <div className="grid gap-4">
         <AnimatePresence>
           {filteredOrders.length === 0 ? (
             <Card className="bg-white/10 border-white/20">
               <CardContent className="p-8 text-center">
                 <p className="text-gray-400 text-lg">
-                  {statusFilter === "all"
+                  {statusFilter === "all" && searchTerm.length < 3
                     ? "Hozircha buyurtmalar yo'q"
-                    : "Bu statusda buyurtmalar yo'q"}
+                    : "Bu mezonlarga mos buyurtmalar topilmadi"}
                 </p>
               </CardContent>
             </Card>

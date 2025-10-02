@@ -104,6 +104,22 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
     }
   };
 
+  const formatOrderDateTime = (timestamp) => {
+    const orderDate = new Date(timestamp);
+    const formattedDate = orderDate.toLocaleDateString("uz-UZ", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const formattedTime = orderDate.toLocaleTimeString("uz-UZ", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false, // Ensure 24-hour format
+    });
+    return `kun: ${formattedDate}, soat: ${formattedTime}`;
+  };
+
   const sortedOrders = useMemo(() => {
     if (!curierId || !orders) return [];
 
@@ -244,9 +260,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus }) => {
                           </CardTitle>
                           <div className="flex items-center gap-1">
                             <span className="text-gray-500 text-xs sm:text-sm">
-                              {new Date(order.created_at).toLocaleString(
-                                "uz-UZ"
-                              )}
+                              {formatOrderDateTime(order.created_at)}
                             </span>
                           </div>
                         </div>
