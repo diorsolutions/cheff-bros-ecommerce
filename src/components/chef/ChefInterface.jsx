@@ -189,22 +189,17 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
-    let filtered = orders.filter(
-      (order) =>
-        order.status === "new" ||
-        order.status === "preparing" ||
-        order.status === "ready" ||
-        order.status === "en_route_to_kitchen" ||
-        order.status === "picked_up_from_kitchen" ||
-        order.status === "delivered_to_customer" ||
-        order.status === "cancelled"
-    );
-
-    // Oshpaz "tayyorlanmoqda" statusini set qilgan buyurtma boshqa oshpazlar dashboardidan butunlay yo'qoladi.
-    filtered = filtered.filter(order => {
-      if ((order.status === "preparing" || order.status === "ready") && order.chef_id && order.chef_id !== chefId) {
-        return false; // Boshqa oshpazga biriktirilgan tayyorlanmoqda/tayyor buyurtmalarni yashirish
+    let filtered = orders.filter(order => {
+      // 1. Agar buyurtma boshqa oshpazga biriktirilgan bo'lsa va 'preparing' yoki 'ready' statusida bo'lsa, yashirish.
+      if (order.chef_id && order.chef_id !== chefId && (order.status === "preparing" || order.status === "ready")) {
+        return false;
       }
+      // 2. Qolgan barcha buyurtmalar ko'rinadi.
+      // Bu o'z ichiga oladi:
+      //    - Joriy oshpazga biriktirilgan buyurtmalar (har qanday statusda)
+      //    - Hech kimga biriktirilmagan 'new' buyurtmalar
+      //    - Kuryerga biriktirilgan buyurtmalar (agar 1-qoidaga tushmasa)
+      //    - Bekor qilingan yoki yetkazilgan buyurtmalar (agar 1-qoidaga tushmasa)
       return true;
     });
 

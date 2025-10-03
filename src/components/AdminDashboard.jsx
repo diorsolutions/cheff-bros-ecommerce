@@ -43,7 +43,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoModalTitle, setInfoModalTitle] = useState("");
   const [infoModalDescription, setInfoModalDescription] = useState("");
-  const [infoModalDetails, setInfoModalDetails] = useState([]);
+  const [infoModalDetails, setInfoModalDetails] = [];
 
   useEffect(() => {
     const newOrders = orders.filter((order) => order.status === "new");

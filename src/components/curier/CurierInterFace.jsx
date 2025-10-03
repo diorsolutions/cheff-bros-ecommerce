@@ -192,24 +192,36 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!curierId || !orders) return [];
 
     const relevantOrders = orders.filter(order => {
-      // Oshpaz tomonidan bekor qilingan buyurtmalar kuryer interfeysidan yo'qoladi
+      // 1. Oshpaz tomonidan bekor qilingan buyurtmalar kuryer interfeysidan yo'qoladi
       if (order.status === "cancelled" && order.chef_id) {
         return false;
       }
-      // Joriy kuryerga biriktirilgan buyurtmalar
+      // 2. Mijozga yetkazilgan buyurtmalar ham kuryer interfeysidan yo'qoladi
+      if (order.status === "delivered_to_customer") {
+        return false;
+      }
+
+      // 3. Joriy kuryerga biriktirilgan buyurtmalar har doim ko'rinadi
       if (order.curier_id === curierId) {
         return true;
       }
-      // Hech kimga biriktirilmagan va 'ready' statusidagi buyurtmalar
-      if (!order.curier_id && order.status === "ready") {
+      // 4. Hech kimga biriktirilmagan va 'preparing' yoki 'ready' statusidagi buyurtmalar ko'rinadi
+      // (Kuryer faqat tayyor buyurtmani oladi, lekin "tayyorlanmoqda" statusini ham ko'rishi kerak)
+      if (!order.curier_id && (order.status === "preparing" || order.status === "ready")) {
         return true;
       }
+      
+      // 5. Boshqa kuryerga biriktirilgan buyurtmalar ko'rinmaydi
+      if (order.curier_id && order.curier_id !== curierId) {
+          return false;
+      }
+
       return false; // Boshqa holatlarda ko'rsatilmaydi
     });
 
     // Saralash: 'ready' statusidagi buyurtmalar birinchi (eng eskisi), keyin joriy kuryerning buyurtmalari (eng eskisi), keyin yakunlanganlar (eng yangisi)
     return relevantOrders.sort((a, b) => {
-      const statusOrder = { "ready": 1, "en_route_to_kitchen": 2, "picked_up_from_kitchen": 3, "delivered_to_customer": 4, "cancelled": 5 };
+      const statusOrder = { "ready": 1, "preparing": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "cancelled": 5 };
 
       const aIsAvailable = !a.curier_id && a.status === "ready";
       const bIsAvailable = !b.curier_id && b.status === "ready";
@@ -221,8 +233,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         return statusOrder[a.status] - statusOrder[b.status];
       }
 
-      // 'ready' va 'en_route_to_kitchen' uchun eng eskisi birinchi
-      if (a.status === "ready" || a.status === "en_route_to_kitchen") {
+      // 'ready', 'preparing', 'en_route_to_kitchen' uchun eng eskisi birinchi
+      if (a.status === "ready" || a.status === "preparing" || a.status === "en_route_to_kitchen") {
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       } else {
         // Boshqa statuslar uchun eng yangisi birinchi
@@ -316,7 +328,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
               </Card>
             ) : (
               sortedOrders.map((order) => {
-                const isNew = order.status === "new"; // Bu yerda 'new' statusli buyurtmalar ko'rinmaydi, lekin tekshirish uchun qoldirildi
+                const isNew = order.status === "new"; 
+                const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
                 const isEnRouteToKitchen =
                   order.status === "en_route_to_kitchen";
@@ -328,10 +341,24 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
                 const isAssignedToThisCourier = order.curier_id === curierId;
                 const isUnassignedAndReady = !order.curier_id && isReady;
+                const isUnassignedAndPreparing = !order.curier_id && isPreparing;
+
 
                 const isOrderDisabledForPickup =
                   isUnassignedAndReady &&
                   (!canTakeNewOrder || order.id !== firstAvailableReadyOrderId);
+
+                // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
+                const isPickedUpButtonDisabled = isEnRouteToKitchen && isAssignedToThisCourier && order.status !== "ready";
+                let pickedUpButtonText = "Buyurtma menda";
+                if (isPickedUpButtonDisabled) {
+                    if (order.status === "preparing") {
+                        pickedUpButtonText = `${getChefInfo(order.chef_id)?.name || "Oshpaz"} tayyorlamoqda`;
+                    } else {
+                        pickedUpButtonText = "Buyurtma hali tayyor emas"; 
+                    }
+                }
+
 
                 return (
                   <motion.div
@@ -357,6 +384,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           ? "bg-yellow-100 border-yellow-300"
                           : order.status === "ready"
                           ? "bg-green-50/50 border-green-100" // Tayyor buyurtmalar uchun yengil fon
+                          : isUnassignedAndPreparing // Tayyorlanmoqda buyurtmalar uchun ham yengil fon
+                          ? "bg-yellow-50/50 border-yellow-100"
                           : "bg-white"
                       }`}
                     >
@@ -510,10 +539,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                     "curier"
                                   )
                                 }
+                                disabled={isPickedUpButtonDisabled}
                                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm"
                               >
                                 <Package className="mr-2 h-4 w-4" />
-                                Buyurtma menda
+                                {pickedUpButtonText}
                               </Button>
                             )}
                             {isPickedUpFromKitchen && isAssignedToThisCourier && (
