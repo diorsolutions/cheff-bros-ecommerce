@@ -720,7 +720,6 @@ function App() {
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/curier-login" element={<CurierLoginPage />} />
         <Route path="/chef-login" element={<ChefLoginPage />} />{" "}
-        {/* Yangi: Chef login route */}
         <Route
           path="/curier"
           element={
@@ -728,7 +727,7 @@ function App() {
               <CurierInterFace
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
-                chefs={chefs} {/* chefs propini uzatish */}
+                chefs={chefs}
               />
             </ProtectedRouteCurier>
           }
@@ -743,7 +742,7 @@ function App() {
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 chefs={chefs}
-                curiers={curiers} {/* curiers propini uzatish */}
+                curiers={curiers}
               />
             </ProtectedRouteChef>
           }

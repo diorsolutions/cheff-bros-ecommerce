@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs propini ham qabul qilish
+// 'curiers' propini qabul qilish uchun qo'shildi
+const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { 
   const navigate = useNavigate();
   const [curierName, setCurierName] = useState("Kuryer");
   const [curierPhone, setCurierPhone] = useState("");
@@ -90,6 +91,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
     return chefs.find((c) => c.id === id);
   };
 
+  // Yangi: Kuryer ma'lumotini olish uchun funksiya
+  const getCurierInfo = (id) => {
+    return curiers.find((c) => c.id === id);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "new":
@@ -113,7 +119,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
 
   const getStatusText = (status, orderChefId, orderCurierId) => {
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
-    const assignedCurierName = orderCurierId ? chefs.find(c => c.id === orderCurierId)?.name : null; // Kuryer ma'lumotini olish
+    // TO'G'IRLANDI: kuryer ma'lumotini 'curiers' propidan olish
+    const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null; 
 
     let statusText = "";
 
