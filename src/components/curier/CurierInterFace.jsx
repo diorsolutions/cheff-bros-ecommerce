@@ -206,7 +206,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         return true;
       }
       // 4. Hech kimga biriktirilmagan va 'preparing' yoki 'ready' statusidagi buyurtmalar ko'rinadi
-      // (Kuryer faqat tayyor buyurtmani oladi, lekin "tayyorlanmoqda" statusini ham ko'rishi kerak)
       if (!order.curier_id && (order.status === "preparing" || order.status === "ready")) {
         return true;
       }
@@ -221,10 +220,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
     // Saralash: 'ready' statusidagi buyurtmalar birinchi (eng eskisi), keyin joriy kuryerning buyurtmalari (eng eskisi), keyin yakunlanganlar (eng yangisi)
     return relevantOrders.sort((a, b) => {
-      const statusOrder = { "ready": 1, "preparing": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "cancelled": 5 };
+      const statusOrder = { "ready": 1, "preparing": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "delivered_to_customer": 5, "cancelled": 6 };
 
-      const aIsAvailable = !a.curier_id && a.status === "ready";
-      const bIsAvailable = !b.curier_id && b.status === "ready";
+      const aIsAvailable = !a.curier_id && (a.status === "preparing" || a.status === "ready");
+      const bIsAvailable = !b.curier_id && (b.status === "preparing" || b.status === "ready");
 
       if (aIsAvailable && !bIsAvailable) return -1;
       if (!aIsAvailable && bIsAvailable) return 1;
@@ -252,8 +251,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  const firstAvailableReadyOrderId = canTakeNewOrder
-    ? sortedOrders.find(order => !order.curier_id && order.status === "ready")?.id
+  const firstAvailableOrderForPickup = canTakeNewOrder
+    ? sortedOrders.find(order => !order.curier_id && (order.status === "preparing" || order.status === "ready"))?.id
     : null;
 
   const handleCancelClick = (order) => {
@@ -340,13 +339,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   order.status === "cancelled";
 
                 const isAssignedToThisCourier = order.curier_id === curierId;
-                const isUnassignedAndReady = !order.curier_id && isReady;
-                const isUnassignedAndPreparing = !order.curier_id && isPreparing;
+                const isUnassignedAndPreparingOrReady = !order.curier_id && (isPreparing || isReady);
 
 
                 const isOrderDisabledForPickup =
-                  isUnassignedAndReady &&
-                  (!canTakeNewOrder || order.id !== firstAvailableReadyOrderId);
+                  isUnassignedAndPreparingOrReady &&
+                  (!canTakeNewOrder || order.id !== firstAvailableOrderForPickup);
 
                 // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
                 const isPickedUpButtonDisabled = isEnRouteToKitchen && isAssignedToThisCourier && order.status !== "ready";
@@ -384,7 +382,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           ? "bg-yellow-100 border-yellow-300"
                           : order.status === "ready"
                           ? "bg-green-50/50 border-green-100" // Tayyor buyurtmalar uchun yengil fon
-                          : isUnassignedAndPreparing // Tayyorlanmoqda buyurtmalar uchun ham yengil fon
+                          : isPreparing // Tayyorlanmoqda buyurtmalar uchun ham yengil fon
                           ? "bg-yellow-50/50 border-yellow-100"
                           : "bg-white"
                       }`}
@@ -512,7 +510,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
                         {!isFinal && (
                           <div className="flex gap-2 mt-4 flex-wrap">
-                            {isUnassignedAndReady && (
+                            {isUnassignedAndPreparingOrReady && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
@@ -596,7 +594,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           curierId={curierId}
           currentName={curierName}
           currentPhone={curierPhone}
-          onNameUpdated={handleNameUpdated}
           orders={orders}
         />
       )}

@@ -728,8 +728,8 @@ function App() {
               <CurierInterFace
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
-                chefs={chefs} {/* chefs propini uzatish */}
-                curiers={curiers} {/* curiers propini uzatish */}
+                chefs={chefs}
+                curiers={curiers}
               />
             </ProtectedRouteCurier>
           }
@@ -744,7 +744,7 @@ function App() {
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 chefs={chefs}
-                curiers={curiers} {/* curiers propini uzatish */}
+                curiers={curiers}
               />
             </ProtectedRouteChef>
           }
