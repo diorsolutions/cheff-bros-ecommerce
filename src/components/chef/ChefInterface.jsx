@@ -31,7 +31,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
-const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // curiers propini ham qabul qilish
+const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const navigate = useNavigate();
   const [chefName, setChefName] = useState("Oshpaz");
   const [chefPhone, setChefPhone] = useState("");
@@ -123,24 +123,51 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
     const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
 
-    switch (status) {
-      case "new":
-        return "Yangi";
-      case "preparing":
-        return assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
-      case "ready":
-        return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
-      case "en_route_to_kitchen":
-        return assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Kuryer olish uchun yo'lda";
-      case "picked_up_from_kitchen":
-        return assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Kuryer buyurtmani oldi";
-      case "delivered_to_customer":
-        return assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozga yetkazildi";
-      case "cancelled":
-        return "Bekor qilingan";
-      default:
-        return "Noma'lum";
+    let statusText = "";
+
+    if (status === "cancelled") {
+      statusText = "Bekor qilingan";
+    } else if (orderCurierId) {
+      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
+      switch (status) {
+        case "en_route_to_kitchen":
+          statusText = assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Kuryer olish uchun yo'lda";
+          break;
+        case "picked_up_from_kitchen":
+          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Kuryer buyurtmani oldi";
+          break;
+        case "delivered_to_customer":
+          statusText = assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozga yetkazildi";
+          break;
+        default:
+          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani boshqarmoqda` : "Kuryer boshqarmoqda";
+          break;
+      }
+    } else if (orderChefId) {
+      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
+      switch (status) {
+        case "preparing":
+          statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+          break;
+        case "ready":
+          statusText = assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
+          break;
+        default:
+          statusText = assignedChefName ? `${assignedChefName} buyurtmani boshqarmoqda` : "Oshpaz boshqarmoqda";
+          break;
+      }
+    } else {
+      // Hech kimga biriktirilmagan buyurtmalar
+      switch (status) {
+        case "new":
+          statusText = "Yangi";
+          break;
+        default:
+          statusText = "Noma'lum";
+          break;
+      }
     }
+    return statusText;
   };
 
   const formatOrderDateTime = (timestamp) => {
@@ -160,7 +187,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
   };
 
   const sortedOrders = useMemo(() => {
-    if (!orders) return [];
+    if (!orders || !chefId) return [];
 
     let filtered = orders.filter(
       (order) =>
@@ -172,6 +199,14 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
         order.status === "delivered_to_customer" ||
         order.status === "cancelled"
     );
+
+    // Oshpaz "tayyorlanmoqda" statusini set qilgan buyurtma boshqa oshpazlar dashboardidan butunlay yo'qoladi.
+    filtered = filtered.filter(order => {
+      if ((order.status === "preparing" || order.status === "ready") && order.chef_id && order.chef_id !== chefId) {
+        return false; // Boshqa oshpazga biriktirilgan tayyorlanmoqda/tayyor buyurtmalarni yashirish
+      }
+      return true;
+    });
 
     // Qidiruv filtri
     if (searchTerm.trim()) {
@@ -201,7 +236,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
       }
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
     });
-  }, [orders, searchTerm]);
+  }, [orders, searchTerm, chefId]);
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
@@ -298,7 +333,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
                 // Tugmalar uchun harakatlarni o'chirish logikasi
                 const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
                 const canMarkReady = isPreparing && order.chef_id === chefId && !isCourierAssigned;
-                const canCancel = (isNew || isPreparing || isReady) && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned; // Chef can cancel even if ready, but not if courier picked up
+                const canCancel = (isNew || isPreparing || isReady || isCourierAssigned) && (!order.chef_id || order.chef_id === chefId) && order.status !== "delivered_to_customer"; // Chef can cancel any order not yet delivered
 
                 return (
                   <motion.div
@@ -310,7 +345,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isReady || isCancelled ? "opacity-60" : "" // Tayyor yoki bekor bo'lganda xiralashadi
+                        isReady || isCancelled || order.status === "delivered_to_customer" ? "opacity-60" : "" // Tayyor, bekor yoki yetkazilgan bo'lganda xiralashadi
                       }`}
                     >
                       <CardHeader className="pb-3">
@@ -319,7 +354,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { // 
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isReady && !isCancelled && !isCourierAssigned ? "animate-pulse" : ""}`}
+                              )} ${!isReady && !isCancelled && !isCourierAssigned && order.status !== "delivered_to_customer" ? "animate-pulse" : ""}`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}

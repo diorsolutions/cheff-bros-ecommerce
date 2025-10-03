@@ -115,24 +115,54 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
     const assignedCurierName = orderCurierId ? chefs.find(c => c.id === orderCurierId)?.name : null; // Kuryer ma'lumotini olish
 
-    switch (status) {
-      case "new":
-        return "Yangi";
-      case "preparing":
-        return assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
-      case "ready":
-        return assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
-      case "en_route_to_kitchen":
-        return assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Olish uchun yo'lda";
-      case "picked_up_from_kitchen":
-        return assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Buyurtma menda";
-      case "delivered_to_customer":
-        return assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozda";
-      case "cancelled":
-        return "Bekor qilingan";
-      default:
-        return "Noma'lum";
+    let statusText = "";
+
+    if (status === "cancelled") {
+      statusText = "Bekor qilingan";
+    } else if (orderCurierId) {
+      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
+      switch (status) {
+        case "en_route_to_kitchen":
+          statusText = assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Olish uchun yo'lda";
+          break;
+        case "picked_up_from_kitchen":
+          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Buyurtma menda";
+          break;
+        case "delivered_to_customer":
+          statusText = assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozda";
+          break;
+        default:
+          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani boshqarmoqda` : "Kuryer boshqarmoqda";
+          break;
+      }
+    } else if (orderChefId) {
+      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
+      switch (status) {
+        case "preparing":
+          statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+          break;
+        case "ready":
+          statusText = assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
+          break;
+        default:
+          statusText = assignedChefName ? `${assignedChefName} buyurtmani boshqarmoqda` : "Oshpaz boshqarmoqda";
+          break;
+      }
+    } else {
+      // Hech kimga biriktirilmagan buyurtmalar
+      switch (status) {
+        case "new":
+          statusText = "Yangi";
+          break;
+        case "ready":
+          statusText = "Tayyor";
+          break;
+        default:
+          statusText = "Noma'lum";
+          break;
+      }
     }
+    return statusText;
   };
 
   const formatOrderDateTime = (timestamp) => {
@@ -155,41 +185,41 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
     if (!curierId || !orders) return [];
 
     const relevantOrders = orders.filter(order => {
-      // Orders assigned to this courier (any status)
-      if (order.curier_id === curierId) {
-        return true;
-      }
-      // New or Ready orders not assigned to any courier
-      if (!order.curier_id && (order.status === "new" || order.status === "ready")) {
-        return true;
-      }
-      // Orders cancelled by chef should disappear from courier's view
+      // Oshpaz tomonidan bekor qilingan buyurtmalar kuryer interfeysidan yo'qoladi
       if (order.status === "cancelled" && order.chef_id) {
         return false;
       }
-      return false; // Default to not showing
+      // Joriy kuryerga biriktirilgan buyurtmalar
+      if (order.curier_id === curierId) {
+        return true;
+      }
+      // Hech kimga biriktirilmagan va 'ready' statusidagi buyurtmalar
+      if (!order.curier_id && order.status === "ready") {
+        return true;
+      }
+      return false; // Boshqa holatlarda ko'rsatilmaydi
     });
 
-    // Sort: new/ready unassigned first (oldest first), then this courier's active (oldest first), then this courier's completed (newest first)
+    // Saralash: 'ready' statusidagi buyurtmalar birinchi (eng eskisi), keyin joriy kuryerning buyurtmalari (eng eskisi), keyin yakunlanganlar (eng yangisi)
     return relevantOrders.sort((a, b) => {
-      const statusOrder = { "new": 1, "ready": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "delivered_to_customer": 5, "cancelled": 6 };
+      const statusOrder = { "ready": 1, "en_route_to_kitchen": 2, "picked_up_from_kitchen": 3, "delivered_to_customer": 4, "cancelled": 5 };
 
-      const aIsAvailable = !a.curier_id && (a.status === "new" || a.status === "ready");
-      const bIsAvailable = !b.curier_id && (b.status === "new" || b.status === "ready");
+      const aIsAvailable = !a.curier_id && a.status === "ready";
+      const bIsAvailable = !b.curier_id && b.status === "ready";
 
       if (aIsAvailable && !bIsAvailable) return -1;
       if (!aIsAvailable && bIsAvailable) return 1;
 
-      // If both are available or both are not, sort by status order, then by date
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
 
-      // For new/ready, oldest first. For active/completed, newest first.
-      if (a.status === "new" || a.status === "ready") {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
+      // 'ready' va 'en_route_to_kitchen' uchun eng eskisi birinchi
+      if (a.status === "ready" || a.status === "en_route_to_kitchen") {
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       } else {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Newest first
+        // Boshqa statuslar uchun eng yangisi birinchi
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
   }, [orders, curierId]);
@@ -203,8 +233,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  const firstAvailableNewOrReadyOrderId = canTakeNewOrder
-    ? sortedOrders.find(order => !order.curier_id && (order.status === "new" || order.status === "ready"))?.id
+  const firstAvailableReadyOrderId = canTakeNewOrder
+    ? sortedOrders.find(order => !order.curier_id && order.status === "ready")?.id
     : null;
 
   const handleCancelClick = (order) => {
@@ -279,7 +309,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
               </Card>
             ) : (
               sortedOrders.map((order) => {
-                const isNew = order.status === "new";
+                const isNew = order.status === "new"; // Bu yerda 'new' statusli buyurtmalar ko'rinmaydi, lekin tekshirish uchun qoldirildi
                 const isReady = order.status === "ready";
                 const isEnRouteToKitchen =
                   order.status === "en_route_to_kitchen";
@@ -290,11 +320,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
                   order.status === "cancelled";
 
                 const isAssignedToThisCourier = order.curier_id === curierId;
-                const isUnassignedAndAvailable = !order.curier_id && (isNew || isReady);
+                const isUnassignedAndReady = !order.curier_id && isReady;
 
                 const isOrderDisabledForPickup =
-                  isUnassignedAndAvailable &&
-                  (!canTakeNewOrder || order.id !== firstAvailableNewOrReadyOrderId);
+                  isUnassignedAndReady &&
+                  (!canTakeNewOrder || order.id !== firstAvailableReadyOrderId);
 
                 return (
                   <motion.div
@@ -446,7 +476,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs }) => { // chefs p
 
                         {!isFinal && (
                           <div className="flex gap-2 mt-4 flex-wrap">
-                            {(isNew || isReady) && isUnassignedAndAvailable && (
+                            {isUnassignedAndReady && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(

@@ -98,44 +98,53 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     const courierName = curierId ? getCurierInfo(curierId)?.name : null;
     const chefName = chefId ? getChefInfo(chefId)?.name : null;
 
-    let chefStatus = "";
-    let courierStatus = "";
-    let generalStatus = "";
+    let statusText = "";
 
-    switch (status) {
-      case "new":
-        generalStatus = "Yangi";
-        break;
-      case "preparing":
-        chefStatus = chefName ? `${chefName} tayyorlanmoqda` : "Tayyorlanmoqda";
-        generalStatus = chefStatus;
-        break;
-      case "ready":
-        chefStatus = chefName ? `${chefName} tayyorladi` : "Tayyor";
-        generalStatus = chefStatus;
-        break;
-      case "en_route_to_kitchen":
-        courierStatus = courierName ? `${courierName} olish uchun yo'lda` : "Olish uchun yo'lda";
-        generalStatus = courierStatus;
-        break;
-      case "picked_up_from_kitchen":
-        courierStatus = courierName ? `${courierName} buyurtmani oldi` : "Buyurtma menda";
-        generalStatus = courierStatus;
-        break;
-      case "delivered_to_customer":
-        courierStatus = courierName ? `${courierName} mijozga yetkazdi` : "Mijozda";
-        generalStatus = courierStatus;
-        break;
-      case "cancelled":
-        generalStatus = "Bekor qilingan";
-        if (chefName) generalStatus += ` (Oshpaz: ${chefName})`;
-        if (courierName) generalStatus += ` (Kuryer: ${courierName})`;
-        break;
-      default:
-        generalStatus = "Noma'lum";
+    if (status === "cancelled") {
+      statusText = "Bekor qilingan";
+      if (chefName) statusText += ` (Oshpaz: ${chefName})`;
+      if (courierName) statusText += ` (Kuryer: ${courierName})`;
+    } else if (curierId) {
+      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
+      switch (status) {
+        case "en_route_to_kitchen":
+          statusText = `Kuryer: ${courierName || "Noma'lum"} olish uchun yo'lda`;
+          break;
+        case "picked_up_from_kitchen":
+          statusText = `Kuryer: ${courierName || "Noma'lum"} buyurtmani oldi`;
+          break;
+        case "delivered_to_customer":
+          statusText = `Kuryer: ${courierName || "Noma'lum"} mijozga yetkazdi`;
+          break;
+        default:
+          statusText = `Kuryer: ${courierName || "Noma'lum"} boshqarmoqda`;
+          break;
+      }
+    } else if (chefId) {
+      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
+      switch (status) {
+        case "preparing":
+          statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorlanmoqda`;
+          break;
+        case "ready":
+          statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorladi`;
+          break;
+        default:
+          statusText = `Oshpaz: ${chefName || "Noma'lum"} boshqarmoqda`;
+          break;
+      }
+    } else {
+      // Hech kimga biriktirilmagan buyurtmalar
+      switch (status) {
+        case "new":
+          statusText = "Yangi";
+          break;
+        default:
+          statusText = "Noma'lum";
+          break;
+      }
     }
-
-    return { chefStatus, courierStatus, generalStatus };
+    return statusText;
   };
 
   const handleShowUserInfo = (user, role) => {
@@ -322,7 +331,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order.status === "cancelled";
               const courierInfo = order.curier_id ? getCurierInfo(order.curier_id) : null;
               const chefInfo = order.chef_id ? getChefInfo(order.chef_id) : null;
-              const { chefStatus, courierStatus, generalStatus } = getDetailedStatusText(order.status, order.curier_id, order.chef_id, order.cancellation_reason);
+              const detailedStatusText = getDetailedStatusText(order.status, order.curier_id, order.chef_id, order.cancellation_reason);
 
               return (
                 <motion.div
@@ -371,7 +380,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           <span className="text-sm text-gray-400 hidden sm:inline">
                             {new Date(order.created_at).toLocaleString("uz-UZ")}
                           </span>
-                          {!isFinal && (!order.curier_id && !order.chef_id) ? ( // Admin faqat hech kimga biriktirilmagan buyurtmani o'zgartira oladi
+                          {(!order.curier_id && !order.chef_id) && !isFinal ? ( // Admin faqat hech kimga biriktirilmagan buyurtmani o'zgartira oladi
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -582,7 +591,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               : "bg-red-500/20 text-red-400"
                           }`}
                         >
-                          {generalStatus}
+                          {detailedStatusText}
                         </span>
                       </div>
 

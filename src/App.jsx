@@ -462,8 +462,7 @@ function App() {
     }
 
     if (actorRole === "curier") {
-      // Kuryer logikasi: Buyurtma boshqa kuryerga biriktirilgan bo'lsa, o'zgartirish mumkin emas.
-      // Faqat o'ziga biriktirilgan buyurtmani yoki yangi buyurtmani olishi mumkin.
+      // Kuryer logikasi
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
           title: "Xatolik!",
@@ -476,21 +475,22 @@ function App() {
 
       switch (newStatus) {
         case "en_route_to_kitchen":
-          // Kuryer faqat 'new' yoki 'ready' statusidagi buyurtmani olishi mumkin
-          if ((orderToUpdate.status === "new" || orderToUpdate.status === "ready") && !orderToUpdate.curier_id) {
+          // Kuryer faqat 'ready' statusidagi buyurtmani olishi mumkin
+          if (orderToUpdate.status === "ready" && !orderToUpdate.curier_id) {
             canUpdate = true;
             updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
           } else {
             toast({
               title: "Xatolik!",
               description:
-                "Buyurtma allaqachon qabul qilingan yoki boshqa statusda.",
+                "Buyurtma hali tayyor emas yoki allaqachon kuryerga biriktirilgan.",
               variant: "destructive",
             });
             return;
           }
           break;
         case "picked_up_from_kitchen":
+          // Kuryer faqat 'en_route_to_kitchen' statusidagi o'ziga biriktirilgan buyurtmani "menda" qila oladi
           if (
             orderToUpdate.status === "en_route_to_kitchen" &&
             orderToUpdate.curier_id === actorId
@@ -500,7 +500,7 @@ function App() {
             toast({
               title: "Xatolik!",
               description:
-                "Buyurtma hali kuryer tomonidan olinmagan yoki boshqa statusda.",
+                "Buyurtma hali olish uchun yo'lda emas yoki boshqa kuryerga biriktirilgan.",
               variant: "destructive",
             });
             return;
@@ -508,6 +508,7 @@ function App() {
           break;
         case "delivered_to_customer":
         case "cancelled":
+          // Kuryer faqat 'picked_up_from_kitchen' statusidagi o'ziga biriktirilgan buyurtmani yakunlashi/bekor qilishi mumkin
           if (
             orderToUpdate.status === "picked_up_from_kitchen" &&
             orderToUpdate.curier_id === actorId
@@ -532,10 +533,9 @@ function App() {
           return;
       }
     } else if (actorRole === "chef") {
-      // Oshpaz logikasi: Buyurtma oshpazga biriktirilgan bo'lsa ham, boshqa oshpazlar uni ko'rishi mumkin.
-      // Faqat biriktirilgan oshpaz statusni o'zgartira oladi.
-      // Agar buyurtma kuryerga biriktirilgan bo'lsa, oshpaz uni o'zgartira olmaydi.
-      if (orderToUpdate.curier_id && newStatus !== "cancelled") { // Chef can cancel even if courier is assigned
+      // Oshpaz logikasi
+      if (orderToUpdate.curier_id && newStatus !== "cancelled") {
+        // Chef can cancel even if courier is assigned, but cannot change other statuses
         toast({
           title: "Xatolik!",
           description: "Bu buyurtma allaqachon kuryerga biriktirilgan.",
@@ -546,6 +546,7 @@ function App() {
 
       switch (newStatus) {
         case "preparing":
+          // Oshpaz faqat 'new' statusidagi buyurtmani "tayyorlanmoqda" qila oladi
           if (orderToUpdate.status === "new") {
             if (!orderToUpdate.chef_id) {
               canUpdate = true;
@@ -572,6 +573,7 @@ function App() {
           }
           break;
         case "ready":
+          // Oshpaz faqat 'preparing' statusidagi o'ziga biriktirilgan buyurtmani "tayyor" qila oladi
           if (
             orderToUpdate.status === "preparing" &&
             orderToUpdate.chef_id === actorId
@@ -588,13 +590,11 @@ function App() {
           }
           break;
         case "cancelled":
+          // Oshpaz har qanday statusdagi buyurtmani bekor qila oladi (agar kuryer yetkazib bermagan bo'lsa)
           if (
-            (orderToUpdate.status === "new" ||
-              orderToUpdate.status === "preparing" ||
-              orderToUpdate.status === "ready" ||
-              orderToUpdate.status === "en_route_to_kitchen" ||
-              orderToUpdate.status === "picked_up_from_kitchen") &&
-            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
+            orderToUpdate.status !== "delivered_to_customer" &&
+            orderToUpdate.status !== "cancelled" &&
+            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId) // Agar biriktirilmagan bo'lsa yoki o'ziga biriktirilgan bo'lsa
           ) {
             canUpdate = true;
             updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
