@@ -203,12 +203,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       );
     }
 
-    // Saralash: yangi buyurtmalar birinchi, keyin tayyorlanmoqda, keyin tayyor, keyin kuryer statuslari, keyin bekor qilingan.
+    // Saralash: "preparing" statusidagi buyurtmalar eng tepada, keyin "new", keyin "ready", keyin qolganlari.
     // Har bir status ichida yaratilish sanasi bo'yicha saralash (eng eskisi birinchi).
     return filtered.sort((a, b) => {
       const statusOrder = {
-        "new": 1,
-        "preparing": 2,
+        "preparing": 1, // "Tayyorlanmoqda" eng yuqorida
+        "new": 2,
         "ready": 3,
         "en_route_to_kitchen": 4,
         "picked_up_from_kitchen": 5,
