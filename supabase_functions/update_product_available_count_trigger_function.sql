@@ -5,7 +5,15 @@ DECLARE
 BEGIN
     IF TG_TABLE_NAME = 'ingredients' THEN
         -- Agar ingredients jadvali o'zgarsa, bog'langan barcha mahsulotlarni topish
-        FOR _product_id IN SELECT DISTINCT product_id FROM public.product_ingredients WHERE ingredient_id = NEW.id OR OLD.id LOOP
+        -- INSERT, UPDATE, DELETE holatlarini hisobga olgan holda
+        FOR _product_id IN
+            SELECT DISTINCT product_id
+            FROM public.product_ingredients
+            WHERE
+                (TG_OP = 'INSERT' AND ingredient_id = NEW.id) OR
+                (TG_OP = 'UPDATE' AND (ingredient_id = NEW.id OR ingredient_id = OLD.id)) OR
+                (TG_OP = 'DELETE' AND ingredient_id = OLD.id)
+        LOOP
             UPDATE public.products
             SET available_count = public.product_available_count(_product_id)
             WHERE id = _product_id;
