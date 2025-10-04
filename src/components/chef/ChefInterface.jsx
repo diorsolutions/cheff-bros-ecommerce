@@ -329,7 +329,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 // Tugmalar uchun harakatlarni o'chirish logikasi
                 const canMarkPreparing = (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
-                const canCancel = (isNew || isPreparing || isReady || isEnRouteToKitchen || isPickedUpFromKitchen) && !isDelivered && !isCancelled && isAssignedToThisChef;
+                // Bekor qilish tugmasi faqat buyurtma kuryer tomonidan olinmagan bo'lsa ko'rinadi
+                const canCancel = (isNew || isPreparing || isReady || isEnRouteToKitchen) && !isPickedUpFromKitchen && !isDelivered && !isCancelled && isAssignedToThisChef;
 
                 return (
                   <motion.div
