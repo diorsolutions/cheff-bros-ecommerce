@@ -180,6 +180,21 @@ const AdminProducts = memo(
         return;
       }
 
+      // New check: Ensure selected quantity needed does not exceed available ingredient stock
+      for (const pi of selectedProductIngredients) {
+        const ingredient = allIngredients.find(ing => ing.id === pi.ingredient_id);
+        if (ingredient && pi.quantity_needed > (ingredient.stock_quantity ?? 0)) {
+          toast({
+            title: "Xatolik",
+            description: `${ingredient.name} masallig'ining yetarli zaxirasi yo'q. Mavjud: ${ingredient.stock_quantity ?? 0} ${ingredient.unit}.`,
+            variant: "destructive",
+          });
+          setIsSaving(false);
+          setIsUploading(false);
+          return;
+        }
+      }
+
       setIsSaving(true);
       setIsUploading(true);
 
@@ -338,20 +353,6 @@ const AdminProducts = memo(
             .includes(ingredientSearchTerm.toLowerCase())
       );
     }, [allIngredients, selectedProductIngredients, ingredientSearchTerm]);
-
-    // Debugging log for ingredient stock
-    useEffect(() => {
-      if (isDialogOpen && currentProduct) {
-        console.log("AdminProducts: Dialog opened for product:", currentProduct.name);
-        console.log("AdminProducts: All ingredients received:", allIngredients);
-        const nonBulochka = allIngredients.find(ing => ing.name === "Non-Bulochka");
-        if (nonBulochka) {
-          console.log("AdminProducts: Non-Bulochka stock_quantity:", nonBulochka.stock_quantity);
-        } else {
-          console.log("AdminProducts: 'Non-Bulochka' ingredient not found in allIngredients.");
-        }
-      }
-    }, [isDialogOpen, currentProduct, allIngredients]);
 
     return (
       <div className="space-y-6">
@@ -696,11 +697,10 @@ const AdminProducts = memo(
                             key={ingredient.id}
                             value={ingredient.name}
                             onSelect={() => handleSelectIngredient(ingredient)}
-                            disabled={(ingredient.stock_quantity ?? 0) <= 0}
+                            // disabled prop olib tashlandi
                             className={cn(
-                              "flex items-center justify-between",
-                              ((ingredient.stock_quantity ?? 0) <= 0) &&
-                                "opacity-50 cursor-not-allowed"
+                              "flex items-center justify-between"
+                              // disabled holatiga oid classlar olib tashlandi
                             )}
                           >
                             <div className="flex items-center gap-2">
@@ -716,11 +716,7 @@ const AdminProducts = memo(
                               />
                               {ingredient.name}
                             </div>
-                            {((ingredient.stock_quantity ?? 0) <= 0) && (
-                              <span className="text-red-500 text-xs">
-                                Tugadi
-                              </span>
-                            )}
+                            {/* "Tugadi" span olib tashlandi */}
                           </CommandItem>
                         ))}
                       </CommandGroup>
