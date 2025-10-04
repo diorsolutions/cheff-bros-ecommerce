@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Plus, Minus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion"; // AnimatePresence import qilindi
+import { ArrowLeft, ShoppingCart, Plus, Minus, Check } from "lucide-react"; // Check iconini import qilish
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
@@ -16,6 +16,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [calculatedStock, setCalculatedStock] = useState(0); // Yangi holat
+  const [isAdding, setIsAdding] = useState(false); // Yangi holat: animatsiya uchun
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -126,7 +127,21 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
       });
       return;
     }
+    if (quantity === 0) {
+      toast({
+        title: "Xatolik!",
+        description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     onAddToCart({ ...product, quantity });
+    setIsAdding(true); // Animatsiyani boshlash
+    setTimeout(() => {
+      setIsAdding(false); // Animatsiyani tugatish
+    }, 1000); // 1 soniyadan keyin asl holatiga qaytadi
+
     toast({
       title: "Savatga qo'shildi!",
       description: `${product.name} (${quantity} dona) savatga qo'shildi`,
@@ -136,6 +151,12 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
   const incrementQuantity = () => {
     if (quantity < calculatedStock) { // calculatedStock ishlatildi
       setQuantity((prev) => prev + 1);
+    } else {
+      toast({
+        title: "Xatolik!",
+        description: `Faqat ${calculatedStock} ta mavjud`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -257,12 +278,34 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
                     <Button
                       onClick={handleAddToCart}
                       disabled={
-                        isOutOfStock || quantity > calculatedStock || quantity === 0 // calculatedStock ishlatildi
+                        isOutOfStock || quantity > calculatedStock || quantity === 0 || isAdding // isAdding holatini ham qo'shdik
                       }
                       className="w-full h-12 big_tablet:text-[.94rem] big_tablet:h-10 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}
+                      <AnimatePresence mode="wait">
+                        {isAdding ? (
+                          <motion.span
+                            key="added"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex items-center justify-center"
+                          >
+                            <Check className="mr-2 h-5 w-5" /> Qo'shildi!
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="add-to-cart"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="flex items-center justify-center"
+                          >
+                            <ShoppingCart className="mr-2 h-5 w-5" />
+                            {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </Button>
                   </div>
                 </div>

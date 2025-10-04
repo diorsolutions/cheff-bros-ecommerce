@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { motion } from "framer-motion";
-import { ShoppingCart, Plus, Minus, Eye } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Eye, Check } from "lucide-react"; // Check iconini import qilish
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -11,6 +11,7 @@ import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock
 
 const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allProductIngredients }) => {
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false); // Yangi holat: animatsiya uchun
   
   // calculateProductStock funksiyasini to'g'ri `allProducts` prop bilan chaqirish
   const calculatedStock = calculateProductStock(
@@ -56,10 +57,24 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
       });
       return;
     }
+    if (quantity === 0) {
+      toast({
+        title: "Xatolik!",
+        description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     onAddToCart({ ...product, quantity });
+    setIsAdding(true); // Animatsiyani boshlash
+    setTimeout(() => {
+      setIsAdding(false); // Animatsiyani tugatish
+    }, 1000); // 1 soniyadan keyin asl holatiga qaytadi
+
     if (width >= 1024) {
       toast({
-        title: "Savatga qo'shildi!mi aaa?",
+        title: "Savatga qo'shildi!",
         description: `${product.name} (${quantity} dona) savatga qo'shildi`,
       });
     }
@@ -68,6 +83,12 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
   const incrementQuantity = () => {
     if (quantity < calculatedStock) { // calculatedStock ishlatildi
       setQuantity((prev) => prev + 1);
+    } else {
+      toast({
+        title: "Xatolik!",
+        description: `Faqat ${calculatedStock} ta mavjud`,
+        variant: "destructive",
+      });
     }
   };
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
@@ -163,11 +184,33 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
-            disabled={isOutOfStock || quantity > calculatedStock || quantity === 0} // calculatedStock ishlatildi
+            disabled={isOutOfStock || quantity > calculatedStock || quantity === 0 || isAdding} // isAdding holatini ham qo'shdik
             className="mob_xr:text-[0.7rem] extra_small:text-[0.7rem] extra_small:p-0 mob_small:text-[0.8rem] w-full bg-gradient-to-r rounded-[0.4rem] from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}
+            <AnimatePresence mode="wait">
+              {isAdding ? (
+                <motion.span
+                  key="added"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex items-center justify-center"
+                >
+                  <Check className="mr-2 h-4 w-4" /> Qo'shildi!
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="add-to-cart"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex items-center justify-center"
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  {isOutOfStock ? "Tugadi" : "Savatga qo'shish"}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Button>
         </CardFooter>
       </Card>

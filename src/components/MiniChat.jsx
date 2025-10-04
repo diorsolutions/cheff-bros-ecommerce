@@ -37,7 +37,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => { // Props q
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
         <Button
-          className="relative w-10 h-10 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
+          className="relative w-10 h-10 p-3 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
         >
           {isPopoverOpen ? (
             <X className="h-5 w-5" />
@@ -57,7 +57,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => { // Props q
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 h-96 p-0 bg-white border-gray-300">
+      <PopoverContent className="w-80 h-96 p-0 bg-white border-gray-500">
         <Card className="h-full flex flex-col bg-white border-gray-300">
           <CardHeader className="pb-3">
             <CardTitle className="text-gray-800 text-lg">
