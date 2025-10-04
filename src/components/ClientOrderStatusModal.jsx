@@ -46,8 +46,6 @@ const ClientOrderStatusModal = ({
     }
   }, [activeOrderIds, customerActiveOrders, currentOrder]);
 
-  if (customerActiveOrders.length === 0) return null;
-
   const handleNextOrder = () => {
     setCurrentOrderIndex((prevIndex) => (prevIndex + 1) % customerActiveOrders.length);
     setIsExpanded(false); // Buyurtma o'zgarganda yig'ish
@@ -62,6 +60,7 @@ const ClientOrderStatusModal = ({
     setIsExpanded((prev) => !prev);
   };
 
+  // getStatusDisplay useMemo hookini shartli return'dan oldinga ko'chirdik
   const getStatusDisplay = useMemo(() => {
     if (!currentOrder) return null;
 
@@ -141,7 +140,8 @@ const ClientOrderStatusModal = ({
     );
   }, [currentOrder, chefs, curiers, isMobile, isExpanded]);
 
-  if (!currentOrder) return null;
+  // Faqat bitta shartli return qoldirdik
+  if (customerActiveOrders.length === 0 || !currentOrder) return null;
 
   return (
     <AnimatePresence>
