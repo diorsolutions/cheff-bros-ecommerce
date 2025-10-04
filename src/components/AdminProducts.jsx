@@ -9,6 +9,7 @@ import {
   Salad,
   Search,
   Check,
+  Filter, // Filter iconini import qilish
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
+import { calculateProductStock } from "@/utils/stockCalculator";
 import {
   Popover,
   PopoverContent,
@@ -74,6 +75,9 @@ const AdminProducts = memo(
     const [isIngredientsSelectOpen, setIsIngredientsSelectOpen] =
       useState(false);
     const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
+
+    // Yangi: Kategoriya filtri holati
+    const [categoryFilter, setCategoryFilter] = useState("all");
 
     useEffect(() => {
       if (!isDialogOpen) {
@@ -384,6 +388,14 @@ const AdminProducts = memo(
       );
     }, [allIngredients, selectedProductIngredients, ingredientSearchTerm]);
 
+    // Yangi: Mahsulotlarni kategoriya bo'yicha filtrlash
+    const filteredProducts = useMemo(() => {
+      if (categoryFilter === "all") {
+        return products;
+      }
+      return products.filter((product) => product.category === categoryFilter);
+    }, [products, categoryFilter]);
+
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -396,9 +408,33 @@ const AdminProducts = memo(
           </Button>
         </div>
 
+        {/* Yangi: Kategoriya filtri */}
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-gray-400" />
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
+              <SelectValue placeholder="Kategoriya" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-white/20">
+              <SelectItem value="all" className="text-white">
+                Hammasi
+              </SelectItem>
+              <SelectItem value="Hoddog" className="text-white">
+                Hoddog
+              </SelectItem>
+              <SelectItem value="Ichimliklar" className="text-white">
+                Ichimliklar
+              </SelectItem>
+              <SelectItem value="Disertlar" className="text-white">
+                Disertlar
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
               const calculatedStock = calculateProductStock(
                 product.id,
                 products,

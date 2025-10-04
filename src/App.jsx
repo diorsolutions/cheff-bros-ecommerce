@@ -23,6 +23,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteCurier from "@/components/ProtectedRouteCurier";
 import ProtectedRouteChef from "@/components/ProtectedRouteChef"; // Import new ProtectedRouteChef
 import MiniChat from "@/components/MiniChat";
+import ClientOrderStatusModal from "@/components/ClientOrderStatusModal"; // Yangi modalni import qilish
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toaster";
@@ -57,6 +58,22 @@ function App() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Yangi: Mijozning faol buyurtmasi ID'si
+  const [activeCustomerOrderId, setActiveCustomerOrderId] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("activeCustomerOrderId") || null;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (activeCustomerOrderId) {
+      localStorage.setItem("activeCustomerOrderId", activeCustomerOrderId);
+    } else {
+      localStorage.removeItem("activeCustomerOrderId");
+    }
+  }, [activeCustomerOrderId]);
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -217,7 +234,7 @@ function App() {
           setProductIngredients(productIngredientsData || []);
         }
       } catch (e) {
-        console.error("Mahsulot-masalliq bog'lanishlarini yuklashda kutilmagan xatolik:", e);
+        console.error("Mahsulot-masalliq bog'lanishlarini kutilmagan xatolik:", e);
       }
     };
 
@@ -263,6 +280,8 @@ function App() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               setOrders((prev) => [payload.new, ...prev]);
+              // Yangi buyurtma kelganda faqat admin paneliga toast ko'rsatiladi
+              // Mijozga xabar yuborish handleOrderSubmit ichida amalga oshiriladi
               toast({
                 title: "Yangi buyurtma!",
                 description: "Yangi buyurtma keldi",
@@ -522,6 +541,9 @@ function App() {
 
     await handleSendMessage(customer.phone, systemMessage);
 
+    // Yangi: Faol buyurtma ID'sini o'rnatish
+    setActiveCustomerOrderId(insertedOrder.id);
+
     setCartItems([]);
     toast({
       title: "Buyurtma qabul qilindi!",
@@ -567,17 +589,14 @@ function App() {
 
       switch (newStatus) {
         case "en_route_to_kitchen":
-          // Kuryer faqat 'preparing' yoki 'ready' statusidagi buyurtmani olishi mumkin
-          // Va hali kuryerga biriktirilmagan bo'lishi kerak
           if (
             (orderToUpdate.status === "preparing" ||
               orderToUpdate.status === "ready") &&
             !orderToUpdate.curier_id
           ) {
             canUpdate = true;
-            updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
-            // Asosiy statusni o'zgartirmaymiz, u oshpaz tomonidan belgilangan holatda qoladi
-            delete updateData.status; // updateData dan statusni olib tashlaymiz
+            updateData.curier_id = actorId;
+            delete updateData.status;
           } else {
             toast({
               title: "Xatolik!",
@@ -589,14 +608,12 @@ function App() {
           }
           break;
         case "picked_up_from_kitchen":
-          // Kuryer faqat 'ready' statusidagi o'ziga biriktirilgan buyurtmani "menda" qila oladi
-          // Va buyurtma 'en_route_to_kitchen' statusida bo'lishi kerak
           if (
-            orderToUpdate.status === "ready" && // Faqat oshpaz tayyor qilgan bo'lsa
+            orderToUpdate.status === "ready" &&
             orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
-            updateData.status = newStatus; // Bu yerda statusni 'picked_up_from_kitchen' ga o'zgartiramiz
+            updateData.status = newStatus;
           } else {
             toast({
               title: "Xatolik!",
@@ -609,7 +626,6 @@ function App() {
           break;
         case "delivered_to_customer":
         case "cancelled":
-          // Kuryer faqat 'picked_up_from_kitchen' statusidagi o'ziga biriktirilgan buyurtmani yakunlashi/bekor qilishi mumkin
           if (
             orderToUpdate.status === "picked_up_from_kitchen" &&
             orderToUpdate.curier_id === actorId
@@ -635,17 +651,15 @@ function App() {
           return;
       }
     } else if (actorRole === "chef") {
-      // Oshpaz logikasi
       switch (newStatus) {
         case "preparing":
-          // Oshpaz faqat 'new' statusidagi buyurtmani "tayyorlanmoqda" qila oladi
           if (orderToUpdate.status === "new") {
             if (!orderToUpdate.chef_id) {
               canUpdate = true;
-              updateData.chef_id = actorId; // Oshpaz buyurtmani o'ziga biriktiradi
+              updateData.chef_id = actorId;
               updateData.status = newStatus;
             } else if (orderToUpdate.chef_id === actorId) {
-              canUpdate = true; // Oshpaz o'zining buyurtmasini qayta tasdiqlashi mumkin
+              canUpdate = true;
               updateData.status = newStatus;
             } else {
               toast({
@@ -667,7 +681,6 @@ function App() {
           }
           break;
         case "ready":
-          // Oshpaz faqat 'preparing' statusidagi o'ziga biriktirilgan buyurtmani "tayyor" qila oladi
           if (
             orderToUpdate.status === "preparing" &&
             orderToUpdate.chef_id === actorId
@@ -685,15 +698,14 @@ function App() {
           }
           break;
         case "cancelled":
-          // Oshpaz har qanday statusdagi buyurtmani bekor qila oladi (agar kuryer yetkazib bermagan bo'lsa)
           if (
             orderToUpdate.status !== "delivered_to_customer" &&
             orderToUpdate.status !== "cancelled" &&
-            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId) // Agar biriktirilmagan bo'lsa yoki o'ziga biriktirilgan bo'lsa
+            (!orderToUpdate.chef_id || orderToUpdate.chef_id === actorId)
           ) {
             canUpdate = true;
-            updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
-            updateData.curier_id = null; // Bekor qilinganda kuryer biriktiruvi olib tashlanadi
+            updateData.chef_id = actorId;
+            updateData.curier_id = null;
             updateData.status = newStatus;
           } else {
             toast({
@@ -714,12 +726,6 @@ function App() {
           return;
       }
     } else {
-      // Admin tomonidan status o'zgarishlari
-      // Agar buyurtma kuryer yoki oshpazga biriktirilgan bo'lsa, admin statusni o'zgartira olmaydi.
-      // Bu qismni ham biroz o'zgartirish kerak, chunki admin ham ba'zi holatlarda aralasha olishi kerak.
-      // Hozircha, agar curier_id yoki chef_id mavjud bo'lsa, admin o'zgartira olmaydi degan qoida qoladi.
-      // Agar admin statusni o'zgartirsa, curier_id va chef_id ni null qilish kerakmi?
-      // Foydalanuvchi talabida admin haqida aniq aytilmagan, shuning uchun bu qismni hozircha o'zgartirmayman.
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",
@@ -759,30 +765,22 @@ function App() {
     const order = orders.find((o) => o.id === orderId);
     if (order) {
       let message = "";
-      switch (newStatus) {
-        case "en_route_to_kitchen":
-          message = `Sizning buyurtmangizni olish uchun kuryer yo'lga chiqdi!`;
-          break;
-        case "picked_up_from_kitchen":
-          message = `Sizning buyurtmangiz kuryer tomonidan olindi va manzilingizga yo'lga chiqdi!`;
-          break;
-        case "delivered_to_customer":
-          const itemNames = order.items.map((item) => item.name).join(", ");
-          message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
-          break;
-        case "preparing":
-          message = `Sizning buyurtmangiz tayyorlanmoqda!`;
-          break;
-        case "ready":
-          message = `Sizning buyurtmangiz tayyor! Kuryer yetkazib berish uchun yo'lga chiqishini kuting.`;
-          break;
-        case "cancelled":
-          message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${
-            cancellationReason || "ko'rsatilmagan"
-          }. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
-          break;
-        default:
-          break;
+      // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
+      if (newStatus === "delivered_to_customer") {
+        const itemNames = order.items.map((item) => item.name).join(", ");
+        message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+        // Buyurtma yetkazilganda modalni yashirish
+        if (orderId === activeCustomerOrderId) {
+          setActiveCustomerOrderId(null);
+        }
+      } else if (newStatus === "cancelled") {
+        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${
+          cancellationReason || "ko'rsatilmagan"
+        }. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+        // Buyurtma bekor qilinganda modalni yashirish
+        if (orderId === activeCustomerOrderId) {
+          setActiveCustomerOrderId(null);
+        }
       }
 
       if (message) {
@@ -893,6 +891,11 @@ function App() {
               messages={messages}
               ingredients={ingredients} // Yangi: ingredients propini uzatish
               productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
+              activeCustomerOrderId={activeCustomerOrderId} // Yangi: activeCustomerOrderId ni uzatish
+              orders={orders} // Yangi: orders ni uzatish
+              chefs={chefs} // Yangi: chefs ni uzatish
+              curiers={curiers} // Yangi: curiers ni uzatish
+              customerInfo={customerInfo} // Yangi: customerInfo ni uzatish
             />
           }
         />
@@ -928,6 +931,11 @@ function MainLayout({
   messages,
   ingredients, // Yangi: ingredients propini qabul qilish
   productIngredients, // Yangi: productIngredients propini qabul qilish
+  activeCustomerOrderId, // Yangi: activeCustomerOrderId ni qabul qilish
+  orders, // Yangi: orders ni qabul qilish
+  chefs, // Yangi: chefs ni qabul qilish
+  curiers, // Yangi: curiers ni qabul qilish
+  customerInfo, // Yangi: customerInfo ni qabul qilish
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { width } = useWindowSize();
@@ -1119,7 +1127,6 @@ function MainLayout({
                     const currentProduct = products.find(
                       (p) => p.id === item.id
                     );
-                    // const stock = currentProduct?.stock || 0; // Eski stock o'chiriladi
                     return (
                       <div
                         key={index}
@@ -1157,6 +1164,13 @@ function MainLayout({
         </motion.div>
       </main>
       <MiniChat messages={messages} />
+      <ClientOrderStatusModal
+        activeOrderId={activeCustomerOrderId}
+        orders={orders}
+        chefs={chefs}
+        curiers={curiers}
+        customerPhone={customerInfo.phone}
+      />
     </div>
   );
 }
