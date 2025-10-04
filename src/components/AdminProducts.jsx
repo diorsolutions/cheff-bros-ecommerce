@@ -697,10 +697,8 @@ const AdminProducts = memo(
                             key={ingredient.id}
                             value={ingredient.name}
                             onSelect={() => handleSelectIngredient(ingredient)}
-                            // disabled prop olib tashlandi
                             className={cn(
                               "flex items-center justify-between"
-                              // disabled holatiga oid classlar olib tashlandi
                             )}
                           >
                             <div className="flex items-center gap-2">
@@ -716,7 +714,6 @@ const AdminProducts = memo(
                               />
                               {ingredient.name}
                             </div>
-                            {/* "Tugadi" span olib tashlandi */}
                           </CommandItem>
                         ))}
                       </CommandGroup>
