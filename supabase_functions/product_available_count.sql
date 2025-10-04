@@ -9,7 +9,7 @@ DECLARE
     possible_from_this_ingredient INTEGER;
 BEGIN
     -- Agar mahsulotga bog'langan masalliqlar bo'lmasa, 0 qaytaramiz
-    IF NOT EXISTS (SELECT 1 FROM public.product_ingredients WHERE product_id = product_available_count.product_id) THEN
+    IF NOT EXISTS (SELECT 1 FROM public.product_ingredients pi_sub WHERE pi_sub.product_id = product_available_count.product_id) THEN
         RETURN 0;
     END IF;
 
