@@ -8,7 +8,8 @@ import {
   PanelRightClose,
   BarChart2,
   Users,
-  ChefHat, // Yangi: Chef iconi
+  ChefHat,
+  Salad, // Yangi: Salad iconi
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -16,12 +17,13 @@ import AdminDashboard from "@/components/AdminDashboard";
 import AdminProducts from "@/components/AdminProducts";
 import AdminStatistics from "@/components/AdminStatistics";
 import AdminCouriers from "@/components/AdminCouriers";
-import AdminChefs from "@/components/AdminChefs"; // Yangi import
+import AdminChefs from "@/components/AdminChefs";
+import AdminIngredients from "@/components/AdminIngredients"; // Yangi import
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
-const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers, chefs }) => {
+const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers, chefs, ingredients, productIngredients }) => {
   const [adminView, setAdminView] = useState("orders");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
@@ -95,6 +97,18 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers, chefs }) =>
               {isSidebarOpen && "Mahsulotlar"}
             </Button>
             <Button
+              variant={adminView === "ingredients" ? "secondary" : "ghost"}
+              className={`min-w-full justify-start ${
+                adminView === "ingredients"
+                  ? "bg-white/20 text-active-orange"
+                  : "text-white hover:bg-white/10 hover:text-active-orange"
+              }`}
+              onClick={() => setAdminView("ingredients")}
+            >
+              <Salad className="mr-3 h-5 w-5" /> {/* Yangi icon */}
+              {isSidebarOpen && "Masalliqlar"}
+            </Button>
+            <Button
               variant={adminView === "statistics" ? "secondary" : "ghost"}
               className={`min-w-full justify-start ${
                 adminView === "statistics"
@@ -127,7 +141,7 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers, chefs }) =>
               }`}
               onClick={() => setAdminView("chefs")}
             >
-              <ChefHat className="mr-3 h-5 w-5" /> {/* Yangi icon */}
+              <ChefHat className="mr-3 h-5 w-5" />
               {isSidebarOpen && "Oshpazlar"}
             </Button>
           </nav>
@@ -144,21 +158,33 @@ const Dashboard = ({ products, orders, onUpdateOrderStatus, curiers, chefs }) =>
                 orders={orders}
                 onUpdateOrderStatus={onUpdateOrderStatus}
                 curiers={curiers}
-                chefs={chefs} // Yangi: Chefs ro'yxatini AdminDashboardga uzatish
+                chefs={chefs}
               />
             ) : adminView === "products" ? (
-              <AdminProducts products={products} />
+              <AdminProducts
+                products={products}
+                allIngredients={ingredients}
+                allProductIngredients={productIngredients}
+              />
+            ) : adminView === "ingredients" ? (
+              <AdminIngredients
+                allProducts={products}
+                allIngredients={ingredients}
+                allProductIngredients={productIngredients}
+              />
             ) : adminView === "statistics" ? (
               <AdminStatistics
                 orders={orders}
                 products={products}
                 curiers={curiers}
-                chefs={chefs} // Yangi: Chefs ro'yxatini AdminStatisticsga uzatish
+                chefs={chefs}
+                ingredients={ingredients}
+                productIngredients={productIngredients}
               />
             ) : adminView === "couriers" ? (
               <AdminCouriers curiers={curiers} orders={orders} />
             ) : (
-              <AdminChefs chefs={chefs} orders={orders} /> // Yangi: AdminChefs komponenti
+              <AdminChefs chefs={chefs} orders={orders} />
             )}
           </motion.div>
         </div>
