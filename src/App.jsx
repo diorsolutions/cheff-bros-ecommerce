@@ -10,6 +10,7 @@ import {
   ListOrdered,
   PanelLeftClose,
   PanelRightClose,
+  Salad, // Yangi icon
 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
@@ -31,6 +32,7 @@ import CurierInterFace from "./components/curier/CurierInterFace";
 import ChefInterface from "./components/chef/ChefInterface"; // Import new ChefInterface
 import { useWindowSize } from "react-use";
 import { generateShortOrderId } from "@/lib/utils";
+import { calculateProductStock } from "@/utils/stockCalculator"; // Yangi import
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -40,7 +42,10 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [curiers, setCuriers] = useState([]);
-  const [chefs, setChefs] = useState([]); // Yangi: Chefs ro'yxati
+  const [chefs, setChefs] = useState([]);
+  const [ingredients, setIngredients] = useState([]); // Yangi: Ingredients ro'yxati
+  const [productIngredients, setProductIngredients] = useState([]); // Yangi: Product-Ingredient bog'lanishlari
+
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -174,7 +179,6 @@ function App() {
         console.error("Kuryerlarni yuklashda kutilmagan xatolik:", e);
       }
 
-      // Yangi: Chefs ro'yxatini yuklash
       try {
         const { data: chefsData, error: chefsErr } = await supabase
           .from("chefs")
@@ -187,6 +191,34 @@ function App() {
       } catch (e) {
         console.error("Oshpazlarni yuklashda kutilmagan xatolik:", e);
       }
+
+      // Yangi: Ingredients ro'yxatini yuklash
+      try {
+        const { data: ingredientsData, error: ingredientsErr } = await supabase
+          .from("ingredients")
+          .select("*");
+        if (ingredientsErr) {
+          console.error("Masalliqlarni yuklashda xatolik:", ingredientsErr);
+        } else {
+          setIngredients(ingredientsData || []);
+        }
+      } catch (e) {
+        console.error("Masalliqlarni yuklashda kutilmagan xatolik:", e);
+      }
+
+      // Yangi: Product-Ingredient bog'lanishlarini yuklash
+      try {
+        const { data: productIngredientsData, error: productIngredientsErr } = await supabase
+          .from("product_ingredients")
+          .select("*");
+        if (productIngredientsErr) {
+          console.error("Mahsulot-masalliq bog'lanishlarini yuklashda xatolik:", productIngredientsErr);
+        } else {
+          setProductIngredients(productIngredientsData || []);
+        }
+      } catch (e) {
+        console.error("Mahsulot-masalliq bog'lanishlarini yuklashda kutilmagan xatolik:", e);
+      }
     };
 
     fetchInitialData();
@@ -195,7 +227,10 @@ function App() {
       orderChannel,
       messageChannel,
       curierChannel,
-      chefChannel;
+      chefChannel,
+      ingredientChannel,
+      productIngredientChannel;
+
     try {
       productChannel = supabase
         .channel("realtime-products")
@@ -285,7 +320,6 @@ function App() {
       console.error("Error subscribing to curier real-time channel:", e);
     }
 
-    // Yangi: Chefs ro'yxatini real-time yangilash
     try {
       chefChannel = supabase
         .channel("realtime-chefs")
@@ -309,12 +343,63 @@ function App() {
       console.error("Error subscribing to chef real-time channel:", e);
     }
 
+    // Yangi: Ingredients real-time yangilash
+    try {
+      ingredientChannel = supabase
+        .channel("realtime-ingredients")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "ingredients" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setIngredients((prev) => [...prev, payload.new]);
+            } else if (payload.eventType === "UPDATE") {
+              setIngredients((prev) =>
+                prev.map((i) => (i.id === payload.new.id ? payload.new : i))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setIngredients((prev) => prev.filter((i) => i.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.error("Error subscribing to ingredient real-time channel:", e);
+    }
+
+    // Yangi: Product-Ingredients real-time yangilash
+    try {
+      productIngredientChannel = supabase
+        .channel("realtime-product_ingredients")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "product_ingredients" },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setProductIngredients((prev) => [...prev, payload.new]);
+            } else if (payload.eventType === "UPDATE") {
+              setProductIngredients((prev) =>
+                prev.map((pi) => (pi.product_id === payload.new.product_id && pi.ingredient_id === payload.new.ingredient_id ? payload.new : pi))
+              );
+            } else if (payload.eventType === "DELETE") {
+              setProductIngredients((prev) => prev.filter((pi) => !(pi.product_id === payload.old.product_id && pi.ingredient_id === payload.old.ingredient_id)));
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.error("Error subscribing to product_ingredients real-time channel:", e);
+    }
+
+
     return () => {
       if (productChannel) supabase.removeChannel(productChannel);
       if (orderChannel) supabase.removeChannel(orderChannel);
       if (messageChannel) supabase.removeChannel(messageChannel);
       if (curierChannel) supabase.removeChannel(curierChannel);
-      if (chefChannel) supabase.removeChannel(chefChannel); // Yangi: Chef channelni tozalash
+      if (chefChannel) supabase.removeChannel(chefChannel);
+      if (ingredientChannel) supabase.removeChannel(ingredientChannel);
+      if (productIngredientChannel) supabase.removeChannel(productIngredientChannel);
     };
   }, [customerInfo.phone]);
 
@@ -374,12 +459,13 @@ function App() {
   const handleOrderSubmit = async (orderData) => {
     const { customer, items, location, totalPrice } = orderData;
 
+    // Masalliqlar stokini tekshirish
     for (const item of items) {
-      const product = products.find((p) => p.id === item.id);
-      if (!product || product.stock < item.quantity) {
+      const availableStock = calculateProductStock(item.id, products, ingredients, productIngredients);
+      if (availableStock < item.quantity) {
         toast({
           title: "Xatolik!",
-          description: `${item.name} yetarli miqdorda yo'q`,
+          description: `${item.name} mahsulotini tayyorlash uchun yetarli masalliq yo'q. Hozirda ${availableStock} dona tayyorlash mumkin.`,
           variant: "destructive",
         });
         return;
@@ -388,12 +474,19 @@ function App() {
 
     setCustomerInfo(customer);
 
+    // Masalliqlar stokini kamaytirish
     for (const item of items) {
-      const product = products.find((p) => p.id === item.id);
-      await supabase
-        .from("products")
-        .update({ stock: product.stock - item.quantity })
-        .eq("id", item.id);
+      const productIngredientsNeeded = productIngredients.filter(pi => pi.product_id === item.id);
+      for (const prodIng of productIngredientsNeeded) {
+        const ingredient = ingredients.find(ing => ing.id === prodIng.ingredient_id);
+        if (ingredient) {
+          const newStock = ingredient.stock_quantity - (prodIng.quantity_needed * item.quantity);
+          await supabase
+            .from("ingredients")
+            .update({ stock_quantity: newStock })
+            .eq("id", ingredient.id);
+        }
+      }
     }
 
     const { error: orderError, data: insertedOrder } = await supabase
@@ -766,13 +859,20 @@ function App() {
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
                 chefs={chefs}
+                ingredients={ingredients} // Yangi: ingredients propini uzatish
+                productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
               />
             </ProtectedRoute>
           }
         />
         <Route
           path="/product/:id"
-          element={<ProductDetail onAddToCart={addToCart} />}
+          element={<ProductDetail 
+            onAddToCart={addToCart} 
+            products={products} // products propini uzatish
+            ingredients={ingredients} // ingredients propini uzatish
+            productIngredients={productIngredients} // productIngredients propini uzatish
+          />}
         />
         <Route
           path="/"
@@ -791,6 +891,8 @@ function App() {
               loadingProducts={loadingProducts}
               productsError={productsError}
               messages={messages}
+              ingredients={ingredients} // Yangi: ingredients propini uzatish
+              productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
             />
           }
         />
@@ -824,6 +926,8 @@ function MainLayout({
   loadingProducts,
   productsError,
   messages,
+  ingredients, // Yangi: ingredients propini qabul qilish
+  productIngredients, // Yangi: productIngredients propini qabul qilish
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { width } = useWindowSize();
@@ -950,6 +1054,9 @@ function MainLayout({
                               key={product.id}
                               product={product}
                               onAddToCart={addToCart}
+                              allProducts={products} // Yangi: products propini uzatish
+                              allIngredients={ingredients} // Yangi: ingredients propini uzatish
+                              allProductIngredients={productIngredients} // Yangi: productIngredients propini uzatish
                             />
                           ))}
                         </div>
@@ -1012,7 +1119,7 @@ function MainLayout({
                     const currentProduct = products.find(
                       (p) => p.id === item.id
                     );
-                    const stock = currentProduct?.stock || 0;
+                    // const stock = currentProduct?.stock || 0; // Eski stock o'chiriladi
                     return (
                       <div
                         key={index}
