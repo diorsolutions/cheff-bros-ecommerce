@@ -180,7 +180,22 @@ const AdminProducts = memo(
         return;
       }
 
-      // New check: Ensure selected quantity needed does not exceed available ingredient stock
+      // New validation: Check if quantity_needed is an integer for "dona" unit
+      for (const pi of selectedProductIngredients) {
+        const ingredient = allIngredients.find(ing => ing.id === pi.ingredient_id);
+        if (ingredient && ingredient.unit === "dona" && !Number.isInteger(pi.quantity_needed)) {
+          toast({
+            title: "Xatolik",
+            description: `'${ingredient.name}' masallig'i uchun faqat butun sonlar (1, 2, va hokazo) kiritish mumkin. O'nlik sonlar (1.2, 3.5) mumkin emas.`,
+            variant: "destructive",
+          });
+          setIsSaving(false);
+          setIsUploading(false);
+          return;
+        }
+      }
+
+      // Existing check: Ensure selected quantity needed does not exceed available ingredient stock
       for (const pi of selectedProductIngredients) {
         const ingredient = allIngredients.find(ing => ing.id === pi.ingredient_id);
         if (ingredient && pi.quantity_needed > (ingredient.stock_quantity ?? 0)) {
@@ -638,7 +653,7 @@ const AdminProducts = memo(
                       <Input
                         type="number"
                         min="0.1"
-                        step="0.1"
+                        step={pi.unit === "dona" ? "1" : "0.1"} {/* Step attribute added */}
                         value={pi.quantity_needed}
                         onChange={(e) =>
                           handleQuantityNeededChange(
