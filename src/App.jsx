@@ -1054,9 +1054,9 @@ function MainLayout({
                               key={product.id}
                               product={product}
                               onAddToCart={addToCart}
-                              allProducts={products} // Yangi: products propini uzatish
-                              allIngredients={ingredients} // Yangi: ingredients propini uzatish
-                              allProductIngredients={productIngredients} // Yangi: productIngredients propini uzatish
+                              allProducts={products} // `products` state ni `allProducts` propiga uzatish
+                              allIngredients={ingredients} // `ingredients` state ni `allIngredients` propiga uzatish
+                              allProductIngredients={productIngredients} // `productIngredients` state ni `allProductIngredients` propiga uzatish
                             />
                           ))}
                         </div>

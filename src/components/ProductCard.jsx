@@ -7,11 +7,19 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useWindowSize } from "react-use";
+import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allProductIngredients }) => {
   const [quantity, setQuantity] = useState(1);
-  const stock = product.stock || 0;
-  const isOutOfStock = stock === 0;
+  
+  // calculateProductStock funksiyasini to'g'ri `allProducts` prop bilan chaqirish
+  const calculatedStock = calculateProductStock(
+    product.id,
+    allProducts,
+    allIngredients,
+    allProductIngredients
+  );
+  const isOutOfStock = calculatedStock === 0;
 
   const biggestThanPc = useMediaQuery({ minWidth: 1024 });
   const isBigTablet = useMediaQuery({ minWidth: 954 });
@@ -20,8 +28,6 @@ const ProductCard = ({ product, onAddToCart }) => {
   const isMob_small = useMediaQuery({ maxWidth: 431 });
   const isMob_xr = useMediaQuery({ maxWidth: 415 });
   const isMob_se = useMediaQuery({ maxWidth: 373 });
-
-  //last comment
 
   let sliceLength = 40;
   if (isBigTablet) sliceLength = 30;
@@ -42,10 +48,10 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   const { width } = useWindowSize();
   const handleAddToCart = () => {
-    if (quantity > stock) {
+    if (quantity > calculatedStock) { // calculatedStock ishlatildi
       toast({
         title: "Xatolik!",
-        description: `Faqat ${stock} ta mavjud`,
+        description: `Faqat ${calculatedStock} ta mavjud`,
         variant: "destructive",
       });
       return;
@@ -60,7 +66,7 @@ const ProductCard = ({ product, onAddToCart }) => {
   };
 
   const incrementQuantity = () => {
-    if (quantity < stock) {
+    if (quantity < calculatedStock) { // calculatedStock ishlatildi
       setQuantity((prev) => prev + 1);
     }
   };
@@ -103,16 +109,17 @@ const ProductCard = ({ product, onAddToCart }) => {
             </h3>
             <span
               className={`text-xs font-semibold px-2 py-1 rounded extra_small:leading-[0.2rem] extra_small:text-[0.6rem] extra_small:min-w-max ${
-                stock > 10
+                calculatedStock > 10 // calculatedStock ishlatildi
                   ? "bg-green-100 text-green-600"
-                  : stock > 5
+                  : calculatedStock > 5
                   ? "bg-orange-100 text-orange-600"
-                  : stock > 0
+                  : calculatedStock > 0
                   ? "bg-red-100 text-red-600"
                   : "bg-gray-100 text-gray-600"
               }`}
             >
-              {stock > 0 ? `${stock} ta qoldi` : "Tugadi"}
+              {calculatedStock > 0 ? `${calculatedStock} ta qoldi` : "Tugadi"}{" "}
+              {/* calculatedStock ishlatildi */}
             </span>
           </div>
           <p className="text-gray-600 mob_xr:text-xs text-sm mb-3 line-clamp-2 flex-grow extra_small:text-[0.75rem] ">
@@ -145,7 +152,7 @@ const ProductCard = ({ product, onAddToCart }) => {
                 size="sm"
                 variant="ghost"
                 onClick={incrementQuantity}
-                disabled={isOutOfStock || quantity >= stock}
+                disabled={isOutOfStock || quantity >= calculatedStock} // calculatedStock ishlatildi
                 className="big_tablet:h-3 big_tablet:w-3 h-8 w-8 p-0 rounded-lg text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4" />
@@ -156,7 +163,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
-            disabled={isOutOfStock || quantity > stock || quantity === 0} // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
+            disabled={isOutOfStock || quantity > calculatedStock || quantity === 0} // calculatedStock ishlatildi
             className="mob_xr:text-[0.7rem] extra_small:text-[0.7rem] extra_small:p-0 mob_small:text-[0.8rem] w-full bg-gradient-to-r rounded-[0.4rem] from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart className="mr-2 h-4 w-4" />

@@ -7,13 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
 import { useWindowSize } from "react-use";
 import { supabase } from "@/lib/supabase";
+import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 
-const ProductDetail = ({ onAddToCart }) => {
+const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [calculatedStock, setCalculatedStock] = useState(0); // Yangi holat
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -34,6 +36,9 @@ const ProductDetail = ({ onAddToCart }) => {
       }
 
       setProduct(data);
+      // Mahsulot yuklangandan so'ng stokni hisoblash
+      const stock = calculateProductStock(data.id, products, ingredients, productIngredients);
+      setCalculatedStock(stock);
       setLoading(false);
     };
 
@@ -54,15 +59,50 @@ const ProductDetail = ({ onAddToCart }) => {
             navigate("/");
           } else {
             setProduct(payload.new);
+            // Realtime yangilanishda ham stokni qayta hisoblash
+            const stock = calculateProductStock(payload.new.id, products, ingredients, productIngredients);
+            setCalculatedStock(stock);
           }
         }
       )
       .subscribe();
 
+    // Ingredients va productIngredients o'zgarganda ham stokni qayta hisoblash
+    const ingredientChannel = supabase
+      .channel(`ingredient-changes-for-product-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ingredients" },
+        (payload) => {
+          if (product) {
+            const stock = calculateProductStock(product.id, products, ingredients, productIngredients);
+            setCalculatedStock(stock);
+          }
+        }
+      )
+      .subscribe();
+
+    const productIngredientChannel = supabase
+      .channel(`product_ingredient-changes-for-product-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "product_ingredients", filter: `product_id=eq.${id}` },
+        (payload) => {
+          if (product) {
+            const stock = calculateProductStock(product.id, products, ingredients, productIngredients);
+            setCalculatedStock(stock);
+          }
+        }
+      )
+      .subscribe();
+
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(ingredientChannel);
+      supabase.removeChannel(productIngredientChannel);
     };
-  }, [id, navigate]);
+  }, [id, navigate, products, ingredients, productIngredients, product]); // product ham dependency ga qo'shildi
 
   if (loading) {
     return (
@@ -75,14 +115,13 @@ const ProductDetail = ({ onAddToCart }) => {
 
   if (!product) return null;
 
-  const stock = product.stock || 0;
-  const isOutOfStock = stock === 0;
+  const isOutOfStock = calculatedStock === 0;
 
   const handleAddToCart = () => {
-    if (quantity > stock) {
+    if (quantity > calculatedStock) { // calculatedStock ishlatildi
       toast({
         title: "Xatolik!",
-        description: `Faqat ${stock} ta mavjud`,
+        description: `Faqat ${calculatedStock} ta mavjud`,
         variant: "destructive",
       });
       return;
@@ -95,7 +134,7 @@ const ProductDetail = ({ onAddToCart }) => {
   };
 
   const incrementQuantity = () => {
-    if (quantity < stock) {
+    if (quantity < calculatedStock) { // calculatedStock ishlatildi
       setQuantity((prev) => prev + 1);
     }
   };
@@ -159,17 +198,17 @@ const ProductDetail = ({ onAddToCart }) => {
                     <div className="mb-6">
                       <span
                         className={`text-sm font-semibold px-3 py-2 rounded ${
-                          stock > 10
+                          calculatedStock > 10 // calculatedStock ishlatildi
                             ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
-                            : stock > 5
+                            : calculatedStock > 5
                             ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
-                            : stock > 0
+                            : calculatedStock > 0
                             ? "bg-red-100 text-red-600" /* Ranglar yangilandi */
                             : "bg-gray-100 text-gray-600" /* Ranglar yangilandi */
                         }`}
                       >
-                        {stock > 0
-                          ? `${stock} ta qoldi - ulgurib qoling`
+                        {calculatedStock > 0
+                          ? `${calculatedStock} ta qoldi - ulgurib qoling`
                           : "Qolmagan"}
                       </span>
                     </div>
@@ -207,7 +246,7 @@ const ProductDetail = ({ onAddToCart }) => {
                           size="sm"
                           variant="ghost"
                           onClick={incrementQuantity}
-                          disabled={isOutOfStock || quantity >= stock}
+                          disabled={isOutOfStock || quantity >= calculatedStock} // calculatedStock ishlatildi
                           className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus className="h-5 w-5" />
@@ -218,8 +257,8 @@ const ProductDetail = ({ onAddToCart }) => {
                     <Button
                       onClick={handleAddToCart}
                       disabled={
-                        isOutOfStock || quantity > stock || quantity === 0
-                      } // Tugma disabled bo'ladi agar stock tugasa yoki miqdor stockdan oshsa
+                        isOutOfStock || quantity > calculatedStock || quantity === 0 // calculatedStock ishlatildi
+                      }
                       className="w-full h-12 big_tablet:text-[.94rem] big_tablet:h-10 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="mr-2 h-5 w-5" />

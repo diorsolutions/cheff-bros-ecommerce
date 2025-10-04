@@ -43,6 +43,7 @@ const AdminIngredients = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentIngredient, setCurrentIngredient] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  // linkedProductsForEdit endi faqat ma'lumotni ko'rsatish uchun ishlatiladi, tahrirlash uchun emas
   const [linkedProductsForEdit, setLinkedProductsForEdit] = useState([]); // { product_id, quantity_needed, product_name }
 
   useEffect(() => {
@@ -80,15 +81,16 @@ const AdminIngredients = ({
     setIsDialogOpen(true);
   };
 
-  const handleLinkedProductQuantityChange = (productId, quantity) => {
-    setLinkedProductsForEdit((prev) =>
-      prev.map((link) =>
-        link.product_id === productId
-          ? { ...link, quantity_needed: Number(quantity) }
-          : link
-      )
-    );
-  };
+  // handleLinkedProductQuantityChange funksiyasi olib tashlandi, chunki endi read-only
+  // const handleLinkedProductQuantityChange = (productId, quantity) => {
+  //   setLinkedProductsForEdit((prev) =>
+  //     prev.map((link) =>
+  //       link.product_id === productId
+  //         ? { ...link, quantity_needed: Number(quantity) }
+  //         : link
+  //     )
+  //   );
+  // };
 
   const handleSaveIngredient = async () => {
     if (
@@ -141,14 +143,15 @@ const AdminIngredients = ({
 
       if (error) throw error;
 
-      // Update product_ingredients links (only quantity_needed for existing links)
-      for (const link of linkedProductsForEdit) {
-        await supabase
-          .from("product_ingredients")
-          .update({ quantity_needed: link.quantity_needed })
-          .eq("ingredient_id", ingredientId)
-          .eq("product_id", link.product_id);
-      }
+      // product_ingredients bog'lanishlarini yangilash qismi olib tashlandi,
+      // chunki bu bog'lanishlar faqat AdminProducts orqali boshqariladi.
+      // for (const link of linkedProductsForEdit) {
+      //   await supabase
+      //     .from("product_ingredients")
+      //     .update({ quantity_needed: link.quantity_needed })
+      //     .eq("ingredient_id", ingredientId)
+      //     .eq("product_id", link.product_id);
+      // }
 
       toast({
         title: "Muvaffaqiyatli!",
@@ -402,8 +405,9 @@ const AdminIngredients = ({
                   foydalanadigan mahsulotlar
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Bu masalliq ishlatiladigan mahsulotlar ro'yxati. Har bir
-                  mahsulot uchun kerakli miqdorni o'zgartirishingiz mumkin.
+                  Bu masalliq ishlatiladigan mahsulotlar ro'yxati. Kerakli
+                  miqdorni mahsulotni tahrirlash bo'limidan o'zgartirishingiz
+                  mumkin.
                 </p>
                 <div className="grid gap-3">
                   {linkedProductsForEdit.length === 0 ? (
@@ -429,12 +433,7 @@ const AdminIngredients = ({
                             min="0.1"
                             step="0.1"
                             value={link.quantity_needed}
-                            onChange={(e) =>
-                              handleLinkedProductQuantityChange(
-                                link.product_id,
-                                e.target.value
-                              )
-                            }
+                            readOnly // Faqat o'qish uchun
                             className="w-24 bg-white border-gray-300 text-gray-800"
                           />
                           <span className="text-gray-600">

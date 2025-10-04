@@ -182,8 +182,14 @@ const AdminProducts = memo(
 
       // New validation: Check if quantity_needed is an integer for "dona" unit
       for (const pi of selectedProductIngredients) {
-        const ingredient = allIngredients.find(ing => ing.id === pi.ingredient_id);
-        if (ingredient && ingredient.unit === "dona" && !Number.isInteger(pi.quantity_needed)) {
+        const ingredient = allIngredients.find(
+          (ing) => ing.id === pi.ingredient_id
+        );
+        if (
+          ingredient &&
+          ingredient.unit === "dona" &&
+          !Number.isInteger(pi.quantity_needed)
+        ) {
           toast({
             title: "Xatolik",
             description: `'${ingredient.name}' masallig'i uchun faqat butun sonlar (1, 2, va hokazo) kiritish mumkin. O'nlik sonlar (1.2, 3.5) mumkin emas.`,
@@ -197,11 +203,20 @@ const AdminProducts = memo(
 
       // Existing check: Ensure selected quantity needed does not exceed available ingredient stock
       for (const pi of selectedProductIngredients) {
-        const ingredient = allIngredients.find(ing => ing.id === pi.ingredient_id);
-        if (ingredient && pi.quantity_needed > (ingredient.stock_quantity ?? 0)) {
+        const ingredient = allIngredients.find(
+          (ing) => ing.id === pi.ingredient_id
+        );
+        if (
+          ingredient &&
+          pi.quantity_needed > (ingredient.stock_quantity ?? 0)
+        ) {
           toast({
             title: "Xatolik",
-            description: `${ingredient.name} masallig'ining yetarli zaxirasi yo'q. Mavjud: ${ingredient.stock_quantity ?? 0} ${ingredient.unit}.`,
+            description: `${
+              ingredient.name
+            } masallig'ining yetarli zaxirasi yo'q. Mavjud: ${
+              ingredient.stock_quantity ?? 0
+            } ${ingredient.unit}.`,
             variant: "destructive",
           });
           setIsSaving(false);
@@ -653,7 +668,7 @@ const AdminProducts = memo(
                       <Input
                         type="number"
                         min="0.1"
-                        step={pi.unit === "dona" ? "1" : "0.1"} {/* Step attribute added */}
+                        step={pi.unit === "dona" ? "1" : "0.1"}
                         value={pi.quantity_needed}
                         onChange={(e) =>
                           handleQuantityNeededChange(
@@ -712,9 +727,7 @@ const AdminProducts = memo(
                             key={ingredient.id}
                             value={ingredient.name}
                             onSelect={() => handleSelectIngredient(ingredient)}
-                            className={cn(
-                              "flex items-center justify-between"
-                            )}
+                            className={cn("flex items-center justify-between")}
                           >
                             <div className="flex items-center gap-2">
                               <Check
