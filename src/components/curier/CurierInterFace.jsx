@@ -251,9 +251,24 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  const firstAvailableOrderForPickup = canTakeNewOrder
-    ? sortedOrders.find(order => !order.curier_id && (order.status === "preparing" || order.status === "ready"))?.id
-    : null;
+  // "Olish uchun yo'lda" tugmasi uchun disabled holat
+  // Endi bu faqat kuryerning faol buyurtmalar soniga bog'liq
+  const isPickupButtonDisabled = !canTakeNewOrder;
+
+  // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
+  const isPickedUpButtonDisabled = (order) => {
+    // Agar buyurtma "olish uchun yo'lda" statusida bo'lsa va joriy kuryerga biriktirilgan bo'lsa,
+    // va oshpaz hali "tayyor" statusini set qilmagan bo'lsa, tugma disabled bo'ladi.
+    return order.status === "en_route_to_kitchen" && order.curier_id === curierId && order.chef_id && order.status_chef !== "ready";
+  };
+
+  const getPickedUpButtonText = (order) => {
+    if (isPickedUpButtonDisabled(order)) {
+      const chef = getChefInfo(order.chef_id);
+      return `${chef?.name || "Oshpaz"} tayyorlamoqda`;
+    }
+    return "Buyurtma menda";
+  };
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
@@ -341,23 +356,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isAssignedToThisCourier = order.curier_id === curierId;
                 const isUnassignedAndPreparingOrReady = !order.curier_id && (isPreparing || isReady);
 
-
-                const isOrderDisabledForPickup =
-                  isUnassignedAndPreparingOrReady &&
-                  (!canTakeNewOrder || order.id !== firstAvailableOrderForPickup);
-
-                // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
-                const isPickedUpButtonDisabled = isEnRouteToKitchen && isAssignedToThisCourier && order.status !== "ready";
-                let pickedUpButtonText = "Buyurtma menda";
-                if (isPickedUpButtonDisabled) {
-                    if (order.status === "preparing") {
-                        pickedUpButtonText = `${getChefInfo(order.chef_id)?.name || "Oshpaz"} tayyorlamoqda`;
-                    } else {
-                        pickedUpButtonText = "Buyurtma hali tayyor emas"; 
-                    }
-                }
-
-
                 return (
                   <motion.div
                     key={order.id}
@@ -368,7 +366,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isOrderDisabledForPickup
+                        isUnassignedAndPreparingOrReady && isPickupButtonDisabled
                           ? "opacity-50 pointer-events-none"
                           : ""
                       } ${
@@ -520,7 +518,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                     "curier"
                                   )
                                 }
-                                disabled={isOrderDisabledForPickup}
+                                disabled={isPickupButtonDisabled}
                                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
                               >
                                 <Truck className="mr-2 h-4 w-4" />
@@ -537,11 +535,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                     "curier"
                                   )
                                 }
-                                disabled={isPickedUpButtonDisabled}
+                                disabled={isPickedUpButtonDisabled(order)}
                                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm"
                               >
                                 <Package className="mr-2 h-4 w-4" />
-                                {pickedUpButtonText}
+                                {getPickedUpButtonText(order)}
                               </Button>
                             )}
                             {isPickedUpFromKitchen && isAssignedToThisCourier && (
@@ -594,6 +592,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           curierId={curierId}
           currentName={curierName}
           currentPhone={curierPhone}
+          onNameUpdated={handleNameUpdated}
           orders={orders}
         />
       )}
