@@ -1,6 +1,6 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, Salad, Search, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -27,6 +27,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 const AdminProducts = memo(({ products, allIngredients, allProductIngredients }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,6 +51,21 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
   const [imagePreview, setImagePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // State for ingredient selection
+  const [selectedProductIngredients, setSelectedProductIngredients] = useState([]); // { ingredient_id, quantity_needed, name, unit }
+  const [isIngredientsSelectOpen, setIsIngredientsSelectOpen] = useState(false);
+  const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (!isDialogOpen) {
+      setCurrentProduct(null);
+      setSelectedImage(null);
+      setImagePreview(null);
+      setSelectedProductIngredients([]);
+      setIngredientSearchTerm("");
+    }
+  }, [isDialogOpen]);
+
   const openDialog = (product = null) => {
     setCurrentProduct(
       product || {
@@ -43,12 +73,29 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
         description: "",
         price: "",
         image_url: "",
-        // stock: 0, // Stock endi avtomatik hisoblanadi, shuning uchun bu yerda kerak emas
         category: "",
       }
     );
     setSelectedImage(null);
     setImagePreview(product?.image_url || null);
+
+    if (product) {
+      // Load existing product_ingredients for this product
+      const existingProductIngredients = allProductIngredients
+        .filter((pi) => pi.product_id === product.id)
+        .map((pi) => {
+          const ingredient = allIngredients.find((ing) => ing.id === pi.ingredient_id);
+          return {
+            ingredient_id: pi.ingredient_id,
+            quantity_needed: pi.quantity_needed,
+            name: ingredient ? ingredient.name : "Noma'lum masalliq",
+            unit: ingredient ? ingredient.unit : "dona",
+          };
+        });
+      setSelectedProductIngredients(existingProductIngredients);
+    } else {
+      setSelectedProductIngredients([]);
+    }
     setIsDialogOpen(true);
   };
 
@@ -97,6 +144,17 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
       });
       return;
     }
+
+    // Check if any ingredient is selected and has quantity_needed > 0
+    if (selectedProductIngredients.length > 0 && selectedProductIngredients.some(pi => pi.quantity_needed <= 0)) {
+      toast({
+        title: "Xatolik",
+        description: "Masalliqlar uchun kerakli miqdor 0 dan katta bo'lishi kerak.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     setIsUploading(true);
 
@@ -109,41 +167,57 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
         imageUrl = await uploadImage(selectedImage);
       }
 
-      // Cache-Control Header for uploaded images
-      const response = await fetch(imageUrl);
-      if (response.ok) {
-        const cacheControlHeader = response.headers.get("cache-control");
-        if (!cacheControlHeader.includes("no-cache")) {
-          console.warn(
-            "Cache policy might need adjustment for dynamic content."
-          );
-        }
-      }
-
       const productData = {
         name: currentProduct.name,
         description: currentProduct.description,
         price: Number(currentProduct.price),
         image_url: imageUrl,
-        // stock: Number(currentProduct.stock), // Stock endi avtomatik hisoblanadi, bu yerda yangilash kerak emas
         category: currentProduct.category || null,
       };
 
       let error;
+      let productId;
+
       if (currentProduct.id) {
         const { error: updateError } = await supabase
           .from("products")
           .update(productData)
           .eq("id", currentProduct.id);
         error = updateError;
+        productId = currentProduct.id;
       } else {
-        const { error: insertError } = await supabase
+        const { data, error: insertError } = await supabase
           .from("products")
-          .insert([productData]);
+          .insert([productData])
+          .select("id")
+          .single();
         error = insertError;
+        productId = data?.id;
       }
 
       if (error) throw error;
+
+      // Update product_ingredients table
+      if (productId) {
+        // Delete existing links for this product
+        await supabase
+          .from("product_ingredients")
+          .delete()
+          .eq("product_id", productId);
+
+        // Insert new links
+        if (selectedProductIngredients.length > 0) {
+          const newProductIngredients = selectedProductIngredients.map((pi) => ({
+            product_id: productId,
+            ingredient_id: pi.ingredient_id,
+            quantity_needed: pi.quantity_needed,
+          }));
+          const { error: piError } = await supabase
+            .from("product_ingredients")
+            .insert(newProductIngredients);
+          if (piError) throw piError;
+        }
+      }
 
       toast({
         title: "Muvaffaqiyatli!",
@@ -189,6 +263,46 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
       });
     }
   };
+
+  const handleSelectIngredient = (ingredient) => {
+    setSelectedProductIngredients((prev) => {
+      const exists = prev.some((pi) => pi.ingredient_id === ingredient.id);
+      if (exists) {
+        return prev.filter((pi) => pi.ingredient_id !== ingredient.id);
+      } else {
+        return [
+          ...prev,
+          {
+            ingredient_id: ingredient.id,
+            quantity_needed: 1, // Default quantity
+            name: ingredient.name,
+            unit: ingredient.unit,
+          },
+        ];
+      }
+    });
+    setIngredientSearchTerm(""); // Clear search after selection
+    setIsIngredientsSelectOpen(false); // Close popover after selection
+  };
+
+  const handleQuantityNeededChange = (ingredientId, value) => {
+    setSelectedProductIngredients((prev) =>
+      prev.map((pi) =>
+        pi.ingredient_id === ingredientId
+          ? { ...pi, quantity_needed: Number(value) }
+          : pi
+      )
+    );
+  };
+
+  const filteredAvailableIngredients = useMemo(() => {
+    const selectedIds = new Set(selectedProductIngredients.map((pi) => pi.ingredient_id));
+    return allIngredients.filter(
+      (ingredient) =>
+        !selectedIds.has(ingredient.id) &&
+        ingredient.name.toLowerCase().includes(ingredientSearchTerm.toLowerCase())
+    );
+  }, [allIngredients, selectedProductIngredients, ingredientSearchTerm]);
 
   return (
     <div className="space-y-6">
@@ -314,7 +428,7 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white border-gray-300 text-gray-800 sm:max-w-[425px]">
+        <DialogContent className="bg-white border-gray-300 text-gray-800 sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-gray-800">
               {currentProduct?.id
@@ -323,79 +437,81 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Input
-              placeholder="Nomi"
-              value={currentProduct?.name || ""}
-              onChange={(e) =>
-                setCurrentProduct({ ...currentProduct, name: e.target.value })
-              }
-              className="bg-gray-100 border-gray-300 text-gray-800"
-            />
-            <Textarea
-              placeholder="Tavsifi"
-              value={currentProduct?.description || ""}
-              onChange={(e) =>
-                setCurrentProduct({
-                  ...currentProduct,
-                  description: e.target.value,
-                })
-              }
-              className="bg-gray-100 border-gray-300 text-gray-800"
-            />
-            <Input
-              type="number"
-              placeholder="Narxi"
-              value={currentProduct?.price || ""}
-              onChange={(e) =>
-                setCurrentProduct({ ...currentProduct, price: e.target.value })
-              }
-              className="bg-gray-100 border-gray-300 text-gray-800"
-            />
-            {/* Stock inputi olib tashlandi, chunki u endi avtomatik hisoblanadi */}
-            {/* <Input
-              type="number"
-              placeholder="Miqdori (stock)"
-              value={currentProduct?.stock ?? ""}
-              onChange={(e) =>
-                setCurrentProduct({ ...currentProduct, stock: e.target.value })
-              }
-              className="bg-gray-100 border-gray-300 text-gray-800"
-              min="0"
-            /> */}
-
-            <div className="space-y-2">
-              <label className="text-gray-800 text-sm font-medium">
-                Kategoriya
-              </label>
-              <select
-                value={currentProduct?.category || ""}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nomi
+              </Label>
+              <Input
+                id="name"
+                placeholder="Mahsulot nomi"
+                value={currentProduct?.name || ""}
+                onChange={(e) =>
+                  setCurrentProduct({ ...currentProduct, name: e.target.value })
+                }
+                className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Tavsifi
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Mahsulot tavsifi"
+                value={currentProduct?.description || ""}
                 onChange={(e) =>
                   setCurrentProduct({
                     ...currentProduct,
-                    category: e.target.value,
+                    description: e.target.value,
                   })
                 }
-                className="w-full bg-gray-100 border border-gray-300 text-gray-800 rounded-md px-3 py-2 focus:outline-none"
+                className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">
+                Narxi
+              </Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="Narxi"
+                value={currentProduct?.price || ""}
+                onChange={(e) =>
+                  setCurrentProduct({ ...currentProduct, price: e.target.value })
+                }
+                className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                Kategoriya
+              </Label>
+              <Select
+                value={currentProduct?.category || ""}
+                onValueChange={(value) =>
+                  setCurrentProduct({
+                    ...currentProduct,
+                    category: value,
+                  })
+                }
               >
-                <option value="" className="bg-white">
-                  Tanlang
-                </option>
-                <option value="Hoddog" className="bg-white">
-                  Hoddog
-                </option>
-                <option value="Ichimlillar" className="bg-white">
-                  Ichimlillar
-                </option>
-                <option value="Disertlar" className="bg-white">
-                  Disertlar
-                </option>
-              </select>
+                <SelectTrigger className="col-span-3 bg-gray-100 border-gray-300 text-gray-800">
+                  <SelectValue placeholder="Kategoriya tanlang" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300">
+                  <SelectItem value="Hoddog">Hoddog</SelectItem>
+                  <SelectItem value="Ichimliklar">Ichimliklar</SelectItem>
+                  <SelectItem value="Disertlar">Disertlar</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <label className="text-gray-800 text-sm font-medium">
+              <Label className="text-gray-800 text-sm font-medium">
                 Mahsulot rasmi
-              </label>
+              </Label>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <label
@@ -436,6 +552,108 @@ const AdminProducts = memo(({ products, allIngredients, allProductIngredients })
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Ishlatiladigan masalliqlar bo'limi */}
+            <div className="space-y-2 mt-6">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <Salad className="h-5 w-5" /> Ishlatiladigan masalliqlar
+              </h3>
+              <p className="text-sm text-gray-600">
+                Bu mahsulotni tayyorlash uchun kerak bo'ladigan masalliqlarni
+                tanlang va har biri uchun miqdorini kiriting.
+              </p>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {selectedProductIngredients.map((pi) => (
+                  <Badge
+                    key={pi.ingredient_id}
+                    variant="secondary"
+                    className="flex items-center gap-2 p-2 pr-1 bg-orange-100 border border-orange-300 text-orange-700"
+                  >
+                    <span>{pi.name}</span>
+                    <Input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={pi.quantity_needed}
+                      onChange={(e) =>
+                        handleQuantityNeededChange(pi.ingredient_id, e.target.value)
+                      }
+                      className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800"
+                    />
+                    <span className="text-sm">{pi.unit}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0 text-red-500 hover:bg-red-100"
+                      onClick={() =>
+                        setSelectedProductIngredients((prev) =>
+                          prev.filter((item) => item.ingredient_id !== pi.ingredient_id)
+                        )
+                      }
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+
+              <Popover open={isIngredientsSelectOpen} onOpenChange={setIsIngredientsSelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isIngredientsSelectOpen}
+                    className="w-full justify-between bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200"
+                  >
+                    Masalliq tanlash...
+                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-gray-300">
+                  <Command>
+                    <CommandInput
+                      placeholder="Masalliq qidirish..."
+                      value={ingredientSearchTerm}
+                      onValueChange={setIngredientSearchTerm}
+                      className="h-9"
+                    />
+                    <CommandEmpty>Masalliq topilmadi.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredAvailableIngredients.map((ingredient) => (
+                        <CommandItem
+                          key={ingredient.id}
+                          value={ingredient.name}
+                          onSelect={() => handleSelectIngredient(ingredient)}
+                          disabled={ingredient.stock_quantity <= 0}
+                          className={cn(
+                            "flex items-center justify-between",
+                            ingredient.stock_quantity <= 0 && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedProductIngredients.some(
+                                  (pi) => pi.ingredient_id === ingredient.id
+                                )
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            {ingredient.name}
+                          </div>
+                          {ingredient.stock_quantity <= 0 && (
+                            <span className="text-red-500 text-xs">Tugadi</span>
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <DialogFooter>
