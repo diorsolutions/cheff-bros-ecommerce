@@ -1,50 +1,66 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Truck, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Utensils, Truck, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { generateShortOrderId } from "@/lib/utils";
+import { useWindowSize } from "react-use"; // useWindowSize import qilindi
 
 const ClientOrderStatusModal = ({
-  activeOrderId,
+  activeOrderIds, // Endi massiv sifatida qabul qilinadi
   orders,
   chefs,
   curiers,
   customerPhone,
 }) => {
-  const [currentOrder, setCurrentOrder] = useState(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const { width } = useWindowSize();
+  const isMobile = width < 768; // Mobil breakpoint
+
+  const [currentOrderIndex, setCurrentOrderIndex] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false); // Mobil rejimda kengaytirish holati
 
   // Helper function to get chef/courier info
   const getChefInfo = (id) => chefs.find((c) => c.id === id);
   const getCurierInfo = (id) => curiers.find((c) => c.id === id);
 
+  const customerActiveOrders = useMemo(() => {
+    if (!customerPhone || activeOrderIds.length === 0) return [];
+    return orders.filter(
+      (o) =>
+        activeOrderIds.includes(o.id) &&
+        o.customer_info.phone === customerPhone &&
+        o.status !== "delivered_to_customer" &&
+        o.status !== "cancelled"
+    ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); // Eng eski buyurtma birinchi
+  }, [activeOrderIds, orders, customerPhone]);
+
+  const currentOrder = customerActiveOrders[currentOrderIndex];
+
   useEffect(() => {
-    if (!activeOrderId || !customerPhone) {
-      setCurrentOrder(null);
-      setIsVisible(false);
-      return;
+    // Agar joriy buyurtma endi faol bo'lmasa yoki massiv o'zgarsa, indeksni qayta o'rnatish
+    if (!currentOrder || !activeOrderIds.includes(currentOrder.id)) {
+      setCurrentOrderIndex(0);
     }
-
-    const order = orders.find(
-      (o) => o.id === activeOrderId && o.customer_info.phone === customerPhone
-    );
-
-    if (order) {
-      setCurrentOrder(order);
-      // Hide if delivered or cancelled
-      if (
-        order.status === "delivered_to_customer" ||
-        order.status === "cancelled"
-      ) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-    } else {
-      setCurrentOrder(null);
-      setIsVisible(false);
+    // Agar faol buyurtmalar bo'lmasa, modalni yashirish
+    if (customerActiveOrders.length === 0) {
+      setIsExpanded(false); // Buyurtmalar yo'q bo'lsa yig'ish
     }
-  }, [activeOrderId, orders, customerPhone]);
+  }, [activeOrderIds, customerActiveOrders, currentOrder]);
+
+  if (customerActiveOrders.length === 0) return null;
+
+  const handleNextOrder = () => {
+    setCurrentOrderIndex((prevIndex) => (prevIndex + 1) % customerActiveOrders.length);
+    setIsExpanded(false); // Buyurtma o'zgarganda yig'ish
+  };
+
+  const handlePrevOrder = () => {
+    setCurrentOrderIndex((prevIndex) => (prevIndex - 1 + customerActiveOrders.length) % customerActiveOrders.length);
+    setIsExpanded(false); // Buyurtma o'zgarganda yig'ish
+  };
+
+  const handleToggleExpand = () => {
+    setIsExpanded((prev) => !prev);
+  };
 
   const getStatusDisplay = useMemo(() => {
     if (!currentOrder) return null;
@@ -90,43 +106,69 @@ const ClientOrderStatusModal = ({
         break;
     }
 
-    return (
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-gray-800">
+    if (isMobile && !isExpanded) {
+      return (
+        <div className="bg-transparent flex items-center justify-center flex-row gap-2">
           {mainStatusIcon}
-          <span className="font-semibold text-lg">Buyurtmangizni ayni vaqtda:</span>
+          <span className="font-semibold text-lg text-gray-100">
+            Buyurtmangizni ayni vaqtda:
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-transparent flex items-start justify-center flex-col gap-2">
+        <div className="flex items-center gap-2 text-gray-100">
+          {mainStatusIcon}
+          <span className="font-semibold text-lg">
+            Buyurtmangizni ayni vaqtda:
+          </span>
         </div>
         {chefDisplay && (
-          <p className="text-gray-700 text-base ml-7">
-            {status !== "new" && <span className="font-medium">Oshpaz: </span>}
+          <p className="text-gray-400 text-base ml-7">
+            {status !== "new" && <span className="font-medium text-white">Oshpaz: </span>}
             {chefDisplay}
           </p>
         )}
         {courierDisplay && (
-          <p className="text-gray-700 text-base ml-7">
-            <span className="font-medium">Kuryer: </span>
+          <p className="text-gray-400 text-base ml-7">
+            <span className="font-medium text-white">Kuryer: </span>
             {courierDisplay}
           </p>
         )}
       </div>
     );
-  }, [currentOrder, chefs, curiers]);
+  }, [currentOrder, chefs, curiers, isMobile, isExpanded]);
 
-  if (!isVisible || !currentOrder) return null;
+  if (!currentOrder) return null;
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {customerActiveOrders.length > 0 && (
         <motion.div
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", stiffness: 100, damping: 20 }}
-          className="fixed bottom-0 left-0 right-0 z-50 w-full h-[12vh] bg-white border-t border-gray-300 shadow-lg flex items-center justify-center p-4"
+          className={`fixed z-10 rounded-tr-[1rem] bottom-0 left-0 right-0 h-auto bg-black border-t border-gray-300 shadow-lg flex items-center justify-center p-4 cursor-pointer ${isMobile && !isExpanded ? 'h-16' : ''}`}
+          onClick={isMobile ? handleToggleExpand : undefined} // Mobil rejimda bosish orqali kengaytirish
         >
-          <Card className="w-full h-full flex items-center justify-center bg-white border-none shadow-none">
-            <CardContent className="p-0 flex items-center justify-center text-center">
-              {getStatusDisplay}
+          <Card className="w-full h-full flex items-center justify-center bg-transparent border-none shadow-none">
+            <CardContent className="p-0 flex items-center justify-between text-left w-full">
+              {customerActiveOrders.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); handlePrevOrder(); }} className="p-2 rounded-full hover:bg-gray-700 text-white">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
+              <div className="flex-1 flex items-center justify-center">
+                {getStatusDisplay}
+              </div>
+              {customerActiveOrders.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); handleNextOrder(); }} className="p-2 rounded-full hover:bg-gray-700 text-white">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
             </CardContent>
           </Card>
         </motion.div>

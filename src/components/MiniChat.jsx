@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Popover import qilindi
 
 const MiniChat = ({ messages }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false); // Popover holati
   const [readMessageIds, setReadMessageIds] = useState({}); // Stores IDs of messages that have been read
   const messagesEndRef = useRef(null);
 
@@ -15,115 +16,87 @@ const MiniChat = ({ messages }) => {
 
   // Calculate unread count based on messages and readMessageIds
   const currentUnreadCount = useMemo(() => {
-    if (isOpen) return 0; // If chat is open, no unread count
-    return messages.filter(msg => !readMessageIds[msg.id]).length;
-  }, [messages, isOpen, readMessageIds]);
+    if (isPopoverOpen) return 0; // If chat is open, no unread count
+    return messages.filter((msg) => !readMessageIds[msg.id]).length;
+  }, [messages, isPopoverOpen, readMessageIds]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isPopoverOpen) {
       scrollToBottom();
       // Mark all current messages as read when chat is opened, merging with previous read messages
-      setReadMessageIds(prev => {
+      setReadMessageIds((prev) => {
         const newReadIds = { ...prev }; // Start with previously read messages
-        messages.forEach(msg => {
+        messages.forEach((msg) => {
           newReadIds[msg.id] = true;
         });
         return newReadIds;
       });
     }
-  }, [isOpen, messages]); // messages is a dependency to ensure all current messages are marked read
-
-  const handleToggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+  }, [isPopoverOpen, messages]); // messages is a dependency to ensure all current messages are marked read
 
   return (
-    <>
-      <motion.div
-        className="fixed bottom-6 right-6 z-50"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 1 }}
-      >
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+      <PopoverTrigger asChild>
         <Button
-          onClick={handleToggleChat}
-          className="w-14 h-14 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
+          className="relative w-10 h-10 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
         >
-          {isOpen ? (
-            <X className="h-6 w-6" />
+          {isPopoverOpen ? (
+            <X className="h-5 w-5" />
           ) : (
-            <MessageCircle className="h-6 w-6" />
+            <MessageCircle className="h-5 w-5" />
+          )}
+          {currentUnreadCount > 0 && !isPopoverOpen && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"
+            >
+              <span className="text-xs text-white font-bold">
+                {currentUnreadCount}
+              </span>
+            </motion.div>
           )}
         </Button>
-        {currentUnreadCount > 0 && !isOpen && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-white"
-          >
-            <span className="text-xs text-white font-bold">{currentUnreadCount}</span>
-          </motion.div>
-        )}
-      </motion.div>
-
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-md z-30"
-          onClick={handleToggleChat}
-        >
-          {/* Click bo'lganda chat yopiladi */}
-        </div>
-      )}
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-24 right-6 z-40 w-80 h-96"
-          >
-            <Card className="h-full flex flex-col bg-white border-gray-300">
-              {" "}
-              {/* Card rangi va chegarasi yangilandi */}
-              <CardHeader className="pb-3">
-                <CardTitle className="text-gray-800 text-lg">
-                  Xabarlar
-                </CardTitle>{" "}
-                {/* Matn rangi yangilandi */}
-              </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 ? (
-                  <p className="text-gray-600 text-center text-sm">
-                    {" "}
-                    {/* Matn rangi yangilandi */}
-                    Hozircha xabarlar yo'q
-                  </p>
-                ) : (
-                  messages.map((message) => (
-                    <motion.div
-                      key={message.id}
-                      layout
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className={`p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600 ${readMessageIds[message.id] ? 'opacity-50' : 'opacity-100'}`}
-                    >
-                      <p className="text-sm">{message.text}</p>
-                      <span className="text-xs opacity-70 block text-right mt-1">
-                        {new Date(message.timestamp).toLocaleTimeString(
-                          "uz-UZ"
-                        )}
-                      </span>
-                    </motion.div>
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 h-96 p-0 bg-white border-gray-300">
+        <Card className="h-full flex flex-col bg-white border-gray-300">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-gray-800 text-lg">
+              Xabarlar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 ? (
+              <p className="text-gray-600 text-center text-sm">
+                Hozircha xabarlar yo'q
+              </p>
+            ) : (
+              messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600 ${
+                    readMessageIds[message.id]
+                      ? "opacity-50"
+                      : "opacity-100"
+                  }`}
+                >
+                  <p className="text-sm">{message.text}</p>
+                  <span className="text-xs opacity-70 block text-right mt-1">
+                    {new Date(message.timestamp).toLocaleTimeString(
+                      "uz-UZ"
+                    )}
+                  </span>
+                </motion.div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </CardContent>
+        </Card>
+      </PopoverContent>
+    </Popover>
   );
 };
 

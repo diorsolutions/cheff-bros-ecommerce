@@ -61,7 +61,7 @@ function App() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Yangi: Mijozning faol buyurtmasi ID'si
-  const [activeCustomerOrderId, setActiveCustomerOrderId] = useLocalStorage("activeCustomerOrderId", null); // localStorage bilan bog'landi
+  const [activeCustomerOrderIds, setActiveCustomerOrderIds] = useLocalStorage("activeCustomerOrderIds", []); // localStorage bilan bog'landi
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -278,8 +278,13 @@ function App() {
               setOrders((prev) =>
                 prev.map((o) => (o.id === payload.new.id ? payload.new : o))
               );
+              // Buyurtma statusi o'zgarganda, agar u yetkazilgan yoki bekor qilingan bo'lsa, activeCustomerOrderIds dan olib tashlash
+              if (payload.new.status === "delivered_to_customer" || payload.new.status === "cancelled") {
+                setActiveCustomerOrderIds(prevIds => prevIds.filter(id => id !== payload.new.id));
+              }
             } else if (payload.eventType === "DELETE") {
               setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
+              setActiveCustomerOrderIds(prevIds => prevIds.filter(id => id !== payload.old.id));
             }
           }
         )
@@ -530,7 +535,7 @@ function App() {
     await handleSendMessage(customer.phone, systemMessage);
 
     // Yangi: Faol buyurtma ID'sini o'rnatish
-    setActiveCustomerOrderId(insertedOrder.id);
+    setActiveCustomerOrderIds(prevIds => [...prevIds, insertedOrder.id]);
 
     setCartItems([]); // Savatni tozalash
     toast({
@@ -758,17 +763,17 @@ function App() {
         const itemNames = order.items.map((item) => item.name).join(", ");
         message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
         // Buyurtma yetkazilganda modalni yashirish
-        if (orderId === activeCustomerOrderId) {
-          setActiveCustomerOrderId(null);
-        }
+        // if (orderId === activeCustomerOrderId) { // Eski logic
+        //   setActiveCustomerOrderId(null);
+        // }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${
           cancellationReason || "ko'rsatilmagan"
         }. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
         // Buyurtma bekor qilinganda modalni yashirish
-        if (orderId === activeCustomerOrderId) {
-          setActiveCustomerOrderId(null);
-        }
+        // if (orderId === activeCustomerOrderId) { // Eski logic
+        //   setActiveCustomerOrderId(null);
+        // }
       }
 
       if (message) {
@@ -879,7 +884,7 @@ function App() {
               messages={messages}
               ingredients={ingredients} // Yangi: ingredients propini uzatish
               productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
-              activeCustomerOrderId={activeCustomerOrderId} // Yangi: activeCustomerOrderId ni uzatish
+              activeCustomerOrderIds={activeCustomerOrderIds} // Yangi: activeCustomerOrderIds ni uzatish
               orders={orders} // Yangi: orders ni uzatish
               chefs={chefs} // Yangi: chefs ni uzatish
               curiers={curiers} // Yangi: curiers ni uzatish
@@ -922,7 +927,7 @@ function MainLayout({
   messages,
   ingredients, // Yangi: ingredients propini qabul qilish
   productIngredients, // Yangi: productIngredients propini qabul qilish
-  activeCustomerOrderId, // Yangi: activeCustomerOrderId ni qabul qilish
+  activeCustomerOrderIds, // Yangi: activeCustomerOrderIds ni qabul qilish
   orders, // Yangi: orders ni qabul qilish
   chefs, // Yangi: chefs ni qabul qilish
   curiers, // Yangi: curiers ni qabul qilish
@@ -955,6 +960,7 @@ function MainLayout({
             </div>
 
             <div className="flex items-center gap-4">
+              <MiniChat messages={messages} /> {/* MiniChat bu yerga ko'chirildi */}
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
@@ -1154,9 +1160,8 @@ function MainLayout({
           )}
         </motion.div>
       </main>
-      <MiniChat messages={messages} />
       <ClientOrderStatusModal
-        activeOrderId={activeCustomerOrderId}
+        activeOrderIds={activeCustomerOrderIds}
         orders={orders}
         chefs={chefs}
         curiers={curiers}
