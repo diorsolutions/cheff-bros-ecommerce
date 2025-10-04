@@ -52,7 +52,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
-  Select, // Import qo'shildi
+  Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -682,10 +682,10 @@ const AdminProducts = memo(
                             key={ingredient.id}
                             value={ingredient.name}
                             onSelect={() => handleSelectIngredient(ingredient)}
-                            disabled={ingredient.stock_quantity <= 0}
+                            disabled={(ingredient.stock_quantity ?? 0) <= 0}
                             className={cn(
                               "flex items-center justify-between",
-                              ingredient.stock_quantity <= 0 &&
+                              ((ingredient.stock_quantity ?? 0) <= 0) &&
                                 "opacity-50 cursor-not-allowed"
                             )}
                           >
@@ -702,7 +702,7 @@ const AdminProducts = memo(
                               />
                               {ingredient.name}
                             </div>
-                            {ingredient.stock_quantity <= 0 && (
+                            {((ingredient.stock_quantity ?? 0) <= 0) && (
                               <span className="text-red-500 text-xs">
                                 Tugadi
                               </span>
