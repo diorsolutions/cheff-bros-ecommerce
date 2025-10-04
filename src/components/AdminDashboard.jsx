@@ -94,16 +94,29 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     }
   };
 
-  const getDetailedStatusText = (status, curierId, chefId, cancellationReason) => {
+  const getDetailedStatusText = (status, curierId, chefId, cancellationReason, orderObject) => {
     const courierName = curierId ? getCurierInfo(curierId)?.name : null;
     const chefName = chefId ? getChefInfo(chefId)?.name : null;
 
     let statusText = "";
 
     if (status === "cancelled") {
-      statusText = "Bekor qilingan";
-      if (chefName) statusText += ` (Oshpaz: ${chefName})`;
-      if (courierName) statusText += ` (Kuryer: ${courierName})`;
+      // Determine who cancelled based on the order object's state
+      // If curier_id is present, it implies the courier was assigned and cancelled.
+      // If curier_id is null, and chef_id is present, it implies the chef cancelled.
+      if (orderObject.curier_id && orderObject.cancellation_reason) { // Courier cancelled
+        statusText = `Kuryer: ${courierName || "Noma'lum"} bekor qildi`;
+        if (chefName) {
+          // If chef was assigned, assume they prepared it before courier cancelled
+          statusText = `Oshpaz: ${chefName} tayyorladi! ${statusText}`;
+        }
+      } else if (orderObject.chef_id && orderObject.cancellation_reason) { // Chef cancelled
+        statusText = `Oshpaz: ${chefName || "Noma'lum"} bekor qildi`;
+      } else { // General cancellation, e.g., by admin or unassigned
+        statusText = "Bekor qilingan";
+        if (chefName) statusText += ` (Oshpaz: ${chefName})`;
+        if (courierName) statusText += ` (Kuryer: ${courierName})`;
+      }
     } else if (curierId) {
       // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
       switch (status) {
@@ -331,7 +344,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order.status === "cancelled";
               const courierInfo = order.curier_id ? getCurierInfo(order.curier_id) : null;
               const chefInfo = order.chef_id ? getChefInfo(order.chef_id) : null;
-              const detailedStatusText = getDetailedStatusText(order.status, order.curier_id, order.chef_id, order.cancellation_reason);
+              const detailedStatusText = getDetailedStatusText(order.status, order.curier_id, order.chef_id, order.cancellation_reason, order);
 
               return (
                 <motion.div
@@ -608,7 +621,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           </Button>
                           {order.status === "preparing" && <span className="text-sm text-yellow-400">tayyorlanmoqda</span>}
                           {order.status === "ready" && <span className="text-sm text-green-400">tayyorladi</span>}
-                          {order.status === "cancelled" && order.chef_id && <span className="text-sm text-red-400">bekor qildi</span>}
+                          {order.status === "cancelled" && !order.curier_id && order.chef_id && <span className="text-sm text-red-400">bekor qildi</span>}
+                          {order.status === "cancelled" && order.curier_id && order.chef_id && <span className="text-sm text-green-400">tayyorladi</span>} {/* Chef prepared, courier cancelled */}
                         </div>
                       )}
 
@@ -626,7 +640,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           {order.status === "en_route_to_kitchen" && <span className="text-sm text-yellow-400">olish uchun yo'lda</span>}
                           {order.status === "picked_up_from_kitchen" && <span className="text-sm text-orange-400">buyurtmani oldi</span>}
                           {order.status === "delivered_to_customer" && <span className="text-sm text-green-400">mijozga yetkazdi</span>}
-                          {order.status === "cancelled" && order.curier_id && <span className="text-sm text-red-400">bekor qildi</span>}
+                          {order.status === "cancelled" && order.curier_id && <span className="text-sm text-red-400">bekor qildi</span>} {/* Courier cancelled */}
                         </div>
                       )}
 
