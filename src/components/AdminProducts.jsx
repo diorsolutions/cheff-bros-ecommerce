@@ -676,6 +676,13 @@ const AdminProducts = memo(
                             e.target.value
                           )
                         }
+                        // Increment/decrement tugmalarini va klaviatura o'qlarini o'chirish
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                            e.preventDefault();
+                          }
+                        }}
+                        onWheel={(e) => e.currentTarget.blur()} // Scroll bilan o'zgarishni o'chirish
                         className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800"
                       />
                       <span className="text-sm">{pi.unit}</span>
