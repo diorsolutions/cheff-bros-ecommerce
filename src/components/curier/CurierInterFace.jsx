@@ -25,6 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -119,7 +120,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const getStatusText = (status, orderChefId, orderCurierId) => {
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
-    // TO'G'IRLANDI: kuryer ma'lumotini 'curiers' propidan olish
     const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null; 
 
     let statusText = "";
@@ -259,15 +259,14 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const canTakeNewOrder = activeOrdersCount < 2;
 
   // "Olish uchun yo'lda" tugmasi uchun disabled holat
-  // Bu tugma faqat buyurtma kuryerga biriktirilmagan bo'lsa va kuryer yangi buyurtma olishi mumkin bo'lsa faol bo'ladi.
   const isPickupButtonDisabled = (order) => {
     return !canTakeNewOrder || order.curier_id !== null;
   };
 
   // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
   const isPickedUpButtonDisabled = (order) => {
-    // Tugma faqat buyurtma joriy kuryerga biriktirilgan bo'lsa va status 'preparing' bo'lsa disabled bo'ladi.
-    return order.curier_id === curierId && order.status === "preparing";
+    // Tugma faqat buyurtma joriy kuryerga biriktirilgan bo'lsa va status 'ready' bo'lmasa disabled bo'ladi.
+    return order.curier_id === curierId && order.status !== "ready";
   };
 
   const getPickedUpButtonText = (order) => {
@@ -534,7 +533,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 Olish uchun yo'lda
                               </Button>
                             )}
-                            {isAssignedToThisCourier && (order.status === "preparing" || order.status === "ready") && (
+                            {isAssignedToThisCourier && (isPreparing || isReady || isEnRouteToKitchen) && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(

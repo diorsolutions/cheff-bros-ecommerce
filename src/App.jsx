@@ -475,15 +475,21 @@ function App() {
       switch (newStatus) {
         case "en_route_to_kitchen":
           // Kuryer faqat 'preparing' yoki 'ready' statusidagi buyurtmani olishi mumkin
-          if ((orderToUpdate.status === "preparing" || orderToUpdate.status === "ready") && !orderToUpdate.curier_id) {
+          // Va hali kuryerga biriktirilmagan bo'lishi kerak
+          if (
+            (orderToUpdate.status === "preparing" ||
+              orderToUpdate.status === "ready") &&
+            !orderToUpdate.curier_id
+          ) {
             canUpdate = true;
             updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
-            // Statusni hozircha o'zgartirmaymiz, u chef tomonidan belgilangan holatda qoladi
+            // Asosiy statusni o'zgartirmaymiz, u oshpaz tomonidan belgilangan holatda qoladi
             delete updateData.status; // updateData dan statusni olib tashlaymiz
           } else {
             toast({
               title: "Xatolik!",
-              description: "Buyurtma hali tayyorlanmoqda/tayyor emas yoki allaqachon kuryerga biriktirilgan.",
+              description:
+                "Buyurtma hali tayyorlanmoqda/tayyor emas yoki allaqachon kuryerga biriktirilgan.",
               variant: "destructive",
             });
             return;
@@ -491,12 +497,13 @@ function App() {
           break;
         case "picked_up_from_kitchen":
           // Kuryer faqat 'ready' statusidagi o'ziga biriktirilgan buyurtmani "menda" qila oladi
+          // Va buyurtma 'en_route_to_kitchen' statusida bo'lishi kerak
           if (
             orderToUpdate.status === "ready" && // Faqat oshpaz tayyor qilgan bo'lsa
             orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
-            // Bu yerda statusni 'picked_up_from_kitchen' ga o'zgartiramiz
+            updateData.status = newStatus; // Bu yerda statusni 'picked_up_from_kitchen' ga o'zgartiramiz
           } else {
             toast({
               title: "Xatolik!",
@@ -515,6 +522,7 @@ function App() {
             orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
+            updateData.status = newStatus;
           } else {
             toast({
               title: "Xatolik!",
@@ -535,16 +543,6 @@ function App() {
       }
     } else if (actorRole === "chef") {
       // Oshpaz logikasi
-      if (orderToUpdate.curier_id && newStatus !== "cancelled") {
-        // Chef can cancel even if courier is assigned, but cannot change other statuses
-        toast({
-          title: "Xatolik!",
-          description: "Bu buyurtma allaqachon kuryerga biriktirilgan.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       switch (newStatus) {
         case "preparing":
           // Oshpaz faqat 'new' statusidagi buyurtmani "tayyorlanmoqda" qila oladi
@@ -552,8 +550,10 @@ function App() {
             if (!orderToUpdate.chef_id) {
               canUpdate = true;
               updateData.chef_id = actorId; // Oshpaz buyurtmani o'ziga biriktiradi
+              updateData.status = newStatus;
             } else if (orderToUpdate.chef_id === actorId) {
               canUpdate = true; // Oshpaz o'zining buyurtmasini qayta tasdiqlashi mumkin
+              updateData.status = newStatus;
             } else {
               toast({
                 title: "Xatolik!",
@@ -580,6 +580,7 @@ function App() {
             orderToUpdate.chef_id === actorId
           ) {
             canUpdate = true;
+            updateData.status = newStatus;
           } else {
             toast({
               title: "Xatolik!",
@@ -600,6 +601,7 @@ function App() {
             canUpdate = true;
             updateData.chef_id = actorId; // Agar chef bekor qilsa, unga biriktiriladi
             updateData.curier_id = null; // Bekor qilinganda kuryer biriktiruvi olib tashlanadi
+            updateData.status = newStatus;
           } else {
             toast({
               title: "Xatolik!",
@@ -621,6 +623,10 @@ function App() {
     } else {
       // Admin tomonidan status o'zgarishlari
       // Agar buyurtma kuryer yoki oshpazga biriktirilgan bo'lsa, admin statusni o'zgartira olmaydi.
+      // Bu qismni ham biroz o'zgartirish kerak, chunki admin ham ba'zi holatlarda aralasha olishi kerak.
+      // Hozircha, agar curier_id yoki chef_id mavjud bo'lsa, admin o'zgartira olmaydi degan qoida qoladi.
+      // Agar admin statusni o'zgartirsa, curier_id va chef_id ni null qilish kerakmi?
+      // Foydalanuvchi talabida admin haqida aniq aytilmagan, shuning uchun bu qismni hozircha o'zgartirmayman.
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",

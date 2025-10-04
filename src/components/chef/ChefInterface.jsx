@@ -190,17 +190,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!orders || !chefId) return [];
 
     let filtered = orders.filter(order => {
-      // 1. Agar buyurtma boshqa oshpazga biriktirilgan bo'lsa va 'preparing' yoki 'ready' statusida bo'lsa, yashirish.
-      if (order.chef_id && order.chef_id !== chefId && (order.status === "preparing" || order.status === "ready")) {
-        return false;
-      }
-      // 2. Qolgan barcha buyurtmalar ko'rinadi.
-      // Bu o'z ichiga oladi:
-      //    - Joriy oshpazga biriktirilgan buyurtmalar (har qanday statusda)
-      //    - Hech kimga biriktirilmagan 'new' buyurtmalar
-      //    - Kuryerga biriktirilgan buyurtmalar (agar 1-qoidaga tushmasa)
-      //    - Bekor qilingan yoki yetkazilgan buyurtmalar (agar 1-qoidaga tushmasa)
-      return true;
+      // Oshpazga biriktirilgan buyurtmalar yoki hech kimga biriktirilmagan 'new' buyurtmalar ko'rinadi.
+      // Kuryerga biriktirilgan bo'lsa ham, oshpaz uni ko'rishi kerak.
+      return (order.chef_id === chefId || (!order.chef_id && order.status === "new"));
     });
 
     // Qidiruv filtri
@@ -322,13 +314,18 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
+                const isEnRouteToKitchen = order.curier_id && order.status === "en_route_to_kitchen"; // Kuryer biriktirilgan va yo'lda
+                const isPickedUpFromKitchen = order.curier_id && order.status === "picked_up_from_kitchen"; // Kuryer biriktirilgan va olib ketgan
+                const isDelivered = order.status === "delivered_to_customer";
                 const isCancelled = order.status === "cancelled";
-                const isCourierAssigned = order.curier_id !== null;
+
+                const isAssignedToThisChef = order.chef_id === chefId;
+                const isUnassignedNewOrder = !order.chef_id && isNew;
 
                 // Tugmalar uchun harakatlarni o'chirish logikasi
-                const canMarkPreparing = isNew && (!order.chef_id || order.chef_id === chefId) && !isCourierAssigned;
-                const canMarkReady = isPreparing && order.chef_id === chefId && !isCourierAssigned;
-                const canCancel = (isNew || isPreparing || isReady || isCourierAssigned) && (!order.chef_id || order.chef_id === chefId) && order.status !== "delivered_to_customer"; // Chef can cancel any order not yet delivered
+                const canMarkPreparing = (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
+                const canMarkReady = isPreparing && isAssignedToThisChef;
+                const canCancel = (isNew || isPreparing || isReady || isEnRouteToKitchen || isPickedUpFromKitchen) && !isDelivered && !isCancelled && isAssignedToThisChef;
 
                 return (
                   <motion.div
@@ -340,7 +337,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isReady || isCancelled || order.status === "delivered_to_customer" ? "opacity-60" : "" // Tayyor, bekor yoki yetkazilgan bo'lganda xiralashadi
+                        isDelivered ? "opacity-60" : "" // Yetkazilgan bo'lganda xiralashadi
                       }`}
                     >
                       <CardHeader className="pb-3">
@@ -349,7 +346,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isReady && !isCancelled && !isCourierAssigned && order.status !== "delivered_to_customer" ? "animate-pulse" : ""}`}
+                              )} ${!isReady && !isCancelled && !isDelivered ? "animate-pulse" : ""}`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}
@@ -442,8 +439,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 ? "bg-yellow-100 text-yellow-600"
                                 : isReady
                                 ? "bg-green-100 text-green-600"
-                                : isCourierAssigned
-                                ? "bg-orange-100 text-orange-600" // Kuryerga biriktirilgan statuslar uchun
+                                : order.curier_id && order.status === "en_route_to_kitchen"
+                                ? "bg-yellow-100 text-yellow-600" // Kuryerga biriktirilgan va yo'lda
+                                : order.curier_id && order.status === "picked_up_from_kitchen"
+                                ? "bg-orange-100 text-orange-600" // Kuryerga biriktirilgan va olib ketgan
+                                : isDelivered
+                                ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
