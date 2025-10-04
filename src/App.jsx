@@ -34,9 +34,10 @@ import ChefInterface from "./components/chef/ChefInterface"; // Import new ChefI
 import { useWindowSize } from "react-use";
 import { generateShortOrderId } from "@/lib/utils";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Yangi import
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
 function App() {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useLocalStorage("cartItems", []); // localStorage bilan bog'landi
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
   const [products, setProducts] = useState([]);
@@ -51,7 +52,7 @@ function App() {
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
-  const [customerInfo, setCustomerInfo] = useState({
+  const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", { // localStorage bilan bog'landi
     name: "",
     phone: "",
   });
@@ -60,20 +61,7 @@ function App() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Yangi: Mijozning faol buyurtmasi ID'si
-  const [activeCustomerOrderId, setActiveCustomerOrderId] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("activeCustomerOrderId") || null;
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    if (activeCustomerOrderId) {
-      localStorage.setItem("activeCustomerOrderId", activeCustomerOrderId);
-    } else {
-      localStorage.removeItem("activeCustomerOrderId");
-    }
-  }, [activeCustomerOrderId]);
+  const [activeCustomerOrderId, setActiveCustomerOrderId] = useLocalStorage("activeCustomerOrderId", null); // localStorage bilan bog'landi
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -491,7 +479,7 @@ function App() {
       }
     }
 
-    setCustomerInfo(customer);
+    setCustomerInfo(customer); // customerInfo ni App.jsx dagi useLocalStorage ga saqlash
 
     // Masalliqlar stokini kamaytirish
     for (const item of items) {
@@ -544,7 +532,7 @@ function App() {
     // Yangi: Faol buyurtma ID'sini o'rnatish
     setActiveCustomerOrderId(insertedOrder.id);
 
-    setCartItems([]);
+    setCartItems([]); // Savatni tozalash
     toast({
       title: "Buyurtma qabul qilindi!",
       description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
@@ -896,6 +884,7 @@ function App() {
               chefs={chefs} // Yangi: chefs ni uzatish
               curiers={curiers} // Yangi: curiers ni uzatish
               customerInfo={customerInfo} // Yangi: customerInfo ni uzatish
+              setCustomerInfo={setCustomerInfo} // Yangi: setCustomerInfo ni uzatish
             />
           }
         />
@@ -909,6 +898,8 @@ function App() {
         removeFromCart={removeFromCart}
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
+        customerInfo={customerInfo} // customerInfo ni prop sifatida uzatish
+        setCustomerInfo={setCustomerInfo} // setCustomerInfo ni prop sifatida uzatish
       />
       <Toaster />
     </>
@@ -1169,7 +1160,7 @@ function MainLayout({
         orders={orders}
         chefs={chefs}
         curiers={curiers}
-        customerPhone={customerInfo.phone}
+        customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
     </div>
   );

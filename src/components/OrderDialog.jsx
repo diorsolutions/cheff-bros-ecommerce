@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+// useLocalStorage import olib tashlandi, chunki endi App.jsx dan prop sifatida keladi
 
 const OrderDialog = ({
   isOpen,
@@ -40,11 +40,10 @@ const OrderDialog = ({
   removeFromCart,
   decreaseCartItem,
   increaseCartItem,
+  customerInfo, // Prop sifatida qabul qilindi
+  setCustomerInfo, // Prop sifatida qabul qilindi
 }) => {
-  const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
-    name: "",
-    phone: "",
-  });
+  // customerInfo va setCustomerInfo endi prop sifatida keladi, useLocalStorage bu yerda ishlatilmaydi
   const [location, setLocation] = useState("");
   const [locationMethod, setLocationMethod] = useState("manual"); // 'manual' or 'auto'
   const [showLocationAlert, setShowLocationAlert] = useState(false);
