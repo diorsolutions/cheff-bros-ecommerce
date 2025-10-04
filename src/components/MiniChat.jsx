@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Popover import qilindi
 
-const MiniChat = ({ messages }) => {
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false); // Popover holati
+const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => { // Props qabul qilindi
   const [readMessageIds, setReadMessageIds] = useState({}); // Stores IDs of messages that have been read
   const messagesEndRef = useRef(null);
 

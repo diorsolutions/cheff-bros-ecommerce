@@ -933,8 +933,19 @@ function MainLayout({
   curiers, // Yangi: curiers ni qabul qilish
   customerInfo, // Yangi: customerInfo ni qabul qilish
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMiniChatOpen, setIsMiniChatOpen] = useState(false); // MiniChat holati
   const { width } = useWindowSize();
+
+  useEffect(() => {
+    if (isMiniChatOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMiniChatOpen]);
 
   const handleAddToCart = (product, quantity) => {
     addToCart(product, quantity);
@@ -960,7 +971,7 @@ function MainLayout({
             </div>
 
             <div className="flex items-center gap-4">
-              <MiniChat messages={messages} /> {/* MiniChat bu yerga ko'chirildi */}
+              <MiniChat messages={messages} isPopoverOpen={isMiniChatOpen} setIsPopoverOpen={setIsMiniChatOpen} /> {/* MiniChat bu yerga ko'chirildi */}
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
@@ -978,7 +989,7 @@ function MainLayout({
           </div>
         </div>
       </header>
-      <main className="w-full mx-auto max-w-[1376px] bg-white/90">
+      <main className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${isMiniChatOpen ? 'blur-sm pointer-events-none' : ''}`}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
