@@ -455,14 +455,13 @@ function App() {
     }
 
     let canUpdate = false;
-    let updateData = { status: newStatus };
+    let updateData = { status: newStatus }; // Default: statusni yangilash
 
     if (cancellationReason) {
       updateData.cancellation_reason = cancellationReason;
     }
 
     if (actorRole === "curier") {
-      // Kuryer logikasi
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
           title: "Xatolik!",
@@ -475,32 +474,34 @@ function App() {
 
       switch (newStatus) {
         case "en_route_to_kitchen":
-          // Kuryer faqat 'ready' statusidagi buyurtmani olishi mumkin
-          if (orderToUpdate.status === "ready" && !orderToUpdate.curier_id) {
+          // Kuryer faqat 'preparing' yoki 'ready' statusidagi buyurtmani olishi mumkin
+          if ((orderToUpdate.status === "preparing" || orderToUpdate.status === "ready") && !orderToUpdate.curier_id) {
             canUpdate = true;
             updateData.curier_id = actorId; // Kuryer buyurtmani o'ziga biriktiradi
+            // Statusni hozircha o'zgartirmaymiz, u chef tomonidan belgilangan holatda qoladi
+            delete updateData.status; // updateData dan statusni olib tashlaymiz
           } else {
             toast({
               title: "Xatolik!",
-              description:
-                "Buyurtma hali tayyor emas yoki allaqachon kuryerga biriktirilgan.",
+              description: "Buyurtma hali tayyorlanmoqda/tayyor emas yoki allaqachon kuryerga biriktirilgan.",
               variant: "destructive",
             });
             return;
           }
           break;
         case "picked_up_from_kitchen":
-          // Kuryer faqat 'en_route_to_kitchen' statusidagi o'ziga biriktirilgan buyurtmani "menda" qila oladi
+          // Kuryer faqat 'ready' statusidagi o'ziga biriktirilgan buyurtmani "menda" qila oladi
           if (
-            orderToUpdate.status === "en_route_to_kitchen" &&
+            orderToUpdate.status === "ready" && // Faqat oshpaz tayyor qilgan bo'lsa
             orderToUpdate.curier_id === actorId
           ) {
             canUpdate = true;
+            // Bu yerda statusni 'picked_up_from_kitchen' ga o'zgartiramiz
           } else {
             toast({
               title: "Xatolik!",
               description:
-                "Buyurtma hali olish uchun yo'lda emas yoki boshqa kuryerga biriktirilgan.",
+                "Buyurtma hali oshpaz tomonidan tayyorlanmagan yoki boshqa kuryerga biriktirilgan.",
               variant: "destructive",
             });
             return;
@@ -728,8 +729,8 @@ function App() {
               <CurierInterFace
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
-                chefs={chefs}
-                curiers={curiers}
+                chefs={chefs} {/* chefs propini uzatish */}
+                curiers={curiers} {/* curiers propini uzatish */}
               />
             </ProtectedRouteCurier>
           }
@@ -744,7 +745,7 @@ function App() {
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 chefs={chefs}
-                curiers={curiers}
+                curiers={curiers} {/* curiers propini uzatish */}
               />
             </ProtectedRouteChef>
           }

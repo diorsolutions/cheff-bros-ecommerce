@@ -139,7 +139,14 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           statusText = assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozda";
           break;
         default:
-          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani boshqarmoqda` : "Kuryer boshqarmoqda";
+          // Agar kuryer biriktirilgan bo'lsa, lekin status hali 'preparing' yoki 'ready' bo'lsa
+          if (status === "preparing") {
+            statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+          } else if (status === "ready") {
+            statusText = assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
+          } else {
+            statusText = assignedCurierName ? `${assignedCurierName} buyurtmani boshqarmoqda` : "Kuryer boshqarmoqda";
+          }
           break;
       }
     } else if (orderChefId) {
@@ -252,14 +259,15 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const canTakeNewOrder = activeOrdersCount < 2;
 
   // "Olish uchun yo'lda" tugmasi uchun disabled holat
-  // Endi bu faqat kuryerning faol buyurtmalar soniga bog'liq
-  const isPickupButtonDisabled = !canTakeNewOrder;
+  // Bu tugma faqat buyurtma kuryerga biriktirilmagan bo'lsa va kuryer yangi buyurtma olishi mumkin bo'lsa faol bo'ladi.
+  const isPickupButtonDisabled = (order) => {
+    return !canTakeNewOrder || order.curier_id !== null;
+  };
 
   // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
   const isPickedUpButtonDisabled = (order) => {
-    // Agar buyurtma "olish uchun yo'lda" statusida bo'lsa va joriy kuryerga biriktirilgan bo'lsa,
-    // va oshpaz hali "tayyor" statusini set qilmagan bo'lsa, tugma disabled bo'ladi.
-    return order.status === "en_route_to_kitchen" && order.curier_id === curierId && order.chef_id && order.status_chef !== "ready";
+    // Tugma faqat buyurtma joriy kuryerga biriktirilgan bo'lsa va status 'preparing' bo'lsa disabled bo'ladi.
+    return order.curier_id === curierId && order.status === "preparing";
   };
 
   const getPickedUpButtonText = (order) => {
@@ -356,6 +364,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isAssignedToThisCourier = order.curier_id === curierId;
                 const isUnassignedAndPreparingOrReady = !order.curier_id && (isPreparing || isReady);
 
+
                 return (
                   <motion.div
                     key={order.id}
@@ -366,7 +375,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isUnassignedAndPreparingOrReady && isPickupButtonDisabled
+                        isUnassignedAndPreparingOrReady && isPickupButtonDisabled(order)
                           ? "opacity-50 pointer-events-none"
                           : ""
                       } ${
@@ -518,14 +527,14 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                     "curier"
                                   )
                                 }
-                                disabled={isPickupButtonDisabled}
+                                disabled={isPickupButtonDisabled(order)}
                                 className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm"
                               >
                                 <Truck className="mr-2 h-4 w-4" />
                                 Olish uchun yo'lda
                               </Button>
                             )}
-                            {isEnRouteToKitchen && isAssignedToThisCourier && (
+                            {isAssignedToThisCourier && (order.status === "preparing" || order.status === "ready") && (
                               <Button
                                 onClick={() =>
                                   onUpdateOrderStatus(
