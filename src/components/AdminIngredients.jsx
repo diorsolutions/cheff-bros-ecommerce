@@ -35,17 +35,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }) => {
+const AdminIngredients = ({
+  allProducts,
+  allIngredients,
+  allProductIngredients,
+}) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentIngredient, setCurrentIngredient] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [productLinks, setProductLinks] = useState([]); // { product_id, quantity_needed }
+  const [linkedProductsForEdit, setLinkedProductsForEdit] = useState([]); // { product_id, quantity_needed, product_name }
 
-  // Fetch initial data (already passed as props, but useful for dialog state)
   useEffect(() => {
     if (!isDialogOpen) {
       setCurrentIngredient(null);
-      setProductLinks([]);
+      setLinkedProductsForEdit([]);
     }
   }, [isDialogOpen]);
 
@@ -62,19 +65,23 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
       // Load existing product links for this ingredient
       const existingLinks = allProductIngredients
         .filter((pi) => pi.ingredient_id === ingredient.id)
-        .map((pi) => ({
-          product_id: pi.product_id,
-          quantity_needed: pi.quantity_needed,
-        }));
-      setProductLinks(existingLinks);
+        .map((pi) => {
+          const product = allProducts.find((p) => p.id === pi.product_id);
+          return {
+            product_id: pi.product_id,
+            quantity_needed: pi.quantity_needed,
+            product_name: product ? product.name : "Noma'lum mahsulot",
+          };
+        });
+      setLinkedProductsForEdit(existingLinks);
     } else {
-      setProductLinks([]);
+      setLinkedProductsForEdit([]);
     }
     setIsDialogOpen(true);
   };
 
-  const handleProductLinkChange = (productId, quantity) => {
-    setProductLinks((prev) =>
+  const handleLinkedProductQuantityChange = (productId, quantity) => {
+    setLinkedProductsForEdit((prev) =>
       prev.map((link) =>
         link.product_id === productId
           ? { ...link, quantity_needed: Number(quantity) }
@@ -83,21 +90,13 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
     );
   };
 
-  const handleCheckboxChange = (productId, isChecked) => {
-    if (isChecked) {
-      setProductLinks((prev) => [
-        ...prev,
-        { product_id: productId, quantity_needed: 1 }, // Default to 1, user can change
-      ]);
-    } else {
-      setProductLinks((prev) =>
-        prev.filter((link) => link.product_id !== productId)
-      );
-    }
-  };
-
   const handleSaveIngredient = async () => {
-    if (!currentIngredient.name || currentIngredient.stock_quantity === null || currentIngredient.stock_quantity < 0 || !currentIngredient.unit) {
+    if (
+      !currentIngredient.name ||
+      currentIngredient.stock_quantity === null ||
+      currentIngredient.stock_quantity < 0 ||
+      !currentIngredient.unit
+    ) {
       toast({
         title: "Xatolik",
         description: "Masalliq nomi, miqdori va birligini kiritish majburiy.",
@@ -142,25 +141,13 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
 
       if (error) throw error;
 
-      // Update product_ingredients links
-      // First, delete all existing links for this ingredient
-      await supabase
-        .from("product_ingredients")
-        .delete()
-        .eq("ingredient_id", ingredientId);
-
-      // Then, insert new links
-      const linksToInsert = productLinks.map((link) => ({
-        ingredient_id: ingredientId,
-        product_id: link.product_id,
-        quantity_needed: link.quantity_needed,
-      }));
-
-      if (linksToInsert.length > 0) {
-        const { error: linksError } = await supabase
+      // Update product_ingredients links (only quantity_needed for existing links)
+      for (const link of linkedProductsForEdit) {
+        await supabase
           .from("product_ingredients")
-          .insert(linksToInsert);
-        if (linksError) throw linksError;
+          .update({ quantity_needed: link.quantity_needed })
+          .eq("ingredient_id", ingredientId)
+          .eq("product_id", link.product_id);
       }
 
       toast({
@@ -204,7 +191,8 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
       console.error("Masalliqni o'chirishda xatolik:", error);
       toast({
         title: "Xatolik",
-        description: error.message || "Masalliqni o'chirishda xatolik yuz berdi.",
+        description:
+          error.message || "Masalliqni o'chirishda xatolik yuz berdi.",
         variant: "destructive",
       });
     }
@@ -302,13 +290,16 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
                   <CardContent className="flex-grow space-y-2">
                     <p className="text-white/80 font-bold text-lg">
                       <span className="text-gray-200 font-bold">Miqdori: </span>
-                      {Number(ingredient.stock_quantity).toLocaleString()} {ingredient.unit}
+                      {Number(ingredient.stock_quantity).toLocaleString()}{" "}
+                      {ingredient.unit}
                     </p>
                     <div className="mt-4">
                       <h4 className="text-gray-200 font-bold mb-2 flex items-center gap-2">
                         <LinkIcon className="h-4 w-4" /> Bog'langan mahsulotlar:
                       </h4>
-                      {allProductIngredients.filter(pi => pi.ingredient_id === ingredient.id).length === 0 ? (
+                      {allProductIngredients.filter(
+                        (pi) => pi.ingredient_id === ingredient.id
+                      ).length === 0 ? (
                         <p className="text-gray-400 text-sm italic">
                           Hech qanday mahsulotga bog'lanmagan.
                         </p>
@@ -323,7 +314,8 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
                               return (
                                 product && (
                                   <li key={product.id}>
-                                    {product.name} ({pi.quantity_needed} {ingredient.unit})
+                                    {product.name} ({pi.quantity_needed}{" "}
+                                    {ingredient.unit})
                                   </li>
                                 )
                               );
@@ -403,66 +395,58 @@ const AdminIngredients = ({ allProducts, allIngredients, allProductIngredients }
               </Select>
             </div>
 
-            <div className="space-y-2 mt-6">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <LinkIcon className="h-5 w-5" /> Ushbu masalliqdan foydalanadigan mahsulotlar
-              </h3>
-              <p className="text-sm text-gray-600">
-                Qaysi mahsulotlar uchun bu masalliq kerakligini belgilang va miqdorini kiriting.
-              </p>
-              <div className="grid gap-3">
-                {allProducts.length === 0 ? (
-                  <p className="text-gray-500 italic">Mahsulotlar topilmadi.</p>
-                ) : (
-                  allProducts.map((product) => {
-                    const isLinked = productLinks.some(
-                      (link) => link.product_id === product.id
-                    );
-                    const linkedQuantity =
-                      productLinks.find((link) => link.product_id === product.id)
-                        ?.quantity_needed || 1;
-
-                    return (
+            {currentIngredient?.id && ( // Faqat mavjud masalliqni tahrirlashda ko'rsatiladi
+              <div className="space-y-2 mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <LinkIcon className="h-5 w-5" /> Ushbu masalliqdan
+                  foydalanadigan mahsulotlar
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Bu masalliq ishlatiladigan mahsulotlar ro'yxati. Har bir
+                  mahsulot uchun kerakli miqdorni o'zgartirishingiz mumkin.
+                </p>
+                <div className="grid gap-3">
+                  {linkedProductsForEdit.length === 0 ? (
+                    <p className="text-gray-500 italic">
+                      Hech qanday mahsulotga bog'lanmagan.
+                    </p>
+                  ) : (
+                    linkedProductsForEdit.map((link) => (
                       <div
-                        key={product.id}
+                        key={link.product_id}
                         className="flex items-center justify-between gap-4 p-2 border border-gray-200 rounded-md bg-gray-50"
                       >
+                        <Label
+                          htmlFor={`linked-product-${link.product_id}`}
+                          className="text-gray-700"
+                        >
+                          {link.product_name}
+                        </Label>
                         <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`product-${product.id}`}
-                            checked={isLinked}
-                            onCheckedChange={(checked) =>
-                              handleCheckboxChange(product.id, checked)
+                          <Input
+                            id={`linked-product-${link.product_id}`}
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            value={link.quantity_needed}
+                            onChange={(e) =>
+                              handleLinkedProductQuantityChange(
+                                link.product_id,
+                                e.target.value
+                              )
                             }
+                            className="w-24 bg-white border-gray-300 text-gray-800"
                           />
-                          <Label htmlFor={`product-${product.id}`} className="text-gray-700">
-                            {product.name}
-                          </Label>
+                          <span className="text-gray-600">
+                            {currentIngredient?.unit || "dona"}
+                          </span>
                         </div>
-                        {isLinked && (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              value={linkedQuantity}
-                              onChange={(e) =>
-                                handleProductLinkChange(
-                                  product.id,
-                                  e.target.value
-                                )
-                              }
-                              className="w-24 bg-white border-gray-300 text-gray-800"
-                            />
-                            <span className="text-gray-600">{currentIngredient?.unit || "dona"}</span>
-                          </div>
-                        )}
                       </div>
-                    );
-                  })
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <DialogFooter>
             <DialogClose asChild>
