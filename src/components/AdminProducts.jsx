@@ -683,7 +683,7 @@ const AdminProducts = memo(
                           }
                         }}
                         onWheel={(e) => e.currentTarget.blur()} // Scroll bilan o'zgarishni o'chirish
-                        className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800"
+                        className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800 no-spinners"
                       />
                       <span className="text-sm">{pi.unit}</span>
                       <Button

@@ -73,6 +73,16 @@ body {
   box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
 }
 
+/* Hide number input spinners */
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinners[type="number"] {
+  -moz-appearance: textfield;
+}
+
 @layer base {
   * {
     @apply border-border;
