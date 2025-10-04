@@ -190,8 +190,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!orders || !chefId) return [];
 
     let filtered = orders.filter(order => {
+      // Kuryer tomonidan yetkazilgan yoki bekor qilingan buyurtmalarni butunlay yashirish
+      if (order.status === "delivered_to_customer" || order.status === "cancelled") {
+        return false;
+      }
+
       // Oshpazga biriktirilgan buyurtmalar yoki hech kimga biriktirilmagan 'new' buyurtmalar ko'rinadi.
-      // Kuryerga biriktirilgan bo'lsa ham, oshpaz uni ko'rishi kerak.
       return (order.chef_id === chefId || (!order.chef_id && order.status === "new"));
     });
 
