@@ -339,6 +339,20 @@ const AdminProducts = memo(
       );
     }, [allIngredients, selectedProductIngredients, ingredientSearchTerm]);
 
+    // Debugging log for ingredient stock
+    useEffect(() => {
+      if (isDialogOpen && currentProduct) {
+        console.log("AdminProducts: Dialog opened for product:", currentProduct.name);
+        console.log("AdminProducts: All ingredients received:", allIngredients);
+        const nonBulochka = allIngredients.find(ing => ing.name === "Non-Bulochka");
+        if (nonBulochka) {
+          console.log("AdminProducts: Non-Bulochka stock_quantity:", nonBulochka.stock_quantity);
+        } else {
+          console.log("AdminProducts: 'Non-Bulochka' ingredient not found in allIngredients.");
+        }
+      }
+    }, [isDialogOpen, currentProduct, allIngredients]);
+
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
