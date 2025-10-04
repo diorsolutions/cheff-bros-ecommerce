@@ -9,7 +9,7 @@ import { useWindowSize } from "react-use";
 import { supabase } from "@/lib/supabase";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 
-const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients }) => {
+const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients, cartItems }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
@@ -116,13 +116,19 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
 
   if (!product) return null;
 
-  const isOutOfStock = calculatedStock === 0;
+  // Savatda allaqachon mavjud bo'lgan miqdorni hisoblash
+  const quantityInCart = cartItems.find(item => item.id === product.id)?.quantity || 0;
+
+  // Haqiqiy mavjud stok (umumiy stok - savatdagi miqdor)
+  const effectiveStock = calculatedStock - quantityInCart;
+
+  const isOutOfStock = effectiveStock <= 0;
 
   const handleAddToCart = () => {
-    if (quantity > calculatedStock) { // calculatedStock ishlatildi
+    if (quantity > effectiveStock) {
       toast({
         title: "Xatolik!",
-        description: `Faqat ${calculatedStock} ta mavjud`,
+        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
         variant: "destructive",
       });
       return;
@@ -149,12 +155,12 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
   };
 
   const incrementQuantity = () => {
-    if (quantity < calculatedStock) { // calculatedStock ishlatildi
+    if (quantity < effectiveStock) {
       setQuantity((prev) => prev + 1);
     } else {
       toast({
         title: "Xatolik!",
-        description: `Faqat ${calculatedStock} ta mavjud`,
+        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
         variant: "destructive",
       });
     }
@@ -219,17 +225,17 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
                     <div className="mb-6">
                       <span
                         className={`text-sm font-semibold px-3 py-2 rounded ${
-                          calculatedStock > 10 // calculatedStock ishlatildi
+                          effectiveStock > 10
                             ? "bg-green-100 text-green-600" /* Ranglar yangilandi */
-                            : calculatedStock > 5
+                            : effectiveStock > 5
                             ? "bg-orange-100 text-orange-600" /* Ranglar yangilandi */
-                            : calculatedStock > 0
+                            : effectiveStock > 0
                             ? "bg-red-100 text-red-600" /* Ranglar yangilandi */
                             : "bg-gray-100 text-gray-600" /* Ranglar yangilandi */
                         }`}
                       >
-                        {calculatedStock > 0
-                          ? `${calculatedStock} ta qoldi - ulgurib qoling`
+                        {effectiveStock > 0
+                          ? `${effectiveStock} ta qoldi - ulgurib qoling`
                           : "Qolmagan"}
                       </span>
                     </div>
@@ -267,7 +273,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
                           size="sm"
                           variant="ghost"
                           onClick={incrementQuantity}
-                          disabled={isOutOfStock || quantity >= calculatedStock} // calculatedStock ishlatildi
+                          disabled={isOutOfStock || quantity >= effectiveStock}
                           className="h-10 w-10 p-0 text-gray-800 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus className="h-5 w-5" />
@@ -278,7 +284,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients 
                     <Button
                       onClick={handleAddToCart}
                       disabled={
-                        isOutOfStock || quantity > calculatedStock || quantity === 0 || isAdding // isAdding holatini ham qo'shdik
+                        isOutOfStock || quantity > effectiveStock || quantity === 0 || isAdding
                       }
                       className="w-full h-12 big_tablet:text-[.94rem] big_tablet:h-10 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-xl shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >

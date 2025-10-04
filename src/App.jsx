@@ -863,6 +863,7 @@ function App() {
             products={products} // products propini uzatish
             ingredients={ingredients} // ingredients propini uzatish
             productIngredients={productIngredients} // productIngredients propini uzatish
+            cartItems={cartItems} // Yangi: cartItems propini uzatish
           />}
         />
         <Route
@@ -971,19 +972,14 @@ function MainLayout({
             </div>
 
             <div className="flex items-center gap-4">
-              <MiniChat
-                messages={messages}
-                isPopoverOpen={isMiniChatOpen}
-                setIsPopoverOpen={setIsMiniChatOpen}
-              />{" "}
-              {/* MiniChat bu yerga ko'chirildi */}
+              <MiniChat messages={messages} isPopoverOpen={isMiniChatOpen} setIsPopoverOpen={setIsMiniChatOpen} /> {/* MiniChat bu yerga ko'chirildi */}
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
                 className="extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                <span className="mob_small:hidden">Buyurtma berish</span>
+                Buyurtma berish
                 {cartItemsCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
                     {cartItemsCount}
@@ -994,11 +990,7 @@ function MainLayout({
           </div>
         </div>
       </header>
-      <main
-        className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${
-          isMiniChatOpen ? "blur-sm pointer-events-none" : ""
-        }`}
-      >
+      <main className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${isMiniChatOpen ? 'blur-sm pointer-events-none' : ''}`}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -1082,6 +1074,7 @@ function MainLayout({
                               allProducts={products} // `products` state ni `allProducts` propiga uzatish
                               allIngredients={ingredients} // `ingredients` state ni `allIngredients` propiga uzatish
                               allProductIngredients={productIngredients} // `productIngredients` state ni `allProductIngredients` propiga uzatish
+                              cartItems={cartItems} // Yangi: cartItems propini uzatish
                             />
                           ))}
                         </div>
