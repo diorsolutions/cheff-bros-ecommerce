@@ -53,47 +53,40 @@ const ClientOrderStatusModal = ({
     const chefName = chef_id ? getChefInfo(chef_id)?.name : null;
     const curierName = curier_id ? getCurierInfo(curier_id)?.name : null;
 
-    let chefStatus = null;
-    let courierStatus = null;
+    let chefDisplay = null;
+    let courierDisplay = null;
     let mainStatusIcon = null;
-    let mainStatusColor = "";
 
+    // Determine main status icon and initial chef/courier messages
     switch (status) {
       case "new":
-        chefStatus = "Buyurtma qabul qilindi, oshpazni kutmoqda.";
         mainStatusIcon = <Clock className="h-5 w-5 text-blue-500" />;
-        mainStatusColor = "text-blue-600";
+        chefDisplay = "Buyurtma qabul qilindi, oshpazni kutmoqda.";
         break;
       case "preparing":
-        chefStatus = "Tayyorlanmoqda...";
         mainStatusIcon = <Utensils className="h-5 w-5 text-yellow-500" />;
-        mainStatusColor = "text-yellow-600";
+        chefDisplay = "Tayyorlanmoqda...";
         break;
       case "ready":
-        chefStatus = "Tayyorlab bo'ldi!";
         mainStatusIcon = <CheckCircle className="h-5 w-5 text-green-500" />;
-        mainStatusColor = "text-green-600";
+        chefDisplay = "Buyurtmangizni tayyorlab bo'ldi!";
         break;
       case "en_route_to_kitchen":
-        chefStatus = "Tayyorlab bo'ldi!"; // Oshpaz tayyorlagan bo'lsa
-        courierStatus = "Buyurtmangizni olish uchun yo'lga chiqdi...";
         mainStatusIcon = <Truck className="h-5 w-5 text-yellow-500" />;
-        mainStatusColor = "text-yellow-600";
+        chefDisplay = "Buyurtmangizni tayyorlab bo'ldi!"; // Chef already finished
+        courierDisplay = "Buyurtmangizni olish uchun yo'lga chiqdi...";
         break;
       case "picked_up_from_kitchen":
-        chefStatus = "Tayyorlab bo'ldi!"; // Oshpaz tayyorlagan bo'lsa
-        courierStatus = "Buyurtmangizni oldi va siz tomon yo'lga chiqdi!";
         mainStatusIcon = <Truck className="h-5 w-5 text-orange-500" />;
-        mainStatusColor = "text-orange-600";
+        chefDisplay = "Buyurtmangizni tayyorlab bo'ldi!"; // Chef already finished
+        courierDisplay = "Buyurtmangizni oldi va siz tomon yo'lga chiqdi!";
         break;
       case "delivered_to_customer":
-        // Bu holatda modal yashirinadi, shuning uchun bu yerga kelmaydi
-        break;
       case "cancelled":
-        // Bu holatda modal yashirinadi, shuning uchun bu yerga kelmaydi
-        break;
+        // These statuses hide the modal, so they won't be displayed here.
+        return null;
       default:
-        chefStatus = "Status noma'lum.";
+        chefDisplay = "Status noma'lum.";
         break;
     }
 
@@ -103,14 +96,16 @@ const ClientOrderStatusModal = ({
           {mainStatusIcon}
           <span className="font-semibold text-lg">Buyurtmangizni ayni vaqtda:</span>
         </div>
-        {chefStatus && (
+        {chefDisplay && (
           <p className="text-gray-700 text-base ml-7">
-            <span className="font-medium">Oshpaz:</span> {chefStatus}
+            {status !== "new" && <span className="font-medium">Oshpaz: </span>}
+            {chefDisplay}
           </p>
         )}
-        {courierStatus && (
+        {courierDisplay && (
           <p className="text-gray-700 text-base ml-7">
-            <span className="font-medium">Kuryer:</span> {courierStatus}
+            <span className="font-medium">Kuryer: </span>
+            {courierDisplay}
           </p>
         )}
       </div>
