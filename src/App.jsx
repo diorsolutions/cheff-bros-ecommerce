@@ -620,6 +620,14 @@ function App() {
       updateData.cancellation_reason = cancellationReason;
     }
 
+    console.log("handleUpdateOrderStatus: Initial state:", {
+      orderId,
+      newStatus,
+      actorId,
+      actorRole,
+      orderToUpdate,
+    });
+
     if (actorRole === "curier") {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
@@ -640,7 +648,7 @@ function App() {
           ) {
             canUpdate = true;
             updateData.curier_id = actorId;
-            delete updateData.status;
+            delete updateData.status; // Statusni o'zgartirmaymiz, faqat kuryerni biriktiramiz
           } else {
             toast({
               title: "Xatolik!",
@@ -770,6 +778,7 @@ function App() {
           return;
       }
     } else {
+      // Admin tomonidan o'zgartirishlar
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",
@@ -790,6 +799,8 @@ function App() {
       });
       return;
     }
+
+    console.log("handleUpdateOrderStatus: Updating with data:", updateData);
 
     const { error } = await supabase
       .from("orders")
@@ -1215,7 +1226,7 @@ function MainLayout({
                       </div>
                     );
                   })}
-                  <div className="border-t border-gray-300 pt-2">
+                  <div className="border-t border-gray-300 pt-2 mt-2">
                     <div className="flex justify-between font-bold">
                       <span className="text-gray-800">Jami:</span>
                       <span className="text-orange-500">
@@ -1242,7 +1253,290 @@ function MainLayout({
         curiers={curiers}
         customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
-    </div>
+      <Toaster />
+    </>
+  );
+}
+
+function MainLayout({
+  cartItems,
+  cartItemsCount,
+  products,
+  addToCart,
+  setIsOrderDialogOpen,
+  categoryFilter,
+  setCategoryFilter,
+  currentPage,
+  setCurrentPage,
+  itemsPerPage,
+  loadingProducts,
+  productsError,
+  messages,
+  ingredients, // Yangi: ingredients propini qabul qilish
+  productIngredients, // Yangi: productIngredients propini qabul qilish
+  activeCustomerOrderIds, // Yangi: activeCustomerOrderIds ni qabul qilish
+  orders, // Yangi: orders ni qabul qilish
+  chefs, // Yangi: chefs ni qabul qilish
+  curiers, // Yangi: curiers ni qabul qilish
+  customerInfo, // Yangi: customerInfo ni qabul qilish
+}) {
+  const [isMiniChatOpen, setIsMiniChatOpen] = useState(false); // MiniChat holati
+  const { width } = useWindowSize();
+
+  useEffect(() => {
+    if (isMiniChatOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMiniChatOpen]);
+
+  const handleAddToCart = (product, quantity) => {
+    addToCart(product, quantity);
+
+    if (width >= 1024) {
+      toast({
+        title: "Savatga qo'shildi!mi?",
+        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#ffffff]">
+      <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 extra_small:gap-1 mob_xr:gap-1 text-orange-400">
+              <Store className="h-8 w-8 extra_small:w-6 extra_small:h-6 mob_xr:h-6 mob_xr:w-6" />
+              <h1 className="text-2xl font-bold extra_small:text-xl mob_xr:text-[1.3rem]">
+                Restoran
+              </h1>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <MiniChat
+                messages={messages}
+                isPopoverOpen={isMiniChatOpen}
+                setIsPopoverOpen={setIsMiniChatOpen}
+              />{" "}
+              {/* MiniChat bu yerga ko'chirildi */}
+              <Button
+                onClick={() => setIsOrderDialogOpen(true)}
+                disabled={cartItems.length === 0}
+                className="mob_small:rounded-full extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
+              >
+                <ShoppingCart className="h-3 w-3 mob_small:scale-x-150" />
+                <span className="mob_small:hidden">Buyurtma berish</span>
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main
+        className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${
+          isMiniChatOpen ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center mob_small:mb-0 mob_xr:mb-0 mid_small:mb-0 extra_small:mb-0 mb-8 sm:mb-12 px-4">
+            <h2 className="mob_small:hidden text-3xl sm:text-4xl mob_xr:text-[1.29rem] font-bold text-gray-800 mb-3 sm:mb-4 extra_small:text-[1.2rem]">
+              Bizning Menyumiz
+            </h2>
+            <p className=" mob_small:hidden text-base sm:text-xl mob_xr:hidden text-gray-600 max-w-2xl mx-auto extra_small:hidden">
+              Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
+              ingredientlar bilan tayyorlanadi.
+            </p>
+          </div>
+
+          <div className="mob_small:bg-white mob_xr:bg-white mid_small:bg-white mob_small:py-[.5rem] mob_xr:py-[.5rem] mid_small:py-[.5rem] extra_small:sticky mob_small:sticky mob_xr:sticky mid_small:sticky mob_small:top-0 mob_xr:top-0 mid_small:top-0  mob_small:z-50 mob_xr:z-50 mid_small:z-50 extra_small:top-0 extra_small:z-30 extra_small:bg-white extra_small:py-2 px-4 extra_small:mb-1 mb-6 mob_xr:gap-1 focus:*:bg-orange-500 *:rounded-[0.3rem] justify-center flex flex-wrap items-center gap-2 extra_small:gap-1 sm:gap-3">
+            {[
+              { key: "all", label: "Barchasi" },
+              { key: "Hoddog", label: "Hoddog" },
+              { key: "Ichimliklar", label: "Ichimliklar" },
+              { key: "Disertlar", label: "Disertlar" },
+            ].map((c) => (
+              <Button
+                key={c.key}
+                variant={categoryFilter === c.key ? "secondary" : "ghost"}
+                className={
+                  categoryFilter === c.key
+                    ? "bg-orange-500 extra_small:p-2 mid_small:text-[0.7rem] text-white extra_small:text-[0.8rem] mob_xr:text-[0.9rem]"
+                    : "text-gray-800 mid_small:text-[0.7rem] hover:bg-gray-300 hover:text-orange-400 border border-gray-300 extra_small:text-[0.7rem] mob_xr:text-[0.8rem]"
+                }
+                onClick={() => {
+                  setCategoryFilter(c.key);
+                  setCurrentPage(1);
+                }}
+              >
+                {c.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="px-4 mb-10">
+            {productsError ? (
+              <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4">
+                {productsError}
+              </div>
+            ) : loadingProducts ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {Array.from({ length: itemsPerPage }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-48 rounded-lg bg-gray-200 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : (
+              <>
+                {(() => {
+                  const all =
+                    categoryFilter === "all"
+                      ? products
+                      : products.filter((p) => p.category === categoryFilter);
+
+                  const pageItems = all.slice(
+                    (currentPage - 1) * itemsPerPage,
+                    currentPage * itemsPerPage
+                  );
+
+                  return (
+                    <>
+                      {all.length === 0 ? (
+                        <div className="text-center text-gray-300 py-16">
+                          Hozircha mahsulotlar yo'q.
+                        </div>
+                      ) : (
+                        <div className="grid mt-[-13px] extra_small:mt-[0px] mob_small:gap-[0.4rem] grid-cols-2 mob_xr:gap-[0.4rem] md:grid-cols-3 extra_small:gap-[0.5rem] lg:grid-cols-4 sm:gap-2">
+                          {pageItems.map((product) => (
+                            <ProductCard
+                              key={product.id}
+                              product={product}
+                              onAddToCart={addToCart}
+                              allProducts={products} // `products` state ni `allProducts` propiga uzatish
+                              allIngredients={ingredients} // `ingredients` state ni `allIngredients` propiga uzatish
+                              allProductIngredients={productIngredients} // `productIngredients` state ni `allProductIngredients` propiga uzatish
+                              cartItems={cartItems} // Yangi: cartItems propini uzatish
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {(() => {
+                        const totalPages =
+                          Math.ceil(all.length / itemsPerPage) || 1;
+                        const canPrev = currentPage > 1;
+                        const canNext = currentPage < totalPages;
+                        return (
+                          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
+                            <Button
+                              variant="ghost"
+                              disabled={!canPrev}
+                              onClick={() =>
+                                canPrev && setCurrentPage((p) => p - 1)
+                              }
+                              className="text-gray-800 hover:bg-gray-200"
+                            >
+                              Oldingi
+                            </Button>
+                            <span className="text-gray-600 text-sm sm:text-base">
+                              {currentPage} / {totalPages}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              disabled={!canNext}
+                              onClick={() =>
+                                canNext && setCurrentPage((p) => p + 1)
+                              }
+                              className="text-gray-800 hover:bg-gray-200"
+                            >
+                              Keyingi
+                            </Button>
+                          </div>
+                        );
+                      })()}
+                    </>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+
+          {cartItems.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="fixed bottom-6 left-6 z-20"
+            >
+              <Card className="laptop:hidden w-full max-w-[15rem] mob:max-w-[12rem] extra_small:max-w-[10rem] flex flex-col justify-start bg-white border-orange-500/90">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-gray-800 text-center text-lg">
+                    Savat
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 p-4">
+                  {cartItems.map((item, index) => {
+                    const currentProduct = products.find(
+                      (p) => p.id === item.id
+                    );
+                    return (
+                      <div
+                        key={index}
+                        className="space-y-1 border-b border-gray-300 py-2"
+                      >
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">
+                            {item.name} x{item.quantity}
+                          </span>
+                          <span className="text-orange-500 font-medium">
+                            {(item.price * item.quantity).toLocaleString()} so'm
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="border-t border-gray-300 pt-2 mt-2">
+                    <div className="flex justify-between font-bold">
+                      <span className="text-gray-800">Jami:</span>
+                      <span className="text-orange-500">
+                        {cartItems
+                          .reduce(
+                            (sum, item) => sum + item.price * item.quantity,
+                            0
+                          )
+                          .toLocaleString()}{" "}
+                        so'm
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </motion.div>
+      </main>
+      <ClientOrderStatusModal
+        activeOrderIds={activeCustomerOrderIds}
+        orders={orders}
+        chefs={chefs}
+        curiers={curiers}
+        customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
+      />
+      <Toaster />
+    </>
   );
 }
 
