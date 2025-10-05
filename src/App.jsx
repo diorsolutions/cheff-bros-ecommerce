@@ -69,7 +69,9 @@ function App() {
 
   // Audio refs
   const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
-  const clientMessageSound = useRef(new Audio("/notification_client_message.mp3"));
+  const clientMessageSound = useRef(
+    new Audio("/notification_client_message.mp3")
+  );
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -282,7 +284,11 @@ function App() {
             if (payload.eventType === "INSERT") {
               setOrders((prev) => [payload.new, ...prev]);
               // Play sound for admin new order
-              adminOrderSound.current.play().catch(e => console.error("Error playing admin order sound:", e));
+              adminOrderSound.current
+                .play()
+                .catch((e) =>
+                  console.error("Error playing admin order sound:", e)
+                );
               toast({
                 title: "Yangi buyurtma!",
                 description: "Yangi buyurtma keldi",
@@ -324,7 +330,11 @@ function App() {
             ) {
               setMessages((prev) => [...prev, payload.new]);
               // Play sound for client message
-              clientMessageSound.current.play().catch(e => console.error("Error playing client message sound:", e));
+              clientMessageSound.current
+                .play()
+                .catch((e) =>
+                  console.error("Error playing client message sound:", e)
+                );
             }
           }
         )

@@ -123,8 +123,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   };
 
   const getStatusText = (status, orderChefId, orderCurierId) => {
-    const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
-    const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
+    const assignedChefName = orderChefId
+      ? getChefInfo(orderChefId)?.name
+      : null;
+    const assignedCurierName = orderCurierId
+      ? getCurierInfo(orderCurierId)?.name
+      : null;
 
     let statusText = "";
 
@@ -134,29 +138,43 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
       switch (status) {
         case "en_route_to_kitchen":
-          statusText = assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Kuryer olish uchun yo'lda";
+          statusText = assignedCurierName
+            ? `${assignedCurierName} olish uchun yo'lda`
+            : "Kuryer olish uchun yo'lda";
           break;
         case "picked_up_from_kitchen":
-          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani oldi` : "Kuryer buyurtmani oldi";
+          statusText = assignedCurierName
+            ? `${assignedCurierName} buyurtmani oldi`
+            : "Kuryer buyurtmani oldi";
           break;
         case "delivered_to_customer":
-          statusText = assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozga yetkazildi";
+          statusText = assignedCurierName
+            ? `${assignedCurierName} mijozga yetkazdi`
+            : "Mijozga yetkazildi";
           break;
         default:
-          statusText = assignedCurierName ? `${assignedCurierName} buyurtmani boshqarmoqda` : "Kuryer boshqarmoqda";
+          statusText = assignedCurierName
+            ? `${assignedCurierName} buyurtmani boshqarmoqda`
+            : "Kuryer boshqarmoqda";
           break;
       }
     } else if (orderChefId) {
       // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
       switch (status) {
         case "preparing":
-          statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorlanmoqda`
+            : "Tayyorlanmoqda";
           break;
         case "ready":
-          statusText = assignedChefName ? `${assignedChefName} tayyorladi` : "Tayyor";
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorladi`
+            : "Tayyor";
           break;
         default:
-          statusText = assignedChefName ? `${assignedChefName} buyurtmani boshqarmoqda` : "Oshpaz boshqarmoqda";
+          statusText = assignedChefName
+            ? `${assignedChefName} buyurtmani boshqarmoqda`
+            : "Oshpaz boshqarmoqda";
           break;
       }
     } else {
@@ -192,20 +210,25 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
-    let filtered = orders.filter(order => {
+    let filtered = orders.filter((order) => {
       // Kuryer tomonidan yetkazilgan yoki bekor qilingan buyurtmalarni butunlay yashirish
-      if (order.status === "delivered_to_customer" || order.status === "cancelled") {
+      if (
+        order.status === "delivered_to_customer" ||
+        order.status === "cancelled"
+      ) {
         return false;
       }
 
       // Oshpazga biriktirilgan buyurtmalar yoki hech kimga biriktirilmagan 'new' buyurtmalar ko'rinadi.
-      return (order.chef_id === chefId || (!order.chef_id && order.status === "new"));
+      return (
+        order.chef_id === chefId || (!order.chef_id && order.status === "new")
+      );
     });
 
     // Qidiruv filtri
     if (searchTerm.trim()) {
       const lowerCaseSearchTerm = searchTerm.trim().toLowerCase();
-      filtered = filtered.filter(order =>
+      filtered = filtered.filter((order) =>
         generateShortOrderId(order.id).includes(lowerCaseSearchTerm)
       );
     }
@@ -214,13 +237,13 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     // Har bir status ichida yaratilish sanasi bo'yicha saralash (eng eskisi birinchi).
     return filtered.sort((a, b) => {
       const statusOrder = {
-        "preparing": 1, // "Tayyorlanmoqda" eng yuqorida
-        "new": 2,
-        "ready": 3,
-        "en_route_to_kitchen": 4,
-        "picked_up_from_kitchen": 5,
-        "delivered_to_customer": 6,
-        "cancelled": 7
+        preparing: 1, // "Tayyorlanmoqda" eng yuqorida
+        new: 2,
+        ready: 3,
+        en_route_to_kitchen: 4,
+        picked_up_from_kitchen: 5,
+        delivered_to_customer: 6,
+        cancelled: 7,
       };
       const statusA = statusOrder[a.status] || 99;
       const statusB = statusOrder[b.status] || 99;
@@ -228,29 +251,38 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       if (statusA !== statusB) {
         return statusA - statusB;
       }
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
+      return (
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ); // Oldest first
     });
   }, [orders, searchTerm, chefId]);
 
   useEffect(() => {
-    const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
+    const prevOrders = prevSortedOrdersRef.current;
 
-    sortedOrders.forEach(currentOrder => {
-      const prevOrder = prevOrdersMap.get(currentOrder.id);
+    sortedOrders.forEach((currentOrder) => {
+      const prevOrder = prevOrders.find((o) => o.id === currentOrder.id);
 
-      // Condition: New unassigned 'new' order appears
-      const isNewUnassignedOrderForChef =
-        !prevOrdersMap.has(currentOrder.id) && // Order was not in previous list
-        !currentOrder.chef_id &&              // Not assigned to any chef
-        currentOrder.status === "new";        // Status is 'new'
+      // Condition 1: New unassigned 'new' order appears
+      const isNewAvailableOrder =
+        !prevOrder && !currentOrder.chef_id && currentOrder.status === "new";
 
-      if (isNewUnassignedOrderForChef) {
-        console.log(`[Chef Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Chef ID: ${currentOrder.chef_id})`);
-        chefOrderSound.current.currentTime = 0; // Reset audio to play from start
-        chefOrderSound.current.play().catch(e => console.error("Error playing chef order sound:", e));
+      // Condition 2: Order assigned to this chef changes status to 'preparing' or 'ready'
+      const isStatusChangeForAssignedOrder =
+        prevOrder &&
+        currentOrder.chef_id === chefId &&
+        prevOrder.status !== currentOrder.status &&
+        (currentOrder.status === "preparing" ||
+          currentOrder.status === "ready");
+
+      if (isNewAvailableOrder || isStatusChangeForAssignedOrder) {
+        chefOrderSound.current
+          .play()
+          .catch((e) => console.error("Error playing chef order sound:", e));
       }
     });
 
+    // Update ref for next render
     prevSortedOrdersRef.current = sortedOrders;
   }, [sortedOrders, chefId]);
 
@@ -343,8 +375,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
-                const isEnRouteToKitchen = order.curier_id && order.status === "en_route_to_kitchen"; // Kuryer biriktirilgan va yo'lda
-                const isPickedUpFromKitchen = order.curier_id && order.status === "picked_up_from_kitchen"; // Kuryer biriktirilgan va olib ketgan
+                const isEnRouteToKitchen =
+                  order.curier_id && order.status === "en_route_to_kitchen"; // Kuryer biriktirilgan va yo'lda
+                const isPickedUpFromKitchen =
+                  order.curier_id && order.status === "picked_up_from_kitchen"; // Kuryer biriktirilgan va olib ketgan
                 const isDelivered = order.status === "delivered_to_customer";
                 const isCancelled = order.status === "cancelled";
 
@@ -352,10 +386,16 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isUnassignedNewOrder = !order.chef_id && isNew;
 
                 // Tugmalar uchun harakatlarni o'chirish logikasi
-                const canMarkPreparing = (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
+                const canMarkPreparing =
+                  (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
                 // Bekor qilish tugmasi faqat buyurtma kuryer tomonidan olinmagan bo'lsa ko'rinadi
-                const canCancel = (isNew || isPreparing || isReady || isEnRouteToKitchen) && !isPickedUpFromKitchen && !isDelivered && !isCancelled && isAssignedToThisChef;
+                const canCancel =
+                  (isNew || isPreparing || isReady || isEnRouteToKitchen) &&
+                  !isPickedUpFromKitchen &&
+                  !isDelivered &&
+                  !isCancelled &&
+                  isAssignedToThisChef;
 
                 return (
                   <motion.div
@@ -376,7 +416,11 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             <span
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
-                              )} ${!isReady && !isCancelled && !isDelivered ? "animate-pulse" : ""}`}
+                              )} ${
+                                !isReady && !isCancelled && !isDelivered
+                                  ? "animate-pulse"
+                                  : ""
+                              }`}
                             ></span>
                             <span className="text-sm sm:text-base">
                               Buyurtma{" "}
@@ -441,7 +485,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                   {item.name} x{item.quantity}
                                 </span>
                                 <span className="font-medium text-orange-500">
-                                  {(item.price * item.quantity).toLocaleString()} so'm
+                                  {(
+                                    item.price * item.quantity
+                                  ).toLocaleString()}{" "}
+                                  so'm
                                 </span>
                               </div>
                             ))}
@@ -458,9 +505,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <Clock className="h-4 w-4 text-gray-500" />{" "}
-                          <span className="text-sm text-gray-500">
-                            Status:
-                          </span>{" "}
+                          <span className="text-sm text-gray-500">Status:</span>{" "}
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded ${
                               isNew
@@ -469,23 +514,31 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 ? "bg-yellow-100 text-yellow-600"
                                 : isReady
                                 ? "bg-green-100 text-green-600"
-                                : order.curier_id && order.status === "en_route_to_kitchen"
+                                : order.curier_id &&
+                                  order.status === "en_route_to_kitchen"
                                 ? "bg-yellow-100 text-yellow-600" // Kuryerga biriktirilgan va yo'lda
-                                : order.curier_id && order.status === "picked_up_from_kitchen"
+                                : order.curier_id &&
+                                  order.status === "picked_up_from_kitchen"
                                 ? "bg-orange-100 text-orange-600" // Kuryerga biriktirilgan va olib ketgan
                                 : isDelivered
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {getStatusText(order.status, order.chef_id, order.curier_id)}
+                            {getStatusText(
+                              order.status,
+                              order.chef_id,
+                              order.curier_id
+                            )}
                           </span>
                         </div>
 
                         {order.chef_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <ChefHat className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm text-gray-500">Oshpaz:</span>
+                            <span className="text-sm text-gray-500">
+                              Oshpaz:
+                            </span>
                             <span className="text-sm font-medium text-gray-800">
                               {getChefInfo(order.chef_id)?.name || "Noma'lum"}
                             </span>
@@ -494,9 +547,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                         {order.curier_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm text-gray-500">Kuryer:</span>
+                            <span className="text-sm text-gray-500">
+                              Kuryer:
+                            </span>
                             <span className="text-sm font-medium text-gray-800">
-                              {getCurierInfo(order.curier_id)?.name || "Noma'lum"}
+                              {getCurierInfo(order.curier_id)?.name ||
+                                "Noma'lum"}
                             </span>
                           </div>
                         )}
