@@ -68,7 +68,7 @@ function App() {
   ); // localStorage bilan bog'landi
 
   // Audio refs
-  const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
+  // const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3")); // ADMIN SOUND BU YERDAN OLIB TASHLANDI
   const clientMessageSound = useRef(
     new Audio("/notification_client_message.mp3")
   );
@@ -283,16 +283,7 @@ function App() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               setOrders((prev) => [payload.new, ...prev]);
-              // Play sound for admin new order
-              adminOrderSound.current
-                .play()
-                .catch((e) =>
-                  console.error("Error playing admin order sound:", e)
-                );
-              toast({
-                title: "Yangi buyurtma!",
-                description: "Yangi buyurtma keldi",
-              });
+              // ADMIN SOUND VA TOAST BU YERDAN OLIB TASHLANDI
             } else if (payload.eventType === "UPDATE") {
               setOrders((prev) =>
                 prev.map((o) => (o.id === payload.new.id ? payload.new : o))

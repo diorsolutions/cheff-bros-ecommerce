@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MoreVertical,
@@ -45,25 +45,26 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [infoModalDescription, setInfoModalDescription] = useState("");
   const [infoModalDetails, setInfoModalDetails] = useState([]); // FIXED: useState initialization
 
-  useEffect(() => {
-    const newOrders = orders.filter((order) => order.status === "new");
-    const prevNewOrders =
-      prevOrdersCount > 0
-        ? orders
-            .slice(orders.length - prevOrdersCount)
-            .filter((o) => o.status === "new")
-        : [];
+  const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3")); // Admin sound ref
 
-    if (newOrders.length > prevNewOrders.length && prevOrdersCount > 0) {
+  useEffect(() => {
+    // Faqat yangi buyurtmalar kelganda tovush va toast ko'rsatish
+    const newOrders = orders.filter((order) => order.status === "new");
+    const prevNewOrdersCount = prevOrdersCount; // Oldingi buyurtmalar soni
+
+    if (newOrders.length > prevNewOrdersCount) {
+      adminOrderSound.current
+        .play()
+        .catch((e) => console.error("Error playing admin order sound:", e));
       toast({
         title: "🔔 Yangi buyurtma!",
         description: `${
-          newOrders.length - prevNewOrders.length
+          newOrders.length - prevNewOrdersCount
         } ta yangi buyurtma keldi`,
       });
     }
-    setPrevOrdersCount(orders.length);
-  }, [orders]);
+    setPrevOrdersCount(newOrders.length); // Faqat 'new' statusidagi buyurtmalar sonini saqlash
+  }, [orders]); // orders o'zgarganda ishga tushadi
 
   const getCurierInfo = (curierId) => {
     return curiers.find((c) => c.id === curierId);
