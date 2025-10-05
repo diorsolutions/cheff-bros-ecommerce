@@ -233,23 +233,23 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   }, [orders, searchTerm, chefId]);
 
   useEffect(() => {
-    const prevOrders = prevSortedOrdersRef.current;
+    const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
 
     sortedOrders.forEach(currentOrder => {
-      const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
+      const prevOrder = prevOrdersMap.get(currentOrder.id);
 
       // Condition: New unassigned 'new' order appears
-      const isNewAvailableOrder =
-        !prevOrder &&
-        !currentOrder.chef_id &&
-        currentOrder.status === "new";
+      const isNewUnassignedOrderForChef =
+        !prevOrdersMap.has(currentOrder.id) && // Order was not in previous list
+        !currentOrder.chef_id &&              // Not assigned to any chef
+        currentOrder.status === "new";        // Status is 'new'
 
-      if (isNewAvailableOrder) {
+      if (isNewUnassignedOrderForChef) {
+        console.log(`Playing sound for new unassigned order for chef: ${generateShortOrderId(currentOrder.id)}`);
         chefOrderSound.current.play().catch(e => console.error("Error playing chef order sound:", e));
       }
     });
 
-    // Update ref for next render
     prevSortedOrdersRef.current = sortedOrders;
   }, [sortedOrders, chefId]);
 

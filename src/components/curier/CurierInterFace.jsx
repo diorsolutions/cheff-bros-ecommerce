@@ -253,22 +253,25 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   }, [orders, curierId]);
 
   useEffect(() => {
-    const prevOrderIds = new Set(prevSortedOrdersRef.current.map(o => o.id));
+    const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
 
     sortedOrders.forEach(currentOrder => {
-      // Check if this order is new to the sorted list AND is an unassigned 'ready' order
-      const isNewAvailableOrder =
-        !prevOrderIds.has(currentOrder.id) &&
-        !currentOrder.curier_id &&
-        currentOrder.status === "ready";
+      const prevOrder = prevOrdersMap.get(currentOrder.id);
 
-      if (isNewAvailableOrder) {
+      // Condition: An order transitions to "ready" and is unassigned, AND it wasn't "ready" before.
+      const isNewlyReadyAndUnassigned =
+        currentOrder.status === "ready" &&
+        !currentOrder.curier_id &&
+        (!prevOrder || prevOrder.status !== "ready"); // Either new to list, or status changed from non-ready to ready
+
+      if (isNewlyReadyAndUnassigned) {
+        console.log(`Playing sound for newly ready and unassigned order: ${generateShortOrderId(currentOrder.id)}`);
         curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
       }
     });
 
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders]);
+  }, [sortedOrders, curierId]);
 
   const activeOrdersCount = sortedOrders.filter(
     (order) =>
