@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react"; // useRef import qilindi
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -41,6 +41,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const chefOrderSound = useRef(new Audio("/notification_chef_sound.mp3"));
+  const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -228,6 +231,34 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); // Oldest first
     });
   }, [orders, searchTerm, chefId]);
+
+  useEffect(() => {
+    const prevOrders = prevSortedOrdersRef.current;
+
+    sortedOrders.forEach(currentOrder => {
+      const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
+
+      // Condition 1: New unassigned 'new' order appears
+      const isNewAvailableOrder =
+        !prevOrder &&
+        !currentOrder.chef_id &&
+        currentOrder.status === "new";
+
+      // Condition 2: Order assigned to this chef changes status to 'preparing' or 'ready'
+      const isStatusChangeForAssignedOrder =
+        prevOrder &&
+        currentOrder.chef_id === chefId &&
+        prevOrder.status !== currentOrder.status &&
+        (currentOrder.status === "preparing" || currentOrder.status === "ready");
+
+      if (isNewAvailableOrder || isStatusChangeForAssignedOrder) {
+        chefOrderSound.current.play().catch(e => console.error("Error playing chef order sound:", e));
+      }
+    });
+
+    // Update ref for next render
+    prevSortedOrdersRef.current = sortedOrders;
+  }, [sortedOrders, chefId]);
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);

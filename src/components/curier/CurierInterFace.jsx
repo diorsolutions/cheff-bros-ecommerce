@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react"; // useRef import qilindi
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -39,6 +39,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
+
+  const curierOrderSound = useRef(new Audio("/notification_curier_order.mp3"));
+  const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
 
   useEffect(() => {
     const fetchCurierInfo = async () => {
@@ -248,6 +251,34 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
     });
   }, [orders, curierId]);
+
+  useEffect(() => {
+    const prevOrders = prevSortedOrdersRef.current;
+
+    sortedOrders.forEach(currentOrder => {
+      const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
+
+      // Condition 1: New unassigned 'ready' order appears
+      const isNewAvailableOrder =
+        !prevOrder &&
+        !currentOrder.curier_id &&
+        currentOrder.status === "ready";
+
+      // Condition 2: Order assigned to this courier changes status to 'en_route_to_kitchen' or 'picked_up_from_kitchen'
+      const isStatusChangeForAssignedOrder =
+        prevOrder &&
+        currentOrder.curier_id === curierId &&
+        prevOrder.status !== currentOrder.status &&
+        (currentOrder.status === "en_route_to_kitchen" || currentOrder.status === "picked_up_from_kitchen");
+
+      if (isNewAvailableOrder || isStatusChangeForAssignedOrder) {
+        curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
+      }
+    });
+
+    // Update ref for next render
+    prevSortedOrdersRef.current = sortedOrders;
+  }, [sortedOrders, curierId]);
 
   const activeOrdersCount = sortedOrders.filter(
     (order) =>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // useRef import qilindi
 import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
@@ -66,6 +66,10 @@ function App() {
     "activeCustomerOrderIds",
     []
   ); // localStorage bilan bog'landi
+
+  // Audio refs
+  const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
+  const clientMessageSound = useRef(new Audio("/notification_client_message.mp3"));
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -277,8 +281,8 @@ function App() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               setOrders((prev) => [payload.new, ...prev]);
-              // Yangi buyurtma kelganda faqat admin paneliga toast ko'rsatiladi
-              // Mijozga xabar yuborish handleOrderSubmit ichida amalga oshiriladi
+              // Play sound for admin new order
+              adminOrderSound.current.play().catch(e => console.error("Error playing admin order sound:", e));
               toast({
                 title: "Yangi buyurtma!",
                 description: "Yangi buyurtma keldi",
@@ -319,6 +323,8 @@ function App() {
               payload.new.customer_phone === customerInfo.phone
             ) {
               setMessages((prev) => [...prev, payload.new]);
+              // Play sound for client message
+              clientMessageSound.current.play().catch(e => console.error("Error playing client message sound:", e));
             }
           }
         )
