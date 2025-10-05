@@ -258,20 +258,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     sortedOrders.forEach(currentOrder => {
       const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
 
-      // Condition 1: New unassigned 'ready' order appears
+      // Condition: New unassigned 'ready' order appears
       const isNewAvailableOrder =
         !prevOrder &&
         !currentOrder.curier_id &&
         currentOrder.status === "ready";
 
-      // Condition 2: Order assigned to this courier changes status to 'en_route_to_kitchen' or 'picked_up_from_kitchen'
-      const isStatusChangeForAssignedOrder =
-        prevOrder &&
-        currentOrder.curier_id === curierId &&
-        prevOrder.status !== currentOrder.status &&
-        (currentOrder.status === "en_route_to_kitchen" || currentOrder.status === "picked_up_from_kitchen");
-
-      if (isNewAvailableOrder || isStatusChangeForAssignedOrder) {
+      if (isNewAvailableOrder) {
         curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
       }
     });

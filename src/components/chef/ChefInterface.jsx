@@ -238,20 +238,13 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     sortedOrders.forEach(currentOrder => {
       const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
 
-      // Condition 1: New unassigned 'new' order appears
+      // Condition: New unassigned 'new' order appears
       const isNewAvailableOrder =
         !prevOrder &&
         !currentOrder.chef_id &&
         currentOrder.status === "new";
 
-      // Condition 2: Order assigned to this chef changes status to 'preparing' or 'ready'
-      const isStatusChangeForAssignedOrder =
-        prevOrder &&
-        currentOrder.chef_id === chefId &&
-        prevOrder.status !== currentOrder.status &&
-        (currentOrder.status === "preparing" || currentOrder.status === "ready");
-
-      if (isNewAvailableOrder || isStatusChangeForAssignedOrder) {
+      if (isNewAvailableOrder) {
         chefOrderSound.current.play().catch(e => console.error("Error playing chef order sound:", e));
       }
     });
