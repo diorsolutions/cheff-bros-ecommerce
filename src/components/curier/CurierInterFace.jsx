@@ -297,7 +297,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!hasInteracted) {
       playCurierOrderSound();
     }
-  }, [hasInteracted]); // hasInteracted o'zgarganda qayta ishga tushadi
+  }, [hasInteracted]);
 
   useEffect(() => {
     const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
@@ -305,12 +305,16 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     sortedOrders.forEach(currentOrder => {
       const prevOrder = prevOrdersMap.get(currentOrder.id);
 
-      const isNewlyPreparingAndUnassigned =
-        currentOrder.status === "preparing" &&
+      // Tovush ijro etish shartini yangilash:
+      // Buyurtma "preparing" yoki "ready" statusiga o'tgan bo'lsa,
+      // va kuryerga biriktirilmagan bo'lsa,
+      // va oldingi holatda bu buyurtma "preparing" yoki "ready" statusida bo'lmagan bo'lsa (yoki kuryerga biriktirilgan bo'lsa).
+      const isNewlyAvailableForCourier =
+        (currentOrder.status === "preparing" || currentOrder.status === "ready") &&
         !currentOrder.curier_id &&
-        (!prevOrder || prevOrder.status !== "preparing");
+        (!prevOrder || !(prevOrder.status === "preparing" || prevOrder.status === "ready") || prevOrder.curier_id);
 
-      if (isNewlyPreparingAndUnassigned) {
+      if (isNewlyAvailableForCourier) {
         console.log(`[Courier Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Curier ID: ${currentOrder.curier_id})`);
         playCurierOrderSound();
       }

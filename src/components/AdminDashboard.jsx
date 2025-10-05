@@ -11,7 +11,7 @@ import {
   Truck,
   Search,
   Utensils,
-  ChefHat, // ChefHat ikonasi qo'shildi
+  ChefHat,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,51 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { generateShortOrderId } from "@/lib/utils";
-import InfoModal from "./InfoModal"; // Yangi InfoModal import qilindi
+import InfoModal from "./InfoModal";
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+
+// Umumiy tovush ijro etish funksiyasi
+const playSound = (audioRef, setHasInteracted, hasInteracted, toastTitle, toastDescription) => {
+  if (audioRef.current) {
+    audioRef.current.currentTime = 0; // Tovushni boshidan boshlash
+    audioRef.current.play().then(() => {
+      setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
+    }).catch(e => {
+      if (e.name === "NotAllowedError" && !hasInteracted) {
+        // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          action: (
+            <Button
+              onClick={() => {
+                audioRef.current.play().then(() => {
+                  setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
+                  toast({
+                    title: "Tovush yoqildi!",
+                    description: "Bildirishnoma tovushlari endi ijro etiladi.",
+                  });
+                }).catch(err => console.error("Manual play failed:", err));
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Tovushni yoqish
+            </Button>
+          ),
+          duration: 10000, // Uzoqroq ko'rsatish
+        });
+      } else if (e.name === "NotSupportedError") {
+        toast({
+          title: "Tovush fayli xatosi",
+          description: "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
+          variant: "destructive",
+        });
+      } else {
+        console.error("Error playing sound:", e);
+      }
+    });
+  }
+};
 
 const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
@@ -43,19 +87,35 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoModalTitle, setInfoModalTitle] = useState("");
   const [infoModalDescription, setInfoModalDescription] = useState("");
-  const [infoModalDetails, setInfoModalDetails] = useState([]); // FIXED: useState initialization
+  const [infoModalDetails, setInfoModalDetails] = useState([]);
 
-  const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3")); // Admin sound ref
+  const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
+  const [hasInteracted, setHasInteracted] = useLocalStorage("adminHasInteracted", false); // Admin uchun hasInteracted
+
+  const playAdminOrderSound = () => {
+    playSound(
+      adminOrderSound,
+      setHasInteracted,
+      hasInteracted,
+      "Admin tovushini yoqish kerak",
+      "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing)."
+    );
+  };
+
+  // Komponent yuklanganda tovushni proaktiv yoqishga urinish
+  useEffect(() => {
+    if (!hasInteracted) {
+      playAdminOrderSound();
+    }
+  }, [hasInteracted]);
 
   useEffect(() => {
     // Faqat yangi buyurtmalar kelganda tovush va toast ko'rsatish
     const newOrders = orders.filter((order) => order.status === "new");
-    const prevNewOrdersCount = prevOrdersCount; // Oldingi buyurtmalar soni
+    const prevNewOrdersCount = prevOrdersCount;
 
     if (newOrders.length > prevNewOrdersCount) {
-      adminOrderSound.current
-        .play()
-        .catch((e) => console.error("Error playing admin order sound:", e));
+      playAdminOrderSound(); // playSound funksiyasini chaqirish
       toast({
         title: "🔔 Yangi buyurtma!",
         description: `${
@@ -63,8 +123,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         } ta yangi buyurtma keldi`,
       });
     }
-    setPrevOrdersCount(newOrders.length); // Faqat 'new' statusidagi buyurtmalar sonini saqlash
-  }, [orders]); // orders o'zgarganda ishga tushadi
+    setPrevOrdersCount(newOrders.length);
+  }, [orders, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
 
   const getCurierInfo = (curierId) => {
     return curiers.find((c) => c.id === curierId);
@@ -108,27 +168,19 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     let statusText = "";
 
     if (status === "cancelled") {
-      // Determine who cancelled based on the order object's state
-      // If curier_id is present, it implies the courier was assigned and cancelled.
-      // If curier_id is null, and chef_id is present, it implies the chef cancelled.
       if (orderObject.curier_id && orderObject.cancellation_reason) {
-        // Courier cancelled
         statusText = `Kuryer: ${courierName || "Noma'lum"} bekor qildi`;
         if (chefName) {
-          // If chef was assigned, assume they prepared it before courier cancelled
           statusText = `Oshpaz: ${chefName} tayyorladi! ${statusText}`;
         }
       } else if (orderObject.chef_id && orderObject.cancellation_reason) {
-        // Chef cancelled
         statusText = `Oshpaz: ${chefName || "Noma'lum"} bekor qildi`;
       } else {
-        // General cancellation, e.g., by admin or unassigned
         statusText = "Bekor qilingan";
         if (chefName) statusText += ` (Oshpaz: ${chefName})`;
         if (courierName) statusText += ` (Kuryer: ${courierName})`;
       }
     } else if (curierId) {
-      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
       switch (status) {
         case "en_route_to_kitchen":
           statusText = `Kuryer: ${
@@ -146,7 +198,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           break;
       }
     } else if (chefId) {
-      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
       switch (status) {
         case "preparing":
           statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorlanmoqda`;
@@ -159,7 +210,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           break;
       }
     } else {
-      // Hech kimga biriktirilmagan buyurtmalar
       switch (status) {
         case "new":
           statusText = "Yangi";
@@ -434,7 +484,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           <span className="text-sm text-gray-400 hidden sm:inline">
                             {new Date(order.created_at).toLocaleString("uz-UZ")}
                           </span>
-                          {!order.curier_id && !order.chef_id && !isFinal ? ( // Admin faqat hech kimga biriktirilmagan buyurtmani o'zgartira oladi
+                          {!order.curier_id && !order.chef_id && !isFinal ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -453,7 +503,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                         onUpdateOrderStatus(
                                           order.id,
                                           "preparing",
-                                          null, // Admin o'zi chef bo'lmaydi
+                                          null,
                                           null
                                         )
                                       }
@@ -467,7 +517,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                         onUpdateOrderStatus(
                                           order.id,
                                           "en_route_to_kitchen",
-                                          null, // Admin o'zi curier bo'lmaydi
+                                          null,
                                           null
                                         )
                                       }
@@ -687,7 +737,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                 tayyorladi
                               </span>
                             )}{" "}
-                          {/* Chef prepared, courier cancelled */}
                         </div>
                       )}
 
@@ -724,7 +773,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               bekor qildi
                             </span>
                           )}{" "}
-                          {/* Courier cancelled */}
                         </div>
                       )}
 
