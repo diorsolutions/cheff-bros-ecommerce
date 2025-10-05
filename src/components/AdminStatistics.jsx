@@ -10,6 +10,7 @@ import {
   TrendingUp,
   TrendingDown,
   ChefHat,
+  Salad, // Masalliqlar uchun icon
 } from "lucide-react";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 
@@ -19,20 +20,32 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
     totalCancelledOrders: 0,
     dailyRevenue: 0,
     totalRevenue: 0,
-    topSellingProducts: [],
-    totalProductsCount: 0,
-    lowStockProductsCount: 0,
-    outOfStockProductsCount: 0, // Yangi: Tugagan mahsulotlar soni
+    // Mahsulotlar statistikasi olib tashlandi
+    // Masalliqlar statistikasi uchun yangi holatlar
+    totalIngredientsCount: 0,
+    lowStockIngredientsCount: 0,
+    outOfStockIngredientsCount: 0,
+    top5LowestStockIngredients: [],
     courierStats: {},
     chefStats: {},
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!orders || !products || !curiers || !chefs || !ingredients || !productIngredients) return;
+    if (!orders || !products || !curiers || !chefs || !ingredients || !productIngredients) {
+      console.log("AdminStatistics: Missing props", { orders, products, curiers, chefs, ingredients, productIngredients });
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     const calculateAdminStats = () => {
+      console.log("AdminStatistics: Calculating stats...");
+      console.log("AdminStatistics: All orders received:", orders);
+      console.log("AdminStatistics: All chefs received:", chefs);
+      console.log("AdminStatistics: All ingredients received:", ingredients);
+
+
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
@@ -40,7 +53,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
       let totalCancelledOrders = 0;
       let dailyRevenue = 0;
       let totalRevenue = 0;
-      const productSales = {};
+      const productSales = {}; // Bu hali ham eng ko'p sotilgan mahsulotlar uchun kerak bo'lishi mumkin, lekin hozircha ishlatilmaydi.
       const courierPerformance = {};
       const chefPerformance = {};
 
@@ -65,6 +78,8 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
           totalCancelled: 0,
         };
       });
+      console.log("AdminStatistics: Initial chefPerformance:", chefPerformance);
+
 
       orders.forEach((order) => {
         const orderDate = new Date(order.created_at);
@@ -77,7 +92,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
             dailyRevenue += order.total_price;
           }
 
-          // Product sales
+          // Product sales (agar keyinchalik kerak bo'lsa)
           order.items.forEach((item) => {
             if (!productSales[item.id]) {
               productSales[item.id] = { name: item.name, count: 0, revenue: 0 };
@@ -118,35 +133,34 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
           }
         }
       });
+      console.log("AdminStatistics: ChefPerformance after orders loop:", chefPerformance);
 
-      // Calculate product statistics
-      const totalProductsCount = products.length;
-      const lowStockProductsCount = products.filter(
-        (p) => {
-          const stock = calculateProductStock(p.id, products, ingredients, productIngredients);
-          return stock > 0 && stock < 5;
-        }
+
+      // Calculate ingredient statistics
+      const totalIngredientsCount = ingredients.length;
+      const lowStockIngredientsCount = ingredients.filter(
+        (ing) => ing.stock_quantity > 0 && ing.stock_quantity < 10
       ).length;
-      const outOfStockProductsCount = products.filter(
-        (p) => calculateProductStock(p.id, products, ingredients, productIngredients) === 0
+      const outOfStockIngredientsCount = ingredients.filter(
+        (ing) => ing.stock_quantity === 0
       ).length;
 
+      const top5LowestStockIngredients = ingredients
+        .filter((ing) => ing.stock_quantity > 0) // Tugagan masalliqlarni hisobga olmaymiz
+        .sort((a, b) => a.stock_quantity - b.stock_quantity)
+        .slice(0, 5);
 
-      // Sort products by sales count
-      const sortedProducts = Object.values(productSales).sort(
-        (a, b) => b.count - a.count
-      );
-      const topSellingProducts = sortedProducts.slice(0, 5);
 
       setStats({
         totalDeliveredOrders,
         totalCancelledOrders,
         dailyRevenue,
         totalRevenue,
-        topSellingProducts,
-        totalProductsCount,
-        lowStockProductsCount,
-        outOfStockProductsCount, // Yangi statni qo'shish
+        // Mahsulotlar statistikasi olib tashlandi
+        totalIngredientsCount,
+        lowStockIngredientsCount,
+        outOfStockIngredientsCount,
+        top5LowestStockIngredients,
         courierStats: courierPerformance,
         chefStats: chefPerformance,
       });
@@ -225,40 +239,38 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
         </Card>
       </div>
 
-      {/* Yangi: Mahsulotlar Statistikasi Bo'limi */}
+      {/* Yangi: Masalliqlar Statistikasi Bo'limi */}
       <h2 className="text-3xl font-bold text-white/90 mb-6 mt-8">
-        Mahsulotlar Statistikasi
+        Masalliqlar Statistikasi
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-white/10 border-gray-600">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-white/70">
-              Umumiy mahsulot ma'lumotlari
+              Umumiy masalliq ma'lumotlari
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">
-                Jami mahsulotlar:
-              </span>
+              <span className="text-white font-semibold">Jami masalliqlar:</span>
               <span className="font-medium text-white/70">
-                {stats.totalProductsCount}
+                {stats.totalIngredientsCount}
               </span>
             </div>
             <div className="flex justify-between items-center text-white/70">
               <span className="text-white font-semibold">
-                Kam qolgan mahsulotlar:
+                Kam qolgan masalliqlar:
               </span>
               <span className="font-medium text-red-600">
-                {stats.lowStockProductsCount}
+                {stats.lowStockIngredientsCount}
               </span>
             </div>
             <div className="flex justify-between items-center text-white/70">
               <span className="text-white font-semibold">
-                Tugagan mahsulotlar:
+                Tugagan masalliqlar:
               </span>
               <span className="font-medium text-red-600">
-                {stats.outOfStockProductsCount}
+                {stats.outOfStockIngredientsCount}
               </span>
             </div>
           </CardContent>
@@ -267,21 +279,21 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
         <Card className="bg-white/10 border-gray-600">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-white/70">
-              Eng ko'p sotilgan mahsulotlar
+              Eng kam qolgan masalliqlar
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {stats.topSellingProducts.length > 0 ? (
-              stats.topSellingProducts.map((product, index) => (
+            {stats.top5LowestStockIngredients.length > 0 ? (
+              stats.top5LowestStockIngredients.map((ingredient, index) => (
                 <div
                   key={index}
                   className="flex justify-between items-center text-white/70"
                 >
                   <span className="text-white font-semibold">
-                    {product.name}
+                    {ingredient.name}
                   </span>
-                  <span className="font-semibold text-green-500">
-                    {product.count} dona
+                  <span className="font-semibold text-red-600">
+                    {ingredient.stock_quantity} {ingredient.unit}
                   </span>
                 </div>
               ))
