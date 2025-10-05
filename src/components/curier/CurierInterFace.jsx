@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react"; // useRef import qilindi
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -7,7 +7,7 @@ import {
   LogOut,
   User,
   Package,
-  ChefHat, // ChefHat ikonasi qo'shildi
+  ChefHat,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,13 +25,54 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-// 'curiers' propini qabul qilish uchun qo'shildi
-const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { 
+// Umumiy tovush ijro etish funksiyasi
+const playSound = (audioRef, setHasInteracted, hasInteracted, toastTitle, toastDescription) => {
+  if (audioRef.current) {
+    audioRef.current.currentTime = 0; // Tovushni boshidan boshlash
+    audioRef.current.play().then(() => {
+      setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
+    }).catch(e => {
+      if (e.name === "NotAllowedError" && !hasInteracted) {
+        // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          action: (
+            <Button
+              onClick={() => {
+                audioRef.current.play().then(() => {
+                  setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
+                  toast({
+                    title: "Tovush yoqildi!",
+                    description: "Bildirishnoma tovushlari endi ijro etiladi.",
+                  });
+                }).catch(err => console.error("Manual play failed:", err));
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Tovushni yoqish
+            </Button>
+          ),
+          duration: 10000, // Uzoqroq ko'rsatish
+        });
+      } else if (e.name === "NotSupportedError") {
+        toast({
+          title: "Tovush fayli xatosi",
+          description: "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
+          variant: "destructive",
+        });
+      } else {
+        console.error("Error playing sound:", e);
+      }
+    });
+  }
+};
+
+const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const navigate = useNavigate();
   const [curierName, setCurierName] = useState("Kuryer");
   const [curierPhone, setCurierPhone] = useState("");
@@ -42,8 +83,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [cancellationReason, setCancellationReason] = useState("");
 
   const curierOrderSound = useRef(new Audio("/notification_curier_order.mp3"));
-  const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
-  const [hasInteracted, setHasInteracted] = useLocalStorage("curierHasInteracted", false); // Foydalanuvchi o'zaro aloqada bo'lganligini saqlash
+  const prevSortedOrdersRef = useRef([]);
+  const [hasInteracted, setHasInteracted] = useLocalStorage("curierHasInteracted", false);
 
   useEffect(() => {
     const fetchCurierInfo = async () => {
@@ -97,7 +138,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return chefs.find((c) => c.id === id);
   };
 
-  // Yangi: Kuryer ma'lumotini olish uchun funksiya
   const getCurierInfo = (id) => {
     return curiers.find((c) => c.id === id);
   };
@@ -125,14 +165,13 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const getStatusText = (status, orderChefId, orderCurierId) => {
     const assignedChefName = orderChefId ? getChefInfo(orderChefId)?.name : null;
-    const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null; 
+    const assignedCurierName = orderCurierId ? getCurierInfo(orderCurierId)?.name : null;
 
     let statusText = "";
 
     if (status === "cancelled") {
       statusText = "Bekor qilingan";
     } else if (orderCurierId) {
-      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
       switch (status) {
         case "en_route_to_kitchen":
           statusText = assignedCurierName ? `${assignedCurierName} olish uchun yo'lda` : "Olish uchun yo'lda";
@@ -144,7 +183,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           statusText = assignedCurierName ? `${assignedCurierName} mijozga yetkazdi` : "Mijozda";
           break;
         default:
-          // Agar kuryer biriktirilgan bo'lsa, lekin status hali 'preparing' yoki 'ready' bo'lsa
           if (status === "preparing") {
             statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
           } else if (status === "ready") {
@@ -155,7 +193,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
       }
     } else if (orderChefId) {
-      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
       switch (status) {
         case "preparing":
           statusText = assignedChefName ? `${assignedChefName} tayyorlanmoqda` : "Tayyorlanmoqda";
@@ -168,7 +205,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
       }
     } else {
-      // Hech kimga biriktirilmagan buyurtmalar
       switch (status) {
         case "new":
           statusText = "Yangi";
@@ -204,33 +240,27 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!curierId || !orders) return [];
 
     const relevantOrders = orders.filter(order => {
-      // 1. Oshpaz tomonidan bekor qilingan buyurtmalar kuryer interfeysidan yo'qoladi
       if (order.status === "cancelled" && order.chef_id) {
         return false;
       }
-      // 2. Mijozga yetkazilgan buyurtmalar ham kuryer interfeysidan yo'qoladi
       if (order.status === "delivered_to_customer") {
         return false;
       }
 
-      // 3. Joriy kuryerga biriktirilgan buyurtmalar har doim ko'rinadi
       if (order.curier_id === curierId) {
         return true;
       }
-      // 4. Hech kimga biriktirilmagan va 'preparing' yoki 'ready' statusidagi buyurtmalar ko'rinadi
       if (!order.curier_id && (order.status === "preparing" || order.status === "ready")) {
         return true;
       }
-      
-      // 5. Boshqa kuryerga biriktirilgan buyurtmalar ko'rinmaydi
+
       if (order.curier_id && order.curier_id !== curierId) {
           return false;
       }
 
-      return false; // Boshqa holatlarda ko'rsatilmaydi
+      return false;
     });
 
-    // Saralash: 'ready' statusidagi buyurtmalar birinchi (eng eskisi), keyin joriy kuryerning buyurtmalari (eng eskisi), keyin yakunlanganlar (eng yangisi)
     return relevantOrders.sort((a, b) => {
       const statusOrder = { "ready": 1, "preparing": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "delivered_to_customer": 5, "cancelled": 6 };
 
@@ -244,50 +274,30 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         return statusOrder[a.status] - statusOrder[b.status];
       }
 
-      // 'ready', 'preparing', 'en_route_to_kitchen' uchun eng eskisi birinchi
       if (a.status === "ready" || a.status === "preparing" || a.status === "en_route_to_kitchen") {
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       } else {
-        // Boshqa statuslar uchun eng yangisi birinchi
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
   }, [orders, curierId]);
 
   const playCurierOrderSound = () => {
-    if (curierOrderSound.current) {
-      curierOrderSound.current.currentTime = 0; // Reset audio to play from start
-      curierOrderSound.current.play().then(() => {
-        setHasInteracted(true); // Agar muvaffaqiyatli ijro etilsa, foydalanuvchi o'zaro aloqada bo'lgan deb belgilash
-      }).catch(e => {
-        if (e.name === "NotAllowedError" && !hasInteracted) {
-          toast({
-            title: "Tovushni yoqish kerak",
-            description: "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing).",
-            action: (
-              <Button
-                onClick={() => {
-                  curierOrderSound.current.play().then(() => {
-                    setHasInteracted(true);
-                    toast({
-                      title: "Tovush yoqildi!",
-                      description: "Yangi buyurtma tovushlari endi ijro etiladi.",
-                    });
-                  }).catch(err => console.error("Manual play failed:", err));
-                }}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                Tovushni yoqish
-              </Button>
-            ),
-            duration: 10000, // Uzoqroq ko'rsatish
-          });
-        } else {
-          console.error("Error playing courier order sound:", e);
-        }
-      });
-    }
+    playSound(
+      curierOrderSound,
+      setHasInteracted,
+      hasInteracted,
+      "Kuryer tovushini yoqish kerak",
+      "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing)."
+    );
   };
+
+  // Komponent yuklanganda tovushni proaktiv yoqishga urinish
+  useEffect(() => {
+    if (!hasInteracted) {
+      playCurierOrderSound();
+    }
+  }, [hasInteracted]); // hasInteracted o'zgarganda qayta ishga tushadi
 
   useEffect(() => {
     const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
@@ -295,7 +305,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     sortedOrders.forEach(currentOrder => {
       const prevOrder = prevOrdersMap.get(currentOrder.id);
 
-      // Condition: An order transitions to "preparing" and is unassigned, AND it wasn't "preparing" before.
       const isNewlyPreparingAndUnassigned =
         currentOrder.status === "preparing" &&
         !currentOrder.curier_id &&
@@ -308,7 +317,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     });
 
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders, curierId, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
+  }, [sortedOrders, curierId]); // hasInteracted dependency'dan olib tashlandi
 
   const activeOrdersCount = sortedOrders.filter(
     (order) =>
@@ -319,14 +328,11 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const canTakeNewOrder = activeOrdersCount < 2;
 
-  // "Olish uchun yo'lda" tugmasi uchun disabled holat
   const isPickupButtonDisabled = (order) => {
     return !canTakeNewOrder || order.curier_id !== null;
   };
 
-  // "Buyurtma menda" tugmasi uchun disabled holat va matn logikasi
   const isPickedUpButtonDisabled = (order) => {
-    // Tugma faqat buyurtma joriy kuryerga biriktirilgan bo'lsa va status 'ready' bo'lmasa disabled bo'ladi.
     return order.curier_id === curierId && order.status !== "ready";
   };
 
@@ -410,7 +416,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
               </Card>
             ) : (
               sortedOrders.map((order) => {
-                const isNew = order.status === "new"; 
+                const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
                 const isEnRouteToKitchen =
@@ -448,8 +454,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           : order.status === "en_route_to_kitchen"
                           ? "bg-yellow-100 border-yellow-300"
                           : order.status === "ready"
-                          ? "bg-green-50/50 border-green-100" // Tayyor buyurtmalar uchun yengil fon
-                          : isPreparing // Tayyorlanmoqda buyurtmalar uchun ham yengil fon
+                          ? "bg-green-50/50 border-green-100"
+                          : isPreparing
                           ? "bg-yellow-50/50 border-yellow-100"
                           : "bg-white"
                       }`}
@@ -510,7 +516,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             Ochish
                           </a>
                         </p>
-                        {/* Buyurtma mahsulotlari */}
                         <div className="border-t border-gray-300 pt-2 mt-2">
                           <h4 className="font-medium text-gray-800 mb-2 text-base">
                             Buyurtma tafsilotlari

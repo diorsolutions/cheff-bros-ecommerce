@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react"; // useRef import qilindi
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle,
@@ -9,7 +9,7 @@ import {
   Clock,
   ChefHat,
   Search,
-  Truck, // Kuryer statusini ko'rsatish uchun
+  Truck,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,50 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+// Umumiy tovush ijro etish funksiyasi
+const playSound = (audioRef, setHasInteracted, hasInteracted, toastTitle, toastDescription) => {
+  if (audioRef.current) {
+    audioRef.current.currentTime = 0; // Tovushni boshidan boshlash
+    audioRef.current.play().then(() => {
+      setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
+    }).catch(e => {
+      if (e.name === "NotAllowedError" && !hasInteracted) {
+        // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
+        toast({
+          title: toastTitle,
+          description: toastDescription,
+          action: (
+            <Button
+              onClick={() => {
+                audioRef.current.play().then(() => {
+                  setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
+                  toast({
+                    title: "Tovush yoqildi!",
+                    description: "Bildirishnoma tovushlari endi ijro etiladi.",
+                  });
+                }).catch(err => console.error("Manual play failed:", err));
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Tovushni yoqish
+            </Button>
+          ),
+          duration: 10000, // Uzoqroq ko'rsatish
+        });
+      } else if (e.name === "NotSupportedError") {
+        toast({
+          title: "Tovush fayli xatosi",
+          description: "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
+          variant: "destructive",
+        });
+      } else {
+        console.error("Error playing sound:", e);
+      }
+    });
+  }
+};
 
 const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const navigate = useNavigate();
@@ -44,8 +87,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const chefOrderSound = useRef(new Audio("/notification_chef_sound.mp3"));
-  const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
-  const [hasInteracted, setHasInteracted] = useLocalStorage("chefHasInteracted", false); // Foydalanuvchi o'zaro aloqada bo'lganligini saqlash
+  const prevSortedOrdersRef = useRef([]);
+  const [hasInteracted, setHasInteracted] = useLocalStorage("chefHasInteracted", false);
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -137,7 +180,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (status === "cancelled") {
       statusText = "Bekor qilingan";
     } else if (orderCurierId) {
-      // Kuryerga biriktirilgan bo'lsa, kuryer statusini ko'rsatish
       switch (status) {
         case "en_route_to_kitchen":
           statusText = assignedCurierName
@@ -161,7 +203,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
       }
     } else if (orderChefId) {
-      // Oshpazga biriktirilgan bo'lsa, oshpaz statusini ko'rsatish
       switch (status) {
         case "preparing":
           statusText = assignedChefName
@@ -180,7 +221,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
       }
     } else {
-      // Hech kimga biriktirilmagan buyurtmalar
       switch (status) {
         case "new":
           statusText = "Yangi";
@@ -213,21 +253,17 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!orders || !chefId) return [];
 
     let filtered = orders.filter((order) => {
-      // Kuryer tomonidan yetkazilgan yoki bekor qilingan buyurtmalarni butunlay yashirish
       if (
         order.status === "delivered_to_customer" ||
         order.status === "cancelled"
       ) {
         return false;
       }
-
-      // Oshpazga biriktirilgan buyurtmalar yoki hech kimga biriktirilmagan 'new' buyurtmalar ko'rinadi.
       return (
         order.chef_id === chefId || (!order.chef_id && order.status === "new")
       );
     });
 
-    // Qidiruv filtri
     if (searchTerm.trim()) {
       const lowerCaseSearchTerm = searchTerm.trim().toLowerCase();
       filtered = filtered.filter((order) =>
@@ -235,11 +271,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       );
     }
 
-    // Saralash: "preparing" statusidagi buyurtmalar eng tepada, keyin "new", keyin "ready", keyin qolganlari.
-    // Har bir status ichida yaratilish sanasi bo'yicha saralash (eng eskisi birinchi).
     return filtered.sort((a, b) => {
       const statusOrder = {
-        preparing: 1, // "Tayyorlanmoqda" eng yuqorida
+        preparing: 1,
         new: 2,
         ready: 3,
         en_route_to_kitchen: 4,
@@ -255,44 +289,26 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
       return (
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      ); // Oldest first
+      );
     });
   }, [orders, searchTerm, chefId]);
 
   const playChefOrderSound = () => {
-    if (chefOrderSound.current) {
-      chefOrderSound.current.currentTime = 0; // Reset audio to play from start
-      chefOrderSound.current.play().then(() => {
-        setHasInteracted(true); // Agar muvaffaqiyatli ijro etilsa, foydalanuvchi o'zaro aloqada bo'lgan deb belgilash
-      }).catch(e => {
-        if (e.name === "NotAllowedError" && !hasInteracted) {
-          toast({
-            title: "Tovushni yoqish kerak",
-            description: "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing).",
-            action: (
-              <Button
-                onClick={() => {
-                  chefOrderSound.current.play().then(() => {
-                    setHasInteracted(true);
-                    toast({
-                      title: "Tovush yoqildi!",
-                      description: "Yangi buyurtma tovushlari endi ijro etiladi.",
-                    });
-                  }).catch(err => console.error("Manual play failed:", err));
-                }}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                Tovushni yoqish
-              </Button>
-            ),
-            duration: 10000, // Uzoqroq ko'rsatish
-          });
-        } else {
-          console.error("Error playing chef order sound:", e);
-        }
-      });
-    }
+    playSound(
+      chefOrderSound,
+      setHasInteracted,
+      hasInteracted,
+      "Oshpaz tovushini yoqish kerak",
+      "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing)."
+    );
   };
+
+  // Komponent yuklanganda tovushni proaktiv yoqishga urinish
+  useEffect(() => {
+    if (!hasInteracted) {
+      playChefOrderSound();
+    }
+  }, [hasInteracted]); // hasInteracted o'zgarganda qayta ishga tushadi
 
   useEffect(() => {
     const prevOrders = prevSortedOrdersRef.current;
@@ -300,7 +316,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     sortedOrders.forEach((currentOrder) => {
       const prevOrder = prevOrders.find((o) => o.id === currentOrder.id);
 
-      // Condition: New unassigned 'new' order appears
       const isNewAvailableOrder =
         !prevOrder && !currentOrder.chef_id && currentOrder.status === "new";
 
@@ -309,9 +324,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
     });
 
-    // Update ref for next render
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders, chefId, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
+  }, [sortedOrders, chefId]); // hasInteracted dependency'dan olib tashlandi
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
@@ -373,7 +387,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         </div>
       </header>
       <main className="p-4 sm:p-6 bg-[#f6f6f6]">
-        {/* Qidiruv maydoni */}
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
@@ -403,20 +416,17 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
                 const isEnRouteToKitchen =
-                  order.curier_id && order.status === "en_route_to_kitchen"; // Kuryer biriktirilgan va yo'lda
+                  order.curier_id && order.status === "en_route_to_kitchen";
                 const isPickedUpFromKitchen =
-                  order.curier_id && order.status === "picked_up_from_kitchen"; // Kuryer biriktirilgan va olib ketgan
+                  order.curier_id && order.status === "picked_up_from_kitchen";
                 const isDelivered = order.status === "delivered_to_customer";
                 const isCancelled = order.status === "cancelled";
 
                 const isAssignedToThisChef = order.chef_id === chefId;
-                const isUnassignedNewOrder = !order.chef_id && isNew;
 
-                // Tugmalar uchun harakatlarni o'chirish logikasi
                 const canMarkPreparing =
                   (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
-                // Bekor qilish tugmasi faqat buyurtma kuryer tomonidan olinmagan bo'lsa ko'rinadi
                 const canCancel =
                   (isNew || isPreparing || isReady || isEnRouteToKitchen) &&
                   !isPickedUpFromKitchen &&
@@ -434,7 +444,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   >
                     <Card
                       className={`bg-white border-gray-300 shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] transition-all duration-300 ${
-                        isDelivered ? "opacity-60" : "" // Yetkazilgan bo'lganda xiralashadi
+                        isDelivered ? "opacity-60" : ""
                       }`}
                     >
                       <CardHeader className="pb-3">
@@ -543,10 +553,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 ? "bg-green-100 text-green-600"
                                 : order.curier_id &&
                                   order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-100 text-yellow-600" // Kuryerga biriktirilgan va yo'lda
+                                ? "bg-yellow-100 text-yellow-600"
                                 : order.curier_id &&
                                   order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600" // Kuryerga biriktirilgan va olib ketgan
+                                ? "bg-orange-100 text-orange-600"
                                 : isDelivered
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
@@ -584,7 +594,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           </div>
                         )}
 
-                        {/* Harakat tugmalari */}
                         <div className="flex gap-2 mt-4 flex-wrap">
                           {canMarkPreparing && (
                             <Button
