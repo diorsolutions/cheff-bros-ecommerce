@@ -245,7 +245,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         currentOrder.status === "new";        // Status is 'new'
 
       if (isNewUnassignedOrderForChef) {
-        console.log(`Playing sound for new unassigned order for chef: ${generateShortOrderId(currentOrder.id)}`);
+        console.log(`[Chef Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Chef ID: ${currentOrder.chef_id})`);
+        chefOrderSound.current.currentTime = 0; // Reset audio to play from start
         chefOrderSound.current.play().catch(e => console.error("Error playing chef order sound:", e));
       }
     });

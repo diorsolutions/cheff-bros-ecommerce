@@ -265,7 +265,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         (!prevOrder || prevOrder.status !== "ready"); // Either new to list, or status changed from non-ready to ready
 
       if (isNewlyReadyAndUnassigned) {
-        console.log(`Playing sound for newly ready and unassigned order: ${generateShortOrderId(currentOrder.id)}`);
+        console.log(`[Courier Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Curier ID: ${currentOrder.curier_id})`);
+        curierOrderSound.current.currentTime = 0; // Reset audio to play from start
         curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
       }
     });
