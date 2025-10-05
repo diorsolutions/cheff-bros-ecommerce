@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Truck, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Utensils, Truck, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { generateShortOrderId } from "@/lib/utils";
 import { useWindowSize } from "react-use"; // useWindowSize import qilindi
@@ -108,8 +108,9 @@ const ClientOrderStatusModal = ({
     if (isMobile && !isExpanded) {
       return (
         <div className="bg-transparent flex items-center justify-center flex-row gap-2">
-          {mainStatusIcon}
-          <span className="font-semibold text-lg text-gray-100">
+          {<Upload className="h-6 w-6 text-white" />}
+            {/* {mainStatusIcon} */}
+          <span className="flex items-center justify-start gap-2 font-semibold text-lg text-gray-100">
             Buyurtmangizni ayni vaqtda:
           </span>
         </div>

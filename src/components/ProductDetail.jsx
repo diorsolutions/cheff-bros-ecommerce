@@ -61,6 +61,8 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
           } else {
             setProduct(payload.new);
             // Realtime yangilanishda ham stokni qayta hisoblash
+            // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
+            // ular App.jsx da yangilanganda bu yerda ham avtomatik yangi qiymatlar ishlatiladi.
             const stock = calculateProductStock(payload.new.id, products, ingredients, productIngredients);
             setCalculatedStock(stock);
           }
@@ -68,42 +70,18 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
       )
       .subscribe();
 
-    // Ingredients va productIngredients o'zgarganda ham stokni qayta hisoblash
-    const ingredientChannel = supabase
-      .channel(`ingredient-changes-for-product-${id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ingredients" },
-        (payload) => {
-          if (product) {
-            const stock = calculateProductStock(product.id, products, ingredients, productIngredients);
-            setCalculatedStock(stock);
-          }
-        }
-      )
-      .subscribe();
-
-    const productIngredientChannel = supabase
-      .channel(`product_ingredient-changes-for-product-${id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "product_ingredients", filter: `product_id=eq.${id}` },
-        (payload) => {
-          if (product) {
-            const stock = calculateProductStock(product.id, products, ingredients, productIngredients);
-            setCalculatedStock(stock);
-          }
-        }
-      )
-      .subscribe();
-
+    // `ingredientChannel` va `productIngredientChannel` obunalari olib tashlandi.
+    // Chunki `App.jsx` allaqachon bu ma'lumotlarni real-time yangilab turadi
+    // va ularni `ProductDetail` komponentiga prop sifatida uzatadi.
+    // `calculateProductStock` funksiyasi har doim eng so'nggi prop qiymatlaridan foydalanadi.
 
     return () => {
       supabase.removeChannel(channel);
-      supabase.removeChannel(ingredientChannel);
-      supabase.removeChannel(productIngredientChannel);
     };
-  }, [id, navigate, products, ingredients, productIngredients, product]); // product ham dependency ga qo'shildi
+  }, [id, navigate, products, ingredients, productIngredients]); // `product` dependency array'dan olib tashlandi
+  // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
+  // ularning o'zgarishi `useEffect` ni qayta ishga tushirishi kerak,
+  // chunki `calculateProductStock` ularga bog'liq.
 
   if (loading) {
     return (

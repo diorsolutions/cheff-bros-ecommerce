@@ -52,7 +52,8 @@ function App() {
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
-  const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", { // localStorage bilan bog'landi
+  const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
+    // localStorage bilan bog'landi
     name: "",
     phone: "",
   });
@@ -61,7 +62,10 @@ function App() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Yangi: Mijozning faol buyurtmasi ID'si
-  const [activeCustomerOrderIds, setActiveCustomerOrderIds] = useLocalStorage("activeCustomerOrderIds", []); // localStorage bilan bog'landi
+  const [activeCustomerOrderIds, setActiveCustomerOrderIds] = useLocalStorage(
+    "activeCustomerOrderIds",
+    []
+  ); // localStorage bilan bog'landi
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -213,16 +217,21 @@ function App() {
 
       // Yangi: Product-Ingredient bog'lanishlarini yuklash
       try {
-        const { data: productIngredientsData, error: productIngredientsErr } = await supabase
-          .from("product_ingredients")
-          .select("*");
+        const { data: productIngredientsData, error: productIngredientsErr } =
+          await supabase.from("product_ingredients").select("*");
         if (productIngredientsErr) {
-          console.error("Mahsulot-masalliq bog'lanishlarini yuklashda xatolik:", productIngredientsErr);
+          console.error(
+            "Mahsulot-masalliq bog'lanishlarini yuklashda xatolik:",
+            productIngredientsErr
+          );
         } else {
           setProductIngredients(productIngredientsData || []);
         }
       } catch (e) {
-        console.error("Mahsulot-masalliq bog'lanishlarini kutilmagan xatolik:", e);
+        console.error(
+          "Mahsulot-masalliq bog'lanishlarini kutilmagan xatolik:",
+          e
+        );
       }
     };
 
@@ -279,12 +288,19 @@ function App() {
                 prev.map((o) => (o.id === payload.new.id ? payload.new : o))
               );
               // Buyurtma statusi o'zgarganda, agar u yetkazilgan yoki bekor qilingan bo'lsa, activeCustomerOrderIds dan olib tashlash
-              if (payload.new.status === "delivered_to_customer" || payload.new.status === "cancelled") {
-                setActiveCustomerOrderIds(prevIds => prevIds.filter(id => id !== payload.new.id));
+              if (
+                payload.new.status === "delivered_to_customer" ||
+                payload.new.status === "cancelled"
+              ) {
+                setActiveCustomerOrderIds((prevIds) =>
+                  prevIds.filter((id) => id !== payload.new.id)
+                );
               }
             } else if (payload.eventType === "DELETE") {
               setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
-              setActiveCustomerOrderIds(prevIds => prevIds.filter(id => id !== payload.old.id));
+              setActiveCustomerOrderIds((prevIds) =>
+                prevIds.filter((id) => id !== payload.old.id)
+              );
             }
           }
         )
@@ -370,7 +386,9 @@ function App() {
                 prev.map((i) => (i.id === payload.new.id ? payload.new : i))
               );
             } else if (payload.eventType === "DELETE") {
-              setIngredients((prev) => prev.filter((i) => i.id !== payload.old.id));
+              setIngredients((prev) =>
+                prev.filter((i) => i.id !== payload.old.id)
+              );
             }
           }
         )
@@ -391,18 +409,33 @@ function App() {
               setProductIngredients((prev) => [...prev, payload.new]);
             } else if (payload.eventType === "UPDATE") {
               setProductIngredients((prev) =>
-                prev.map((pi) => (pi.product_id === payload.new.product_id && pi.ingredient_id === payload.new.ingredient_id ? payload.new : pi))
+                prev.map((pi) =>
+                  pi.product_id === payload.new.product_id &&
+                  pi.ingredient_id === payload.new.ingredient_id
+                    ? payload.new
+                    : pi
+                )
               );
             } else if (payload.eventType === "DELETE") {
-              setProductIngredients((prev) => prev.filter((pi) => !(pi.product_id === payload.old.product_id && pi.ingredient_id === payload.old.ingredient_id)));
+              setProductIngredients((prev) =>
+                prev.filter(
+                  (pi) =>
+                    !(
+                      pi.product_id === payload.old.product_id &&
+                      pi.ingredient_id === payload.old.ingredient_id
+                    )
+                )
+              );
             }
           }
         )
         .subscribe();
     } catch (e) {
-      console.error("Error subscribing to product_ingredients real-time channel:", e);
+      console.error(
+        "Error subscribing to product_ingredients real-time channel:",
+        e
+      );
     }
-
 
     return () => {
       if (productChannel) supabase.removeChannel(productChannel);
@@ -411,7 +444,8 @@ function App() {
       if (curierChannel) supabase.removeChannel(curierChannel);
       if (chefChannel) supabase.removeChannel(chefChannel);
       if (ingredientChannel) supabase.removeChannel(ingredientChannel);
-      if (productIngredientChannel) supabase.removeChannel(productIngredientChannel);
+      if (productIngredientChannel)
+        supabase.removeChannel(productIngredientChannel);
     };
   }, [customerInfo.phone]);
 
@@ -473,7 +507,12 @@ function App() {
 
     // Masalliqlar stokini tekshirish
     for (const item of items) {
-      const availableStock = calculateProductStock(item.id, products, ingredients, productIngredients);
+      const availableStock = calculateProductStock(
+        item.id,
+        products,
+        ingredients,
+        productIngredients
+      );
       if (availableStock < item.quantity) {
         toast({
           title: "Xatolik!",
@@ -488,11 +527,16 @@ function App() {
 
     // Masalliqlar stokini kamaytirish
     for (const item of items) {
-      const productIngredientsNeeded = productIngredients.filter(pi => pi.product_id === item.id);
+      const productIngredientsNeeded = productIngredients.filter(
+        (pi) => pi.product_id === item.id
+      );
       for (const prodIng of productIngredientsNeeded) {
-        const ingredient = ingredients.find(ing => ing.id === prodIng.ingredient_id);
+        const ingredient = ingredients.find(
+          (ing) => ing.id === prodIng.ingredient_id
+        );
         if (ingredient) {
-          const newStock = ingredient.stock_quantity - (prodIng.quantity_needed * item.quantity);
+          const newStock =
+            ingredient.stock_quantity - prodIng.quantity_needed * item.quantity;
           await supabase
             .from("ingredients")
             .update({ stock_quantity: newStock })
@@ -528,14 +572,14 @@ function App() {
 
     const boldItemNames = items.map((item) => `*${item.name}*`).join(", ");
 
-    const systemMessage = `Sizning 
-    ${boldItemNames}
-    nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Buyurtma ID: *${shortOrderId}*. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
+    // const systemMessage = `Sizning
+    // ${boldItemNames}
+    // nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Buyurtma ID: *${shortOrderId}*. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
 
-    await handleSendMessage(customer.phone, systemMessage);
+    // await handleSendMessage(customer.phone, systemMessage);
 
     // Yangi: Faol buyurtma ID'sini o'rnatish
-    setActiveCustomerOrderIds(prevIds => [...prevIds, insertedOrder.id]);
+    setActiveCustomerOrderIds((prevIds) => [...prevIds, insertedOrder.id]);
 
     setCartItems([]); // Savatni tozalash
     toast({
@@ -858,13 +902,15 @@ function App() {
         />
         <Route
           path="/product/:id"
-          element={<ProductDetail 
-            onAddToCart={addToCart} 
-            products={products} // products propini uzatish
-            ingredients={ingredients} // ingredients propini uzatish
-            productIngredients={productIngredients} // productIngredients propini uzatish
-            cartItems={cartItems} // Yangi: cartItems propini uzatish
-          />}
+          element={
+            <ProductDetail
+              onAddToCart={addToCart}
+              products={products} // products propini uzatish
+              ingredients={ingredients} // ingredients propini uzatish
+              productIngredients={productIngredients} // productIngredients propini uzatish
+              cartItems={cartItems} // Yangi: cartItems propini uzatish
+            />
+          }
         />
         <Route
           path="/"
@@ -939,12 +985,12 @@ function MainLayout({
 
   useEffect(() => {
     if (isMiniChatOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMiniChatOpen]);
 
@@ -972,14 +1018,19 @@ function MainLayout({
             </div>
 
             <div className="flex items-center gap-4">
-              <MiniChat messages={messages} isPopoverOpen={isMiniChatOpen} setIsPopoverOpen={setIsMiniChatOpen} /> {/* MiniChat bu yerga ko'chirildi */}
+              <MiniChat
+                messages={messages}
+                isPopoverOpen={isMiniChatOpen}
+                setIsPopoverOpen={setIsMiniChatOpen}
+              />{" "}
+              {/* MiniChat bu yerga ko'chirildi */}
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
-                className="extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
+                className="mob_small:rounded-full extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
               >
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Buyurtma berish
+                <ShoppingCart className="h-3 w-3 mob_small:scale-x-150" />
+                <span className="mob_small:hidden">Buyurtma berish</span>
                 {cartItemsCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
                     {cartItemsCount}
@@ -990,7 +1041,11 @@ function MainLayout({
           </div>
         </div>
       </header>
-      <main className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${isMiniChatOpen ? 'blur-sm pointer-events-none' : ''}`}>
+      <main
+        className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${
+          isMiniChatOpen ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
