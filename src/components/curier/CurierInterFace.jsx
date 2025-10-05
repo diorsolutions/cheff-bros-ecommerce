@@ -265,9 +265,23 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         (!prevOrder || prevOrder.status !== "ready"); // Either new to list, or status changed from non-ready to ready
 
       if (isNewlyReadyAndUnassigned) {
-        console.log(`[Courier Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Curier ID: ${currentOrder.curier_id})`);
-        curierOrderSound.current.currentTime = 0; // Reset audio to play from start
-        curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
+        console.log(`[Courier Sound] Detected new ready and unassigned order: ${generateShortOrderId(currentOrder.id)}. Attempting to play sound.`);
+        if (curierOrderSound.current) {
+          curierOrderSound.current.currentTime = 0; // Reset audio to play from start
+          curierOrderSound.current.play().then(() => {
+            console.log(`[Courier Sound] Successfully played sound for order: ${generateShortOrderId(currentOrder.id)}`);
+          }).catch(e => {
+            console.error(`[Courier Sound] Error playing sound for order ${generateShortOrderId(currentOrder.id)}:`, e);
+            // Additional toast for debugging if sound fails
+            toast({
+              title: "Tovush xatosi",
+              description: `Kuryer buyurtmasi tovushini ijro etib bo'lmadi: ${e.message}`,
+              variant: "destructive",
+            });
+          });
+        } else {
+          console.error("[Courier Sound] Audio element (curierOrderSound.current) is null.");
+        }
       }
     });
 
