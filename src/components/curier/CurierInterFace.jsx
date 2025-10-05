@@ -28,6 +28,7 @@ import {
 
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
 // 'curiers' propini qabul qilish uchun qo'shildi
 const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => { 
@@ -42,6 +43,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const curierOrderSound = useRef(new Audio("/notification_curier_order.mp3"));
   const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
+  const [hasInteracted, setHasInteracted] = useLocalStorage("curierHasInteracted", false); // Foydalanuvchi o'zaro aloqada bo'lganligini saqlash
 
   useEffect(() => {
     const fetchCurierInfo = async () => {
@@ -252,6 +254,41 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     });
   }, [orders, curierId]);
 
+  const playCurierOrderSound = () => {
+    if (curierOrderSound.current) {
+      curierOrderSound.current.currentTime = 0; // Reset audio to play from start
+      curierOrderSound.current.play().then(() => {
+        setHasInteracted(true); // Agar muvaffaqiyatli ijro etilsa, foydalanuvchi o'zaro aloqada bo'lgan deb belgilash
+      }).catch(e => {
+        if (e.name === "NotAllowedError" && !hasInteracted) {
+          toast({
+            title: "Tovushni yoqish kerak",
+            description: "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing).",
+            action: (
+              <Button
+                onClick={() => {
+                  curierOrderSound.current.play().then(() => {
+                    setHasInteracted(true);
+                    toast({
+                      title: "Tovush yoqildi!",
+                      description: "Yangi buyurtma tovushlari endi ijro etiladi.",
+                    });
+                  }).catch(err => console.error("Manual play failed:", err));
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Tovushni yoqish
+              </Button>
+            ),
+            duration: 10000, // Uzoqroq ko'rsatish
+          });
+        } else {
+          console.error("Error playing courier order sound:", e);
+        }
+      });
+    }
+  };
+
   useEffect(() => {
     const prevOrdersMap = new Map(prevSortedOrdersRef.current.map(o => [o.id, o]));
 
@@ -266,13 +303,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
       if (isNewlyPreparingAndUnassigned) {
         console.log(`[Courier Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Curier ID: ${currentOrder.curier_id})`);
-        curierOrderSound.current.currentTime = 0; // Reset audio to play from start
-        curierOrderSound.current.play().catch(e => console.error("Error playing courier order sound:", e));
+        playCurierOrderSound();
       }
     });
 
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders, curierId]);
+  }, [sortedOrders, curierId, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
 
   const activeOrdersCount = sortedOrders.filter(
     (order) =>

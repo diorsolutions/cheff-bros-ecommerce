@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
 const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
   const chefOrderSound = useRef(new Audio("/notification_chef_sound.mp3"));
   const prevSortedOrdersRef = useRef([]); // To store previous sorted orders for comparison
+  const [hasInteracted, setHasInteracted] = useLocalStorage("chefHasInteracted", false); // Foydalanuvchi o'zaro aloqada bo'lganligini saqlash
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -257,6 +259,41 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     });
   }, [orders, searchTerm, chefId]);
 
+  const playChefOrderSound = () => {
+    if (chefOrderSound.current) {
+      chefOrderSound.current.currentTime = 0; // Reset audio to play from start
+      chefOrderSound.current.play().then(() => {
+        setHasInteracted(true); // Agar muvaffaqiyatli ijro etilsa, foydalanuvchi o'zaro aloqada bo'lgan deb belgilash
+      }).catch(e => {
+        if (e.name === "NotAllowedError" && !hasInteracted) {
+          toast({
+            title: "Tovushni yoqish kerak",
+            description: "Yangi buyurtma tovushini eshitish uchun sahifa bilan o'zaro aloqada bo'ling (masalan, tugmani bosing).",
+            action: (
+              <Button
+                onClick={() => {
+                  chefOrderSound.current.play().then(() => {
+                    setHasInteracted(true);
+                    toast({
+                      title: "Tovush yoqildi!",
+                      description: "Yangi buyurtma tovushlari endi ijro etiladi.",
+                    });
+                  }).catch(err => console.error("Manual play failed:", err));
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Tovushni yoqish
+              </Button>
+            ),
+            duration: 10000, // Uzoqroq ko'rsatish
+          });
+        } else {
+          console.error("Error playing chef order sound:", e);
+        }
+      });
+    }
+  };
+
   useEffect(() => {
     const prevOrders = prevSortedOrdersRef.current;
 
@@ -268,15 +305,13 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         !prevOrder && !currentOrder.chef_id && currentOrder.status === "new";
 
       if (isNewAvailableOrder) {
-        chefOrderSound.current
-          .play()
-          .catch((e) => console.error("Error playing chef order sound:", e));
+        playChefOrderSound();
       }
     });
 
     // Update ref for next render
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders, chefId]);
+  }, [sortedOrders, chefId, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
 
   const handleCancelClick = (order) => {
     setCurrentOrderToCancel(order);
