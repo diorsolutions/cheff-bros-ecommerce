@@ -9,10 +9,11 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  ChefHat, // Yangi: Chef iconi
+  ChefHat,
 } from "lucide-react";
+import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 
-const AdminStatistics = ({ orders, products, curiers, chefs }) => {
+const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, productIngredients }) => {
   const [stats, setStats] = useState({
     totalDeliveredOrders: 0,
     totalCancelledOrders: 0,
@@ -21,13 +22,14 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
     topSellingProducts: [],
     totalProductsCount: 0,
     lowStockProductsCount: 0,
+    outOfStockProductsCount: 0, // Yangi: Tugagan mahsulotlar soni
     courierStats: {},
-    chefStats: {}, // Yangi: Oshpazlar statistikasi
+    chefStats: {},
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!orders || !products || !curiers || !chefs) return;
+    if (!orders || !products || !curiers || !chefs || !ingredients || !productIngredients) return;
 
     setLoading(true);
     const calculateAdminStats = () => {
@@ -40,7 +42,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
       let totalRevenue = 0;
       const productSales = {};
       const courierPerformance = {};
-      const chefPerformance = {}; // Yangi: Oshpazlar ishlashi
+      const chefPerformance = {};
 
       // Initialize courier stats
       curiers.forEach((curier) => {
@@ -100,7 +102,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
               courierPerformance[order.curier_id].todayCancelled++;
             }
           }
-          // Chef performance for cancelled orders
+          // Chef performance for cancelled orders (if a chef was assigned)
           if (order.chef_id && chefPerformance[order.chef_id]) {
             chefPerformance[order.chef_id].totalCancelled++;
             if (orderDate.getTime() === now.getTime()) {
@@ -120,8 +122,15 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
       // Calculate product statistics
       const totalProductsCount = products.length;
       const lowStockProductsCount = products.filter(
-        (p) => p.stock > 0 && p.stock < 5
+        (p) => {
+          const stock = calculateProductStock(p.id, products, ingredients, productIngredients);
+          return stock > 0 && stock < 5;
+        }
       ).length;
+      const outOfStockProductsCount = products.filter(
+        (p) => calculateProductStock(p.id, products, ingredients, productIngredients) === 0
+      ).length;
+
 
       // Sort products by sales count
       const sortedProducts = Object.values(productSales).sort(
@@ -137,14 +146,15 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
         topSellingProducts,
         totalProductsCount,
         lowStockProductsCount,
+        outOfStockProductsCount, // Yangi statni qo'shish
         courierStats: courierPerformance,
-        chefStats: chefPerformance, // Yangi: Oshpazlar statistikasi
+        chefStats: chefPerformance,
       });
       setLoading(false);
     };
 
     calculateAdminStats();
-  }, [orders, products, curiers, chefs]);
+  }, [orders, products, curiers, chefs, ingredients, productIngredients]);
 
   if (loading) {
     return (
@@ -215,7 +225,45 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
         </Card>
       </div>
 
+      {/* Yangi: Mahsulotlar Statistikasi Bo'limi */}
+      <h2 className="text-3xl font-bold text-white/90 mb-6 mt-8">
+        Mahsulotlar Statistikasi
+      </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-white/10 border-gray-600">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-white/70">
+              Umumiy mahsulot ma'lumotlari
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex justify-between items-center text-white/70">
+              <span className="text-white font-semibold">
+                Jami mahsulotlar:
+              </span>
+              <span className="font-medium text-white/70">
+                {stats.totalProductsCount}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-white/70">
+              <span className="text-white font-semibold">
+                Kam qolgan mahsulotlar:
+              </span>
+              <span className="font-medium text-red-600">
+                {stats.lowStockProductsCount}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-white/70">
+              <span className="text-white font-semibold">
+                Tugagan mahsulotlar:
+              </span>
+              <span className="font-medium text-red-600">
+                {stats.outOfStockProductsCount}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-white/10 border-gray-600">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-white/70">
@@ -240,31 +288,6 @@ const AdminStatistics = ({ orders, products, curiers, chefs }) => {
             ) : (
               <p className="text-gray-600">Ma'lumotlar yo'q</p>
             )}
-          </CardContent>
-        </Card>
-        <Card className="bg-white/10 border-gray-600">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-white/70">
-              Mahsulotlar haqida
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">
-                Jami mahsulotlar:
-              </span>
-              <span className="font-medium text-white/70">
-                {stats.totalProductsCount}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">
-                Kam qolgan mahsulotlar:
-              </span>
-              <span className="font-medium text-red-600">
-                {stats.lowStockProductsCount}
-              </span>
-            </div>
           </CardContent>
         </Card>
       </div>

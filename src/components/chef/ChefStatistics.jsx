@@ -11,7 +11,10 @@ const ChefStatistics = ({ chefId, orders }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!chefId || !orders) return;
+    if (!chefId || !orders) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     const calculateStats = () => {
@@ -29,11 +32,13 @@ const ChefStatistics = ({ chefId, orders }) => {
           orderDate.setHours(0, 0, 0, 0);
 
           if (order.status === "ready") {
+            // Oshpaz tomonidan tayyorlangan buyurtmalar
             totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               todayPrepared++;
             }
-          } else if (order.status === "cancelled" && order.chef_id === chefId) { // Chef tomonidan bekor qilingan
+          } else if (order.status === "cancelled") {
+            // Oshpaz tomonidan bekor qilingan buyurtmalar
             totalCancelled++;
             if (orderDate.getTime() === now.getTime()) {
               todayCancelled++;
@@ -52,7 +57,7 @@ const ChefStatistics = ({ chefId, orders }) => {
     };
 
     calculateStats();
-  }, [chefId, orders]);
+  }, [chefId, orders]); // Buyurtmalar yoki kuryer ID o'zgarganda qayta hisoblash
 
   if (loading) {
     return (
