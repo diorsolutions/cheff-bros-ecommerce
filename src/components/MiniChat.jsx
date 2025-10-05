@@ -4,9 +4,10 @@ import { MessageCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Popover import qilindi
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
 const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => { // Props qabul qilindi
-  const [readMessageIds, setReadMessageIds] = useState({}); // Stores IDs of messages that have been read
+  const [readMessageIds, setReadMessageIds] = useLocalStorage("readMessageIds", {}); // Stores IDs of messages that have been read, now persisted
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {

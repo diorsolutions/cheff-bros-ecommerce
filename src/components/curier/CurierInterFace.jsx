@@ -253,14 +253,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   }, [orders, curierId]);
 
   useEffect(() => {
-    const prevOrders = prevSortedOrdersRef.current;
+    const prevOrderIds = new Set(prevSortedOrdersRef.current.map(o => o.id));
 
     sortedOrders.forEach(currentOrder => {
-      const prevOrder = prevOrders.find(o => o.id === currentOrder.id);
-
-      // Condition: New unassigned 'ready' order appears
+      // Check if this order is new to the sorted list AND is an unassigned 'ready' order
       const isNewAvailableOrder =
-        !prevOrder &&
+        !prevOrderIds.has(currentOrder.id) &&
         !currentOrder.curier_id &&
         currentOrder.status === "ready";
 
@@ -269,9 +267,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
     });
 
-    // Update ref for next render
     prevSortedOrdersRef.current = sortedOrders;
-  }, [sortedOrders, curierId]);
+  }, [sortedOrders]);
 
   const activeOrdersCount = sortedOrders.filter(
     (order) =>
