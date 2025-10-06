@@ -235,9 +235,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return statusText;
   };
 
-  // formatOrderDateTime funksiyasi olib tashlandi va formatUzbekDateTime bilan almashtirildi
-  // const formatOrderDateTime = (timestamp) => { ... };
-
   const sortedOrders = useMemo(() => {
     if (!curierId || !orders) return [];
 
@@ -249,38 +246,40 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         return false;
       }
 
-      if (order.curier_id === curierId) {
-        return true;
-      }
-      if (!order.curier_id && (order.status === "preparing" || order.status === "ready")) {
-        return true;
-      }
-
       if (order.curier_id && order.curier_id !== curierId) {
-          return false;
+          return false; // Boshqa kuryerga biriktirilgan buyurtmalarni ko'rsatmaslik
       }
-
-      return false;
+      return true; // Qolgan barcha buyurtmalar (o'ziga biriktirilgan yoki biriktirilmagan tayyor/tayyorlanmoqda)
     });
 
     return relevantOrders.sort((a, b) => {
-      const statusOrder = { "ready": 1, "preparing": 2, "en_route_to_kitchen": 3, "picked_up_from_kitchen": 4, "delivered_to_customer": 5, "cancelled": 6 };
+      const statusPriority = {
+        "picked_up_from_kitchen": 1, // Eng yuqori ustuvorlik (faol yetkazish)
+        "en_route_to_kitchen": 2,    // Keyingi (faol yetkazish)
+        "ready": 3,                  // Olishga tayyor
+        "preparing": 4,              // Hali tayyorlanmoqda
+        "new": 5,                    // Yangi, oshpazni kutmoqda
+        "delivered_to_customer": 98, // Yakuniy status
+        "cancelled": 99              // Yakuniy status
+      };
 
-      const aIsAvailable = !a.curier_id && (a.status === "preparing" || a.status === "ready");
-      const bIsAvailable = !b.curier_id && (b.status === "preparing" || b.status === "ready");
+      const aIsAssignedToMe = a.curier_id === curierId;
+      const bIsAssignedToMe = b.curier_id === curierId;
 
-      if (aIsAvailable && !bIsAvailable) return -1;
-      if (!aIsAvailable && bIsAvailable) return 1;
+      // 1. O'ziga biriktirilgan buyurtmalarni birinchi o'ringa qo'yish
+      if (aIsAssignedToMe && !bIsAssignedToMe) return -1;
+      if (!aIsAssignedToMe && bIsAssignedToMe) return 1;
 
-      if (statusOrder[a.status] !== statusOrder[b.status]) {
-        return statusOrder[a.status] - statusOrder[b.status];
+      // 2. Agar ikkalasi ham o'ziga biriktirilgan bo'lsa yoki ikkalasi ham biriktirilmagan bo'lsa, status bo'yicha saralash
+      const priorityA = statusPriority[a.status] || 100;
+      const priorityB = statusPriority[b.status] || 100;
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
       }
 
-      if (a.status === "ready" || a.status === "preparing" || a.status === "en_route_to_kitchen") {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      } else {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
+      // 3. Bir xil ustuvorlikdagi buyurtmalarni yaratilish sanasi bo'yicha saralash (eng eskisi birinchi)
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
   }, [orders, curierId]);
 
@@ -409,10 +408,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         </div>
       </header>
       <main className="p-4 sm:p-6 bg-[#f6f6f6]">
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 nor_tablet:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {sortedOrders.length === 0 ? (
-              <Card className="bg-white/40 border-gray-100">
+              <Card className="bg-white/40 border-gray-100 col-span-full">
                 <CardContent className="p-8 text-center ">
                   <p className="text-gray-600 text-lg">
                     Hozircha yetkazib beriladigan buyurtmalar yo'q.
@@ -635,22 +634,20 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                       {(!yandexLink && !googleLink && !geoUri) && (
                                         <DropdownMenuItem disabled className="text-gray-500">
                                           Xarita havolalari mavjud emas
-                                        </DropdownMenuItem>
-                                      )}
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                ) : (
-                                  <a
-                                    href={yandexLink}
-                                    className="text-blue-600 hover:underline"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    (xaritada ochish)
-                                  </a>
-                                )
-                              )}
-                            </>
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <a
+                                href={yandexLink}
+                                className="text-blue-600 hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                (xaritada ochish)
+                              </a>
+                            )
                           )}
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2">
