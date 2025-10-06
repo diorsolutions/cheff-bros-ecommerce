@@ -208,10 +208,24 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           statusText = `Kuryer: ${courierName || "Noma'lum"} buyurtmani oldi`;
           break;
         case "delivered_to_customer":
-          statusText = `Kuryer: ${courierName || "Noma'lum"} mijozga yetkazdi`;
+          statusText = (
+            <>
+              Kuryer:{" "}
+              <p
+                onClick={() => handleShowUserInfo(getCurierInfo(curierId), "curier")}
+                className="inline text-blue-500 cursor-pointer"
+              >
+                {courierName || "Noma'lum"}
+              </p>{" "}
+              mijozga yetkazdi
+            </>
+          );
           break;
+
         default:
-          statusText = `Kuryer: ${courierName || "Noma'lum"} boshqarmoqda`;
+          statusText = `Kuryer: ${
+            courierName || "Noma'lum"
+          } - olish uchun yo'lda`;
           break;
       }
     } else if (chefId) {
@@ -223,7 +237,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorladi`;
           break;
         default:
-          statusText = `Oshpaz: ${chefName || "Noma'lum"} boshqarmoqda`;
+          statusText = `Oshpaz: ${chefName || "Noma'lum"} oshpaz kutilmoqda`;
           break;
       }
     } else {
@@ -523,16 +537,45 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           ></span>
                           Buyurtma{" "}
                           <span className="text-gray-400 text-sm">
-                           ID: {generateShortOrderId(order.id)}
+                            ID: {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400 hidden sm:inline">
-                            {new Date(order.created_at).toLocaleDateString(
-                              "uz-UZ",
-                              { day: "numeric", month: "long", year: "numeric" }
-                            )}
+                            {(() => {
+                              const date = new Date(order.created_at);
+                              const day = date.getDate();
+                              const year = date.getFullYear();
+                              const hour = date
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0");
+                              const minute = date
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0");
+
+                              const monthNames = [
+                                "yanvar",
+                                "fevral",
+                                "mart",
+                                "aprel",
+                                "may",
+                                "iyun",
+                                "iyul",
+                                "avgust",
+                                "sentyabr",
+                                "oktyabr",
+                                "noyabr",
+                                "dekabr",
+                              ];
+
+                              const month = monthNames[date.getMonth()];
+
+                              return `${year}, ${day}-${month}, soat: ${hour}:${minute}`;
+                            })()}
                           </span>
+
                           {!order.curier_id && !order.chef_id && !isFinal ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -793,7 +836,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.curier_id && (
+                      {/* {order.curier_id && (
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
@@ -827,7 +870,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             </span>
                           )}{" "}
                         </div>
-                      )}
+                      )} */}
 
                       {order.status === "cancelled" &&
                         order.cancellation_reason && (
@@ -845,7 +888,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                 )
                               }
                             >
-                              Ko'rish
+                              sababni ko'rish
                             </Button>
                           </div>
                         )}
