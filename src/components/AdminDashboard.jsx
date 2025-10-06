@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils"; // cn va getMapLinks import qilindi
 import InfoModal from "./InfoModal";
+import OrderItemsModal from "./OrderItemsModal"; // Yangi: OrderItemsModal import qilindi
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
 
@@ -104,6 +105,10 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [infoModalTitle, setInfoModalTitle] = useState("");
   const [infoModalDescription, setInfoModalDescription] = useState("");
   const [infoModalDetails, setInfoModalDetails] = useState([]);
+
+  const [showOrderItemsModal, setShowOrderItemsModal] = useState(false); // Yangi: OrderItemsModal holati
+  const [currentOrderItems, setCurrentOrderItems] = useState([]); // Yangi: Joriy buyurtma mahsulotlari
+  const [currentOrderShortId, setCurrentOrderShortId] = useState(""); // Yangi: Joriy buyurtma ID
 
   const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
   const [hasInteracted, setHasInteracted] = useLocalStorage(
@@ -935,32 +940,17 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           <h4 className="font-medium text-white mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
-                          <div className="space-y-1">
-                            {order.items.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex justify-between text-sm"
-                              >
-                                <span className="text-gray-300">
-                                  {item.name} x{item.quantity}
-                                </span>
-                                <span className="text-white/80 font-medium">
-                                  {(
-                                    item.price * item.quantity
-                                  ).toLocaleString()}{" "}
-                                  so'm
-                                </span>
-                              </div>
-                            ))}
-                            <div className="border-t border-white/20 pt-2 mt-2">
-                              <div className="flex justify-between font-bold">
-                                <span className="text-white">Jami:</span>
-                                <span className="text-white text-lg">
-                                  {order.total_price.toLocaleString()} so'm
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            onClick={() => {
+                              setCurrentOrderItems(order.items);
+                              setCurrentOrderShortId(generateShortOrderId(order.id));
+                              setShowOrderItemsModal(true);
+                            }}
+                          >
+                            Buyurtma mahsulotlarini ko'rish
+                          </Button>
                         </div>
                       </div>
 
@@ -1096,6 +1086,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         title={infoModalTitle}
         description={infoModalDescription}
         details={infoModalDetails}
+      />
+      <OrderItemsModal
+        isOpen={showOrderItemsModal}
+        onClose={() => setShowOrderItemsModal(false)}
+        orderItems={currentOrderItems}
+        orderId={currentOrderShortId}
       />
     </div>
   );

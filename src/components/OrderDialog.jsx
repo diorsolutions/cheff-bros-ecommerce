@@ -28,17 +28,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-}
-from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"; // DropdownMenu import qilindi
+} from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-import { formatPrice, getMapLinks } from "@/lib/utils"; // formatPrice va getMapLinks import qilindi
-import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+// useLocalStorage import olib tashlandi, chunki endi App.jsx dan prop sifatida keladi
 
 const OrderDialog = ({
   isOpen,
@@ -56,8 +48,6 @@ const OrderDialog = ({
   const [locationMethod, setLocationMethod] = useState("manual"); // 'manual' or 'auto'
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-
-  const isMobile = useMediaQuery({ maxWidth: 768 }); // Mobil qurilmani aniqlash
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -126,7 +116,8 @@ const OrderDialog = ({
         setCoordinates(null); // Xato bo'lsa koordinatalarni tozalash
         let errorMessage = "Iltimos, manzilni qo'lda kiriting";
         if (error.code === error.PERMISSION_DENIED) {
-          errorMessage = "Joylashuvga ruxsat berilmagan. Iltimos, brauzer sozlamalarini tekshiring.";
+          errorMessage =
+            "Joylashuvga ruxsat berilmagan. Iltimos, brauzer sozlamalarini tekshiring.";
         } else if (error.code === error.POSITION_UNAVAILABLE) {
           errorMessage = "Joylashuv ma'lumotlari mavjud emas.";
         } else if (error.code === error.TIMEOUT) {
@@ -189,8 +180,6 @@ const OrderDialog = ({
     setCoordinates(null); // Yuborilgandan keyin koordinatalarni tozalash
     setLocationMethod("manual"); // Rejimni manualga qaytarish
   };
-
-  const { yandexLink, googleLink, geoUri } = getMapLinks(coordinates?.lat, coordinates?.lng, location);
 
   return (
     <>
@@ -275,7 +264,7 @@ const OrderDialog = ({
                       mob:text-sm extra_small:text-xs
                     "
                         >
-                          {formatPrice(item.price * item.quantity)} so'm
+                          {(item.price * item.quantity).toLocaleString()} so'm
                         </span>
                         <Button
                           size="icon"
@@ -296,7 +285,7 @@ const OrderDialog = ({
                     Jami:
                   </span>
                   <span className="text-2xl font-bold text-orange-500 mob:text-xl">
-                    {formatPrice(totalPrice)} so'm
+                    {totalPrice.toLocaleString()} so'm
                   </span>
                 </div>
               </div>
@@ -379,71 +368,6 @@ const OrderDialog = ({
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
               </div>
-              {(location && !isGettingLocation && coordinates) && ( // Faqat koordinatalar mavjud bo'lsa xarita havolasini ko'rsatish
-                <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                  <span className="text-gray-800">{location} - </span>
-                  {isMobile ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto text-blue-600 hover:underline"
-                        >
-                          <MapPin className="mr-1 h-4 w-4" />
-                          Xaritada ochish
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-white border-gray-300">
-                        {yandexLink && (
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={yandexLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Yandex Mapsda ochish
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                        {googleLink && (
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={googleLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Google Mapsda ochish
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                        {geoUri && (
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={geoUri}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Boshqa ilovada ochish
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <a
-                      href={yandexLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      (xaritada ochish)
-                    </a>
-                  )}
-                </div>
-              )}
             </div>
 
             <Button

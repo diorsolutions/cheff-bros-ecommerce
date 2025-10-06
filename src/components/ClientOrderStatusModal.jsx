@@ -146,7 +146,7 @@ const ClientOrderStatusModal = ({
             {courierDisplay}
           </p>
         )}
-        {currentOrder.coordinates && (
+        {/* {currentOrder.coordinates && (
           <p className="text-gray-400 text-base ml-7 flex items-center gap-1">
             <span className="font-medium text-white">Manzil: </span>
             {isSmallMobile ? (
@@ -194,7 +194,7 @@ const ClientOrderStatusModal = ({
               </a>
             )}
           </p>
-        )}
+        )} */}
       </div>
     );
   }, [currentOrder, chefs, curiers, isMobile, isExpanded, isSmallMobile]);

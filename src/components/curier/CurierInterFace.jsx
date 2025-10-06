@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import CurierSettingsDialog from "./CurierSettingsDialog";
+import OrderItemsModal from "../OrderItemsModal"; // Yangi: OrderItemsModal import qilindi
 import { generateShortOrderId, formatUzbekDateTime, getMapLinks } from "@/lib/utils"; // formatUzbekDateTime va getMapLinks import qilindi
 import {
   AlertDialog,
@@ -89,6 +90,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [currentOrderToCancel, setCurrentOrderToCancel] = useState(null);
   const [cancellationReason, setCancellationReason] = useState("");
+
+  const [showOrderItemsModal, setShowOrderItemsModal] = useState(false); // Yangi: OrderItemsModal holati
+  const [currentOrderItems, setCurrentOrderItems] = useState([]); // Yangi: Joriy buyurtma mahsulotlari
+  const [currentOrderShortId, setCurrentOrderShortId] = useState(""); // Yangi: Joriy buyurtma ID
 
   const curierOrderSound = useRef(new Audio("/notification_curier_order.mp3"));
   const prevSortedOrdersRef = useRef([]);
@@ -652,21 +657,17 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           <h4 className="font-medium text-gray-800 mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
-                          <div className="space-y-1">
-                            {order.items.map((item, itemIndex) => (
-                              <div
-                                key={itemIndex}
-                                className="flex justify-between text-sm text-gray-600"
-                              >
-                                <span>
-                                  {item.name} x{item.quantity}
-                                </span>
-                                <span className="font-medium text-orange-500">
-                                  {(item.price * item.quantity).toLocaleString()} so'm
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-600 hover:underline"
+                            onClick={() => {
+                              setCurrentOrderItems(order.items);
+                              setCurrentOrderShortId(generateShortOrderId(order.id));
+                              setShowOrderItemsModal(true);
+                            }}
+                          >
+                            Buyurtma mahsulotlarini ko'rish
+                          </Button>
                         </div>
                         <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between items-center">
                           <span className="text-gray-800 font-bold text-base">
@@ -844,6 +845,12 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <OrderItemsModal
+        isOpen={showOrderItemsModal}
+        onClose={() => setShowOrderItemsModal(false)}
+        orderItems={currentOrderItems}
+        orderId={currentOrderShortId}
+      />
     </div>
   );
 };
