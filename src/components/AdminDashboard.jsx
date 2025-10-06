@@ -523,7 +523,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           ></span>
                           Buyurtma{" "}
                           <span className="text-gray-400 text-sm">
-                           IF {generateShortOrderId(order.id)}
+                           ID: {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">

@@ -17,10 +17,16 @@ export function generateShortOrderId(uuid) {
 export function formatUzbekDateTime(timestamp) {
   const date = new Date(timestamp);
   const year = date.getFullYear();
-  const month = date.toLocaleDateString('uz-UZ', { month: 'long' });
+  
+  const uzbekMonths = [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
+  ];
+  const monthName = uzbekMonths[date.getMonth()];
+  
   const day = date.getDate().toString(); // Kun raqamidan oldingi nol olib tashlandi
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
 
-  return `${year}, ${day}-${month}, soat: ${hours}:${minutes}`;
+  return `${year}, ${day}-${monthName}, soat: ${hours}:${minutes}`;
 }
