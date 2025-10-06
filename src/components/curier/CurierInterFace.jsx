@@ -431,13 +431,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isAssignedToThisCourier = order.curier_id === curierId;
                 const isUnassignedAndPreparingOrReady = !order.curier_id && (isPreparing || isReady);
 
-                const { yandexLink, googleLink, geoUri } = order.coordinates
-                  ? getMapLinks(
-                      order.coordinates.lat,
-                      order.coordinates.lng,
-                      order.location
-                    )
-                  : {};
+                const { yandexLink, googleLink, geoUri } = getMapLinks(order.coordinates?.lat, order.coordinates?.lng, order.location);
 
                 return (
                   <motion.div
@@ -515,7 +509,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           <span className="font-bold text-gray-800">
                             Manzil:
                           </span>{" "}
-                          {order.coordinates ? (
+                          {order.location}{" "}
+                          {order.location && (
                             isMobile ? (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -524,30 +519,51 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                     className="p-0 h-auto text-blue-600 hover:underline"
                                   >
                                     <MapPin className="mr-1 h-4 w-4" />
-                                    Xaritada ochish
+                                    (xaritada ochish)
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="bg-white border-gray-300">
-                                  <DropdownMenuItem asChild>
-                                    <a
-                                      href={yandexLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                    >
-                                      Yandex Mapsda ochish
-                                    </a>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <a
-                                      href={geoUri}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                    >
-                                      Boshqa ilovada ochish
-                                    </a>
-                                  </DropdownMenuItem>
+                                  {yandexLink && (
+                                    <DropdownMenuItem asChild>
+                                      <a
+                                        href={yandexLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                      >
+                                        Yandex Mapsda ochish
+                                      </a>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {googleLink && order.coordinates && (
+                                    <DropdownMenuItem asChild>
+                                      <a
+                                        href={googleLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                      >
+                                        Google Mapsda ochish
+                                      </a>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {geoUri && order.coordinates && (
+                                    <DropdownMenuItem asChild>
+                                      <a
+                                        href={geoUri}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                      >
+                                        Boshqa ilovada ochish
+                                      </a>
+                                    </DropdownMenuItem>
+                                  )}
+                                  {(!yandexLink && (!googleLink || !order.coordinates) && (!geoUri || !order.coordinates)) && (
+                                    <DropdownMenuItem disabled className="text-gray-500">
+                                      Xarita havolalari mavjud emas
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             ) : (
@@ -557,11 +573,9 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
-                                Xaritada ochish
+                                (xaritada ochish)
                               </a>
                             )
-                          ) : (
-                            order.location
                           )}
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2">
