@@ -28,7 +28,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+}
+from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
 // useLocalStorage import olib tashlandi, chunki endi App.jsx dan prop sifatida keladi
 
@@ -54,7 +55,7 @@ const OrderDialog = ({
     0
   );
 
-  const handleLocationPermission = () => {
+  const handleLocationPermission = async () => {
     setIsGettingLocation(true);
     setShowLocationAlert(false);
 
@@ -70,14 +71,41 @@ const OrderDialog = ({
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
-        setLocation(`${latitude}, ${longitude}`);
-        setIsGettingLocation(false);
-        toast({
-          title: "Joylashuv aniqlandi!",
-          description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi",
-        });
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+
+          if (data && data.display_name) {
+            setLocation(data.display_name);
+            toast({
+              title: "Joylashuv aniqlandi!",
+              description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi.",
+            });
+          } else {
+            setLocation(`${latitude}, ${longitude}`); // Fallback to coordinates if reverse geocoding fails
+            toast({
+              title: "Manzilni aniqlab bo'lmadi",
+              description:
+                "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
+              variant: "destructive",
+            });
+          }
+        } catch (apiError) {
+          console.error("Reverse geocoding API xatosi:", apiError);
+          setLocation(`${latitude}, ${longitude}`); // Fallback to coordinates on API error
+          toast({
+            title: "Manzilni aniqlab bo'lmadi",
+            description:
+              "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsGettingLocation(false);
+        }
       },
       (error) => {
         console.error("Geolocation error:", error);
@@ -110,6 +138,14 @@ const OrderDialog = ({
     setShowLocationAlert(true);
   };
 
+  const handleLocationChange = (e) => {
+    setLocation(e.target.value);
+    // Agar foydalanuvchi avtomatik aniqlangan manzilni tahrirlasa, manual rejimga o'tkazamiz
+    if (locationMethod === "auto" && e.target.value !== location) {
+      setLocationMethod("manual");
+    }
+  };
+
   const handleSubmitOrder = () => {
     if (!customerInfo.name || !customerInfo.phone || !location) {
       toast({
@@ -128,7 +164,7 @@ const OrderDialog = ({
         quantity: i.quantity,
       })),
       customer: customerInfo,
-      location,
+      location, // Endi bu yerda o'qiladigan manzil bo'ladi
       totalPrice,
     };
 
@@ -316,10 +352,10 @@ const OrderDialog = ({
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500 mob:h-3 mob:w-3" />
                 <Textarea
-                  placeholder="Manzilni kiriting yoki avtomatik aniqlang"
+                  placeholder="Manzilni qo‘lda kiriting yoki joylashuvingizni aniqlashga ruxsat bering"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  disabled={locationMethod === "auto" && !location}
+                  onChange={handleLocationChange}
+                  readOnly={locationMethod === "auto" && isGettingLocation} // Aniqlash jarayonida readOnly
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
               </div>
