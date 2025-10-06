@@ -600,7 +600,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               </a>
                             )
                           ) : ( // If no coordinates (manual entry)
-                            <>
+                            <span> {/* Fragment o'rniga span ishlatildi */}
                               {order.location}{" "}
                               {order.location && (
                                 isMobile ? (
@@ -669,7 +669,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                   </a>
                                 )
                               )}
-                            </>
+                            </span>
                           )}
                         </p>
 

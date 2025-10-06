@@ -580,7 +580,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               </a>
                             )
                           ) : ( // If no coordinates (manual entry)
-                            <>
+                            <span> {/* Fragment o'rniga span ishlatildi */}
                               {order.location}{" "}
                               {order.location && (
                                 isMobile ? (
@@ -648,6 +648,8 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 (xaritada ochish)
                               </a>
                             )
+                          )}
+                        </span>
                           )}
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2">
