@@ -379,9 +379,9 @@ const OrderDialog = ({
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
               </div>
-              {(location && !isGettingLocation) && (
+              {(location && !isGettingLocation && coordinates) && ( // Faqat koordinatalar mavjud bo'lsa xarita havolasini ko'rsatish
                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                  {locationMethod === "manual" && <span className="text-gray-800">{location} - </span>}
+                  <span className="text-gray-800">{location} - </span>
                   {isMobile ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -406,7 +406,7 @@ const OrderDialog = ({
                             </a>
                           </DropdownMenuItem>
                         )}
-                        {googleLink && coordinates && ( // Google link faqat koordinatalar bo'lsa
+                        {googleLink && (
                           <DropdownMenuItem asChild>
                             <a
                               href={googleLink}
@@ -418,7 +418,7 @@ const OrderDialog = ({
                             </a>
                           </DropdownMenuItem>
                         )}
-                        {geoUri && coordinates && ( // GeoUri ham faqat koordinatalar bo'lsa
+                        {geoUri && (
                           <DropdownMenuItem asChild>
                             <a
                               href={geoUri}
@@ -430,26 +430,17 @@ const OrderDialog = ({
                             </a>
                           </DropdownMenuItem>
                         )}
-                        {(!yandexLink && (!googleLink || !coordinates) && (!geoUri || !coordinates)) && (
-                          <DropdownMenuItem disabled className="text-gray-500">
-                            Xarita havolalari mavjud emas
-                          </DropdownMenuItem>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    yandexLink ? (
-                      <a
-                        href={yandexLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {locationMethod === "manual" ? "(xaritada ochish)" : "Xaritada ochish"}
-                      </a>
-                    ) : (
-                      <span className="text-gray-500">Xarita havolasi mavjud emas</span>
-                    )
+                    <a
+                      href={yandexLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      (xaritada ochish)
+                    </a>
                   )}
                 </div>
               )}
