@@ -1007,7 +1007,7 @@ function MainLayout({
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
-    }
+    };
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -1216,11 +1216,14 @@ function MainLayout({
                         key={index}
                         className="space-y-1 border-b border-gray-300 py-2"
                       >
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">
-                            {item.name} x{item.quantity}
+                        <div className="flex gap-4 justify-between items-center text-sm">
+                          <span className="text-gray-900 flex items-center gap-1">
+                            {item.name}
+                            <span className="font-bold text-black/60">
+                              {item.quantity} ta
+                            </span>
                           </span>
-                          <span className="text-orange-500 font-medium">
+                          <span className="text-black font-medium">
                             {(item.price * item.quantity).toLocaleString()} so'm
                           </span>
                         </div>

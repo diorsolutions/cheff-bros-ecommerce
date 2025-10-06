@@ -58,7 +58,7 @@ const AdminChefs = ({ chefs, orders }) => {
         if (order.chef_id && stats[order.chef_id]) {
           if (order.status === "ready") {
             stats[order.chef_id].totalPrepared++;
-          } else if (order.status === "cancelled" && order.chef_id === order.chef_id) { // Only count if cancelled by this chef
+          } else if (order.status === "cancelled") { // Redundant condition `order.chef_id === order.chef_id` removed
             stats[order.chef_id].totalCancelled++;
           }
         }
