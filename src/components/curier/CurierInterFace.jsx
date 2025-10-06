@@ -223,17 +223,17 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const formatOrderDateTime = (timestamp) => {
     const orderDate = new Date(timestamp);
     const formattedDate = orderDate.toLocaleDateString("uz-UZ", {
+      day: "numeric",
+      month: "long", // "2-digit" dan "long" ga o'zgartirildi
       year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
     });
     const formattedTime = orderDate.toLocaleTimeString("uz-UZ", {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+      // second: "2-digit", // Sekundlar olib tashlandi
       hour12: false,
     });
-    return `kun: ${formattedDate}, soat: ${formattedTime}`;
+    return `${formattedDate}, soat: ${formattedTime}`; // "kun:" olib tashlandi, format o'zgartirildi
   };
 
   const sortedOrders = useMemo(() => {

@@ -482,7 +482,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400 hidden sm:inline">
-                            {new Date(order.created_at).toLocaleString("uz-UZ")}
+                            {new Date(order.created_at).toLocaleDateString("uz-UZ", { day: 'numeric', month: 'long', year: 'numeric' })}
                           </span>
                           {!order.curier_id && !order.chef_id && !isFinal ? (
                             <DropdownMenu>
@@ -589,7 +589,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           )
                                         }
                                         className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                      >
+                                    >
                                         <XCircle className="mr-2 h-4 w-4" />
                                         Bekor qilish (Admin)
                                       </DropdownMenuItem>

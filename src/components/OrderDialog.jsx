@@ -78,7 +78,7 @@ const OrderDialog = ({
 
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=uz` // O'zbek tili uchun parametr qo'shildi
           );
           const data = await response.json();
 
