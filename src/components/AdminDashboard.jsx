@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId } from "@/lib/utils";
+import { generateShortOrderId, cn } from "@/lib/utils"; // cn import qilindi
 import InfoModal from "./InfoModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
@@ -303,7 +303,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
       return order.status === statusFilter;
     })
     .filter((order) => {
-      if (searchTerm.length < 1) return true;
+      if (searchTerm.length < 3) return true;
 
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
@@ -349,12 +349,22 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-white">Buyurtmalar</h1>
-        <div className="flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-lg border border-blue-500/30">
-          <Bell className="h-5 w-5 text-blue-400" />
-          <span className="text-blue-400 font-medium">
+        <motion.div
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg border",
+            newOrdersCount > 0
+              ? "bg-gradient-to-r from-red-500 to-yellow-500 border-red-400 animate-gradient-pulse"
+              : "bg-blue-500/20 border-blue-500/30"
+          )}
+          initial={newOrdersCount > 0 ? { x: 0 } : false}
+          animate={newOrdersCount > 0 ? { x: [0, 5, 0, -5, 0] } : false}
+          transition={newOrdersCount > 0 ? { repeat: Infinity, duration: 1.5, ease: "easeInOut" } : false}
+        >
+          <Bell className={cn("h-5 w-5", newOrdersCount > 0 ? "text-white" : "text-blue-400")} />
+          <span className={cn("font-medium", newOrdersCount > 0 ? "text-white" : "text-blue-400")}>
             {newOrdersCount} yangi buyurtma
           </span>
-        </div>
+        </motion.div>
       </div>
 
       <div className="flex justify-between flex-row-reverse">
@@ -366,7 +376,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/50 custom-select-content">
+                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/50">
                   <SelectItem
                     value="all"
                     className="text-white *:hover:cursor-pointer"
@@ -424,7 +434,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Tartiblash" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/50 custom-select-content">
+              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/50">
                 <SelectItem
                   value="date-desc"
                   className="text-white *:hover:cursor-pointer hover:text-white"
@@ -460,7 +470,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Qidirish bo'yicha" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20 custom-select-content">
+              <SelectContent className="bg-slate-800 border-white/20">
                 <SelectItem value="id" className="text-white">
                   ID
                 </SelectItem>
@@ -506,8 +516,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order.status === "delivered_to_customer" ||
                 order.status === "cancelled";
               const isEnRouteToKitchen = order.status === "en_route_to_kitchen";
-              const isPickedUpFromKitchen =
-                order.status === "picked_up_from_kitchen";
+              const isPickedUpFromKitchen = order.status === "picked_up_from_kitchen";
 
               const courierInfo = order.curier_id
                 ? getCurierInfo(order.curier_id)
@@ -526,6 +535,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               // Asosiy status qismini yashirish sharti
               // Faqat yakuniy holatlarda (yetkazilgan/bekor qilingan) asosiy status yashiriladi.
               const hideMainStatus = isFinal;
+
+              // Oshpaz ma'lumotini ko'rsatish sharti
+              const showChefInfo = order.chef_id && (order.curier_id || isFinal || order.status === "ready");
+
+              // Kuryer ma'lumotini ko'rsatish sharti
+              const showCourierInfo = order.curier_id && isFinal;
+
 
               return (
                 <motion.div
@@ -567,7 +583,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             }`}
                           ></span>
                           Buyurtma{" "}
-                          <span className="text-gray-400 text-sm custom-select-content">
+                          <span className="text-gray-400 text-sm">
                             ID: {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
@@ -831,86 +847,77 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.chef_id &&
-                        (order.curier_id || isFinal) && ( // Oshpaz ma'lumoti faqat kuryer biriktirilganida yoki yakuniy holatda ko'rsatiladi
-                          <div className="flex items-center gap-2 mt-2">
-                            <ChefHat className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm text-gray-400">
-                              Oshpaz:
-                            </span>
+                      {showChefInfo && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <ChefHat className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">Oshpaz:</span>
 
-                            <Button
-                              variant="link"
-                              className="p-0 h-auto text-blue-300 hover:text-blue-200"
-                              onClick={() =>
-                                handleShowUserInfo(chefInfo, "chef")
-                              }
-                            >
-                              {chefInfo?.name || "Noma'lum"}
-                            </Button>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            onClick={() => handleShowUserInfo(chefInfo, "chef")}
+                          >
+                            {chefInfo?.name || "Noma'lum"}
+                          </Button>
 
-                            {(() => {
-                              // oshpaz status logikasi
-                              if (order.status === "preparing")
+                          {(() => {
+                            // oshpaz status logikasi
+                            if (order.status === "preparing")
+                              return (
+                                <span className="text-sm text-yellow-400">
+                                  tayyorlanmoqda
+                                </span>
+                              );
+
+                            if (order.status === "cancelled") {
+                              if (!order.curier_id)
                                 return (
-                                  <span className="text-sm text-yellow-400">
-                                    tayyorlanmoqda
+                                  <span className="text-sm text-red-400">
+                                    bekor qildi
                                   </span>
                                 );
-
-                              if (order.status === "cancelled") {
-                                if (!order.curier_id)
-                                  return (
-                                    <span className="text-sm text-red-400">
-                                      bekor qildi
-                                    </span>
-                                  );
-                                return (
-                                  <span className="text-sm text-green-400">
-                                    tayyorladi
-                                  </span>
-                                );
-                              }
-
-                              // boshqa barcha holatlar (ready, delivered, va hok.)
                               return (
                                 <span className="text-sm text-green-400">
                                   tayyorladi
                                 </span>
                               );
-                            })()}
-                          </div>
-                        )}
+                            }
 
-                      {order.curier_id &&
-                        isFinal && ( // Kuryer ma'lumoti faqat yakuniy holatda ko'rsatiladi
-                          <div className="flex items-center gap-2 mt-2">
-                            <Truck className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm text-gray-400">
-                              Kuryer:
-                            </span>
-                            <Button
-                              variant="link"
-                              className="p-0 h-auto text-blue-300 hover:text-blue-200"
-                              onClick={() =>
-                                handleShowUserInfo(courierInfo, "curier")
-                              }
-                            >
-                              {courierInfo?.name || "Noma'lum"}
-                            </Button>
-                            {order.status === "delivered_to_customer" && (
+                            // boshqa barcha holatlar (ready, delivered, va hok.)
+                            return (
                               <span className="text-sm text-green-400">
-                                mijozga yetkazdi
+                                tayyorladi
                               </span>
-                            )}
-                            {order.status === "cancelled" &&
-                              order.curier_id && (
-                                <span className="text-sm text-red-400">
-                                  bekor qildi
-                                </span>
-                              )}{" "}
-                          </div>
-                        )}
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                      {showCourierInfo && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Truck className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">Kuryer:</span>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            onClick={() =>
+                              handleShowUserInfo(courierInfo, "curier")
+                            }
+                          >
+                            {courierInfo?.name || "Noma'lum"}
+                          </Button>
+                          {order.status === "delivered_to_customer" && (
+                            <span className="text-sm text-green-400">
+                              mijozga yetkazdi
+                            </span>
+                          )}
+                          {order.status === "cancelled" && order.curier_id && (
+                            <span className="text-sm text-red-400">
+                              bekor qildi
+                            </span>
+                          )}{" "}
+                        </div>
+                      )}
 
                       {order.status === "cancelled" &&
                         order.cancellation_reason && (
