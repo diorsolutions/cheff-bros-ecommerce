@@ -505,6 +505,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               const isFinal =
                 order.status === "delivered_to_customer" ||
                 order.status === "cancelled";
+              const isEnRouteToKitchen = order.status === "en_route_to_kitchen";
+              const isPickedUpFromKitchen = order.status === "picked_up_from_kitchen";
+
               const courierInfo = order.curier_id
                 ? getCurierInfo(order.curier_id)
                 : null;
@@ -522,9 +525,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               // Asosiy status qismini yashirish sharti
               const hideMainStatus =
                 isFinal ||
-                (order.curier_id &&
-                  (order.status === "en_route_to_kitchen" ||
-                    order.status === "picked_up_from_kitchen"));
+                (order.curier_id && (isEnRouteToKitchen || isPickedUpFromKitchen));
 
               return (
                 <motion.div
@@ -804,7 +805,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       </div>
 
-                      {!hideMainStatus && ( // Yangi shart qo'shildi
+                      {!hideMainStatus && ( // Asosiy status qatori faqat hideMainStatus false bo'lganda ko'rsatiladi
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Status:</span>
@@ -876,7 +877,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.curier_id && (
+                      {order.curier_id && (isFinal || (!isEnRouteToKitchen && !isPickedUpFromKitchen)) && (
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
@@ -889,16 +890,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           >
                             {courierInfo?.name || "Noma'lum"}
                           </Button>
-                          {order.status === "en_route_to_kitchen" && (
-                            <span className="text-sm text-yellow-400">
-                              olish uchun yo'lda
-                            </span>
-                          )}
-                          {order.status === "picked_up_from_kitchen" && (
-                            <span className="text-sm text-orange-400">
-                              buyurtmani oldi
-                            </span>
-                          )}
                           {order.status === "delivered_to_customer" && (
                             <span className="text-sm text-green-400">
                               mijozga yetkazdi
