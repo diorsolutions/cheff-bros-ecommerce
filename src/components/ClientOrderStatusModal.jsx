@@ -1,9 +1,17 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Truck, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { Utensils, Truck, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, Upload, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { generateShortOrderId } from "@/lib/utils";
+import { generateShortOrderId, getMapLinks } from "@/lib/utils"; // getMapLinks import qilindi
 import { useWindowSize } from "react-use"; // useWindowSize import qilindi
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // DropdownMenu import qilindi
+import { Button } from "@/components/ui/button"; // Button import qilindi
 
 const ClientOrderStatusModal = ({
   activeOrderIds, // Endi massiv sifatida qabul qilinadi
@@ -14,6 +22,7 @@ const ClientOrderStatusModal = ({
 }) => {
   const { width } = useWindowSize();
   const isMobile = width < 768; // Mobil breakpoint
+  const isSmallMobile = useMediaQuery({ maxWidth: 768 }); // Mobil qurilmani aniqlash
 
   const [currentOrderIndex, setCurrentOrderIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false); // Mobil rejimda kengaytirish holati
@@ -137,9 +146,58 @@ const ClientOrderStatusModal = ({
             {courierDisplay}
           </p>
         )}
+        {currentOrder.coordinates && (
+          <p className="text-gray-400 text-base ml-7 flex items-center gap-1">
+            <span className="font-medium text-white">Manzil: </span>
+            {isSmallMobile ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-blue-300 hover:underline"
+                  >
+                    <MapPin className="mr-1 h-4 w-4" />
+                    Xaritada ochish
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white border-gray-300">
+                  <DropdownMenuItem asChild>
+                    <a
+                      href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).yandexLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                    >
+                      Yandex Mapsda ochish
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a
+                      href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).geoUri}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                    >
+                      Boshqa ilovada ochish
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <a
+                href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).yandexLink}
+                className="text-blue-300 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Xaritada ochish
+              </a>
+            )}
+          </p>
+        )}
       </div>
     );
-  }, [currentOrder, chefs, curiers, isMobile, isExpanded]);
+  }, [currentOrder, chefs, curiers, isMobile, isExpanded, isSmallMobile]);
 
   // Faqat bitta shartli return qoldirdik
   if (customerActiveOrders.length === 0 || !currentOrder) return null;

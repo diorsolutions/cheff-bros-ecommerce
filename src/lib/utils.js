@@ -49,3 +49,12 @@ export const formatPrice = (value) => {
   // toLocaleString bilan 2 o'nlik kasrgacha formatlash
   return numValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 };
+
+// Yangi: Xarita havolalarini yaratish uchun yordamchi funksiya
+export const getMapLinks = (lat, lng, label = "Manzil") => {
+  const yandexLink = `https://yandex.com/maps/?ll=${lng},${lat}&z=16`;
+  const googleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  const geoUri = `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})`;
+
+  return { yandexLink, googleLink, geoUri };
+};

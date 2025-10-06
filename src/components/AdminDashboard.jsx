@@ -12,6 +12,7 @@ import {
   Search,
   Utensils,
   ChefHat,
+  MapPin, // MapPin iconini import qilish
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId, cn } from "@/lib/utils"; // cn import qilindi
+import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils"; // cn va getMapLinks import qilindi
 import InfoModal from "./InfoModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
 
 // Umumiy tovush ijro etish funksiyasi
 const playSound = (
@@ -108,6 +110,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     "adminHasInteracted",
     false
   ); // Admin uchun hasInteracted
+
+  const isMobile = useMediaQuery({ maxWidth: 768 }); // Mobil qurilmani aniqlash
 
   const playAdminOrderSound = () => {
     playSound(
@@ -385,7 +389,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/50">
+                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/60 custom-select-content custom-select-content-active">
                   <SelectItem
                     value="all"
                     className="text-white *:hover:cursor-pointer"
@@ -443,7 +447,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Tartiblash" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/50">
+              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/60 custom-select-content custom-select-content-active">
                 <SelectItem
                   value="date-desc"
                   className="text-white *:hover:cursor-pointer hover:text-white"
@@ -479,7 +483,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Qidirish bo'yicha" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20">
+              <SelectContent className="bg-slate-800 border-white/20 custom-select-content custom-select-content-active">
                 <SelectItem value="id" className="text-white">
                   ID
                 </SelectItem>
@@ -553,6 +557,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
               // Kuryer ma'lumotini ko'rsatish sharti
               const showCourierInfo = order.curier_id && isFinal;
+
+              const { yandexLink, googleLink, geoUri } = order.coordinates
+                ? getMapLinks(
+                    order.coordinates.lat,
+                    order.coordinates.lng,
+                    order.location
+                  )
+                : {};
 
               return (
                 <motion.div
@@ -784,14 +796,50 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                 Manzil:
                               </span>{" "}
                               {order.coordinates ? (
-                                <a
-                                  className="underline text-blue-300"
-                                  href={`https://www.google.com/maps/search/?api=1&query=${order.coordinates.lat},${order.coordinates.lng}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Xaritada ochish
-                                </a>
+                                isMobile ? (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="link"
+                                        className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                                      >
+                                        <MapPin className="mr-1 h-4 w-4" />
+                                        Xaritada ochish
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="bg-slate-800 border-white/20">
+                                      <DropdownMenuItem asChild>
+                                        <a
+                                          href={yandexLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                        >
+                                          Yandex Mapsda ochish
+                                        </a>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <a
+                                          href={geoUri}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                        >
+                                          Boshqa ilovada ochish
+                                        </a>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                ) : (
+                                  <a
+                                    className="underline text-blue-300"
+                                    href={yandexLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    Xaritada ochish
+                                  </a>
+                                )
                               ) : (
                                 order.location
                               )}

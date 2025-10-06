@@ -10,6 +10,7 @@ import {
   ChefHat,
   Search,
   Truck,
+  MapPin, // MapPin iconini import qilish
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import ChefSettingsDialog from "./ChefSettingsDialog";
-import { generateShortOrderId, formatUzbekDateTime } from "@/lib/utils"; // formatUzbekDateTime import qilindi
+import { generateShortOrderId, formatUzbekDateTime, getMapLinks } from "@/lib/utils"; // formatUzbekDateTime va getMapLinks import qilindi
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"; // DropdownMenu import qilindi
 
 // Umumiy tovush ijro etish funksiyasi
 const playSound = (
@@ -106,6 +114,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     "chefHasInteracted",
     false
   );
+
+  const isMobile = useMediaQuery({ maxWidth: 768 }); // Mobil qurilmani aniqlash
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -442,6 +452,14 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   !isCancelled &&
                   isAssignedToThisChef;
 
+                const { yandexLink, googleLink, geoUri } = order.coordinates
+                  ? getMapLinks(
+                      order.coordinates.lat,
+                      order.coordinates.lng,
+                      order.location
+                    )
+                  : {};
+
                 return (
                   <motion.div
                     key={order.id}
@@ -507,14 +525,50 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             Manzil:
                           </span>{" "}
                           {order.coordinates ? (
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${order.coordinates.lat},${order.coordinates.lng}`}
-                              className="text-blue-600 hover:underline"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Xaritada ochish
-                            </a>
+                            isMobile ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="link"
+                                    className="p-0 h-auto text-blue-600 hover:underline"
+                                  >
+                                    <MapPin className="mr-1 h-4 w-4" />
+                                    Xaritada ochish
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="bg-white border-gray-300">
+                                  <DropdownMenuItem asChild>
+                                    <a
+                                      href={yandexLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                    >
+                                      Yandex Mapsda ochish
+                                    </a>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <a
+                                      href={geoUri}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                    >
+                                      Boshqa ilovada ochish
+                                    </a>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <a
+                                href={yandexLink}
+                                className="text-blue-600 hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Xaritada ochish
+                              </a>
+                            )
                           ) : (
                             order.location
                           )}
