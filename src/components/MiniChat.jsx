@@ -11,9 +11,6 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Oldingi xabarlar sonini kuzatish uchun ref
-  const messagesLengthAtLastRenderRef = useRef(messages.length);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -42,11 +39,12 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         return prev; // O'zgarish bo'lmasa, keraksiz re-renderlardan qochish
       });
       setShowNewMessageIndicatorId(null); // Indikatorni tozalash
-      scrollToBottom(); // Ochilganda pastga aylantirish
     } else {
       // Agar popover yopiq bo'lsa va yangi xabar kelgan bo'lsa
-      if (messages.length > messagesLengthAtLastRenderRef.current) {
-        const newMessages = messages.slice(messagesLengthAtLastRenderRef.current);
+      // Bu qism faqat badge uchun yangi xabarni aniqlaydi, scroll uchun emas
+      const prevMessagesLength = messagesLengthAtLastRenderRef.current;
+      if (messages.length > prevMessagesLength) {
+        const newMessages = messages.slice(prevMessagesLength);
         const firstUnreadNewMessage = newMessages.find(msg => !readMessageIds[msg.id]);
         if (firstUnreadNewMessage) {
           setShowNewMessageIndicatorId(firstUnreadNewMessage.id);
@@ -57,16 +55,11 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
   useEffect(() => {
-    // Har safar popover ochilganda pastga aylantirish
+    // Har safar popover ochilganda yoki yangi xabar kelganda (agar ochiq bo'lsa) pastga aylantirish
     if (isPopoverOpen) {
       scrollToBottom();
     }
-    // messages.length o'zgarganda ham pastga aylantirish (agar popover ochiq bo'lsa)
-    else if (messages.length > messagesLengthAtLastRenderRef.current) {
-      scrollToBottom();
-    }
-    messagesLengthAtLastRenderRef.current = messages.length; // Xabarlar sonini yangilash
-  }, [messages.length, isPopoverOpen]);
+  }, [isPopoverOpen, messages.length]); // isPopoverOpen yoki messages.length o'zgarganda ishga tushadi
 
 
   return (
@@ -117,7 +110,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`shadow-[0px_0px_29px_-2px_rgba(0,_0,_0,_0.1)] p-3 rounded-lg max-w-[85%] bg-white border border-blue-200 text-blue-600 ${
-                      index === messages.length - 1 ? "message-unread" : "message-read"
+                      index === messages.length - 1 ? "opacity-100" : "opacity-50"
                     }`}
                   >
                     <p className="text-sm text-black/70 font-semibold">
