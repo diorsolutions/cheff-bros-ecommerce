@@ -510,7 +510,7 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const { customer, items, location, totalPrice } = orderData;
+    const { customer, items, location, coordinates, totalPrice } = orderData; // coordinates ni ham qabul qilish
 
     // Masalliqlar stokini tekshirish
     for (const item of items) {
@@ -559,6 +559,7 @@ function App() {
           customer_info: customer,
           items: items,
           location,
+          coordinates, // coordinates ni Supabase ga yuborish
           total_price: totalPrice,
           status: "new",
         },
@@ -620,6 +621,14 @@ function App() {
       updateData.cancellation_reason = cancellationReason;
     }
 
+    console.log("handleUpdateOrderStatus: Initial state:", {
+      orderId,
+      newStatus,
+      actorId,
+      actorRole,
+      orderToUpdate,
+    });
+
     if (actorRole === "curier") {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
@@ -640,7 +649,7 @@ function App() {
           ) {
             canUpdate = true;
             updateData.curier_id = actorId;
-            delete updateData.status;
+            delete updateData.status; // Statusni o'zgartirmaymiz, faqat kuryerni biriktiramiz
           } else {
             toast({
               title: "Xatolik!",
@@ -770,6 +779,7 @@ function App() {
           return;
       }
     } else {
+      // Admin tomonidan o'zgartirishlar
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",
@@ -790,6 +800,8 @@ function App() {
       });
       return;
     }
+
+    console.log("handleUpdateOrderStatus: Updating with data:", updateData);
 
     const { error } = await supabase
       .from("orders")
@@ -849,7 +861,7 @@ function App() {
   );
 
   return (
-    <>
+    <div className="app-container"> {/* Fragment o'rniga div ishlatildi */}
       <Helmet>
         <title>Restoran - Online Buyurtma Tizimi</title>
         <meta
@@ -961,7 +973,7 @@ function App() {
         setCustomerInfo={setCustomerInfo} // setCustomerInfo ni prop sifatida uzatish
       />
       <Toaster />
-    </>
+    </div> // Yopuvchi div
   );
 }
 
@@ -1215,7 +1227,7 @@ function MainLayout({
                       </div>
                     );
                   })}
-                  <div className="border-t border-gray-300 pt-2">
+                  <div className="border-t border-gray-300 pt-2 mt-2">
                     <div className="flex justify-between font-bold">
                       <span className="text-gray-800">Jami:</span>
                       <span className="text-orange-500">
@@ -1240,8 +1252,9 @@ function MainLayout({
         orders={orders}
         chefs={chefs}
         curiers={curiers}
-        customerPhone={customerInfo.phone}
+        customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
+      <Toaster />
     </div>
   );
 }

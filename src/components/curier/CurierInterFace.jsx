@@ -511,14 +511,18 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           <span className="font-bold text-gray-800">
                             Manzil:
                           </span>{" "}
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${order.location}`}
-                            className="text-blue-600 hover:underline"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Ochish
-                          </a>
+                          {order.coordinates ? (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${order.coordinates.lat},${order.coordinates.lng}`}
+                              className="text-blue-600 hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Xaritada ochish
+                            </a>
+                          ) : (
+                            order.location
+                          )}
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2">
                           <h4 className="font-medium text-gray-800 mb-2 text-base">

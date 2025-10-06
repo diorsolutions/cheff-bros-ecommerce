@@ -633,14 +633,18 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               <span className="font-bold text-gray-100/50">
                                 Manzil:
                               </span>{" "}
-                              <a
-                                className="underline text-blue-300"
-                                href={`https://maps.google.com/?q=${order.location}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Xaritada ochish
-                              </a>
+                              {order.coordinates ? (
+                                <a
+                                  className="underline text-blue-300"
+                                  href={`https://www.google.com/maps/search/?api=1&query=${order.coordinates.lat},${order.coordinates.lng}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Xaritada ochish
+                                </a>
+                              ) : (
+                                order.location
+                              )}
                             </p>
                           </div>
                         </div>

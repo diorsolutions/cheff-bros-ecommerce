@@ -44,8 +44,8 @@ const OrderDialog = ({
   customerInfo, // Prop sifatida qabul qilindi
   setCustomerInfo, // Prop sifatida qabul qilindi
 }) => {
-  // customerInfo va setCustomerInfo endi prop sifatida keladi, useLocalStorage bu yerda ishlatilmaydi
   const [location, setLocation] = useState("");
+  const [coordinates, setCoordinates] = useState(null); // Yangi holat: { lat, lng } ni saqlash uchun
   const [locationMethod, setLocationMethod] = useState("manual"); // 'manual' or 'auto'
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -66,6 +66,7 @@ const OrderDialog = ({
         variant: "destructive",
       });
       setLocationMethod("manual");
+      setCoordinates(null); // Xato bo'lsa koordinatalarni tozalash
       setIsGettingLocation(false);
       return;
     }
@@ -73,6 +74,8 @@ const OrderDialog = ({
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        setCoordinates({ lat: latitude, lng: longitude }); // Koordinatalarni saqlash
+
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
@@ -86,7 +89,7 @@ const OrderDialog = ({
               description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi.",
             });
           } else {
-            setLocation(`${latitude}, ${longitude}`); // Fallback to coordinates if reverse geocoding fails
+            setLocation(`${latitude}, ${longitude}`); // Agar API xato qilsa, koordinatalarni matn sifatida ko'rsatish
             toast({
               title: "Manzilni aniqlab bo'lmadi",
               description:
@@ -96,7 +99,7 @@ const OrderDialog = ({
           }
         } catch (apiError) {
           console.error("Reverse geocoding API xatosi:", apiError);
-          setLocation(`${latitude}, ${longitude}`); // Fallback to coordinates on API error
+          setLocation(`${latitude}, ${longitude}`); // API xatosida ham koordinatalarni matn sifatida ko'rsatish
           toast({
             title: "Manzilni aniqlab bo'lmadi",
             description:
@@ -111,6 +114,7 @@ const OrderDialog = ({
         console.error("Geolocation error:", error);
         setIsGettingLocation(false);
         setLocationMethod("manual");
+        setCoordinates(null); // Xato bo'lsa koordinatalarni tozalash
         let errorMessage = "Iltimos, manzilni qo'lda kiriting";
         if (error.code === error.PERMISSION_DENIED) {
           errorMessage = "Joylashuvga ruxsat berilmagan. Iltimos, brauzer sozlamalarini tekshiring.";
@@ -140,9 +144,10 @@ const OrderDialog = ({
 
   const handleLocationChange = (e) => {
     setLocation(e.target.value);
-    // Agar foydalanuvchi avtomatik aniqlangan manzilni tahrirlasa, manual rejimga o'tkazamiz
-    if (locationMethod === "auto" && e.target.value !== location) {
+    // Agar foydalanuvchi avtomatik aniqlangan manzilni tahrirlasa, manual rejimga o'tkazamiz va koordinatalarni tozalaymiz
+    if (locationMethod === "auto" && coordinates !== null) {
       setLocationMethod("manual");
+      setCoordinates(null);
     }
   };
 
@@ -164,13 +169,16 @@ const OrderDialog = ({
         quantity: i.quantity,
       })),
       customer: customerInfo,
-      location, // Endi bu yerda o'qiladigan manzil bo'ladi
+      location,
+      coordinates, // Koordinatalarni ham buyurtma ma'lumotlariga qo'shish
       totalPrice,
     };
 
     onOrderSubmit(orderData);
     onClose();
     setLocation("");
+    setCoordinates(null); // Yuborilgandan keyin koordinatalarni tozalash
+    setLocationMethod("manual"); // Rejimni manualga qaytarish
   };
 
   return (
@@ -332,6 +340,7 @@ const OrderDialog = ({
                   }
                   onClick={() => {
                     setLocationMethod("manual");
+                    setCoordinates(null); // Manualga o'tganda koordinatalarni tozalash
                     setShowLocationAlert(false); // Alertni yopish
                   }}
                   className="flex-1 min-w-[140px] mob:text-sm"
@@ -392,6 +401,7 @@ const OrderDialog = ({
               onClick={() => {
                 setShowLocationAlert(false);
                 setLocationMethod("manual");
+                setCoordinates(null); // Bekor qilinganda koordinatalarni tozalash
               }}
               className="text-gray-800 border-gray-300 hover:bg-gray-200"
             >
