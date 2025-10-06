@@ -13,7 +13,7 @@ import {
   Salad, // Masalliqlar uchun icon
 } from "lucide-react";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
-import { formatQuantity } from "@/lib/utils"; // formatQuantity import qilindi
+import { formatQuantity, formatPrice } from "@/lib/utils"; // formatQuantity va formatPrice import qilindi
 
 const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, productIngredients }) => {
   const [stats, setStats] = useState({
@@ -21,8 +21,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
     totalCancelledOrders: 0,
     dailyRevenue: 0,
     totalRevenue: 0,
-    // Mahsulotlar statistikasi olib tashlandi
-    // Masalliqlar statistikasi uchun yangi holatlar
+    topSellingProducts: [], // Yangi: Eng ko'p sotilayotgan mahsulotlar
     totalIngredientsCount: 0,
     lowStockIngredientsCount: 0,
     outOfStockIngredientsCount: 0,
@@ -47,7 +46,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
       let totalCancelledOrders = 0;
       let dailyRevenue = 0;
       let totalRevenue = 0;
-      const productSales = {}; // Bu hali ham eng ko'p sotilgan mahsulotlar uchun kerak bo'lishi mumkin, lekin hozircha ishlatilmaydi.
+      const productSales = {}; // Eng ko'p sotilgan mahsulotlar uchun
       const courierPerformance = {};
       const chefPerformance = {};
 
@@ -85,10 +84,11 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
             dailyRevenue += order.total_price;
           }
 
-          // Product sales (agar keyinchalik kerak bo'lsa)
+          // Product sales calculation
           order.items.forEach((item) => {
             if (!productSales[item.id]) {
-              productSales[item.id] = { name: item.name, count: 0, revenue: 0 };
+              const productInfo = products.find(p => p.id === item.id);
+              productSales[item.id] = { name: productInfo ? productInfo.name : "Noma'lum mahsulot", count: 0, revenue: 0 };
             }
             productSales[item.id].count += item.quantity;
             productSales[item.id].revenue += item.price * item.quantity;
@@ -134,6 +134,9 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
         }
       });
 
+      const topSellingProducts = Object.values(productSales)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5); // Top 5 products
 
       // Calculate ingredient statistics
       const totalIngredientsCount = ingredients.length;
@@ -155,7 +158,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
         totalCancelledOrders,
         dailyRevenue,
         totalRevenue,
-        // Mahsulotlar statistikasi olib tashlandi
+        topSellingProducts, // Yangi: Eng ko'p sotilayotgan mahsulotlar
         totalIngredientsCount,
         lowStockIngredientsCount,
         outOfStockIngredientsCount,
@@ -238,40 +241,35 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
         </Card>
       </div>
 
-      {/* Yangi: Masalliqlar Statistikasi Bo'limi */}
+      {/* Yangi: Eng ko'p sotilayotgan mahsulotlar Bo'limi */}
       <h2 className="text-3xl font-bold text-white/90 mb-6 mt-8">
-        Masalliqlar Statistikasi
+        Mahsulotlar Statistikasi
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-white/10 border-gray-600">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-white/70">
-              Umumiy masalliq ma'lumotlari
+              Eng ko'p sotilayotgan mahsulotlar
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">Jami masalliqlar:</span>
-              <span className="font-medium text-white/70">
-                {stats.totalIngredientsCount}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">
-                Kam qolgan masalliqlar:
-              </span>
-              <span className="font-medium text-red-600">
-                {stats.lowStockIngredientsCount}
-              </span>
-            </div>
-            <div className="flex justify-between items-center text-white/70">
-              <span className="text-white font-semibold">
-                Tugagan masalliqlar:
-              </span>
-              <span className="font-medium text-red-600">
-                {stats.outOfStockIngredientsCount}
-              </span>
-            </div>
+            {stats.topSellingProducts.length > 0 ? (
+              stats.topSellingProducts.map((product, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center text-white/70"
+                >
+                  <span className="text-white font-semibold">
+                    {product.name}
+                  </span>
+                  <span className="font-medium">
+                    {product.count} ta ({formatPrice(product.revenue)} so'm)
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-600">Ma'lumotlar yo'q</p>
+            )}
           </CardContent>
         </Card>
 
@@ -283,19 +281,37 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
           </CardHeader>
           <CardContent className="space-y-2">
             {stats.top5LowestStockIngredients.length > 0 ? (
-              stats.top5LowestStockIngredients.map((ingredient, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center text-white/70"
-                >
-                  <span className="text-white font-semibold">
-                    {ingredient.name}
-                  </span>
-                  <span className="font-semibold text-red-600">
-                    {formatQuantity(ingredient.stock_quantity, ingredient.unit)} {ingredient.unit}
-                  </span>
-                </div>
-              ))
+              stats.top5LowestStockIngredients.map((ingredient, index) => {
+                let textColor = "text-green-600"; // Default to green
+
+                if (ingredient.unit === 'dona') {
+                  if (ingredient.stock_quantity < 13) {
+                    textColor = "text-red-600";
+                  } else if (ingredient.stock_quantity < 30) {
+                    textColor = "text-orange-500";
+                  }
+                } else { // Assuming 'g', 'kg', 'ml', 'l' are liquid/weight
+                  if (ingredient.stock_quantity < 3) {
+                    textColor = "text-red-600";
+                  } else if (ingredient.stock_quantity < 6) {
+                    textColor = "text-orange-500";
+                  }
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center text-white/70"
+                  >
+                    <span className="text-white font-semibold">
+                      {ingredient.name}
+                    </span>
+                    <span className={`font-semibold ${textColor}`}>
+                      {formatQuantity(ingredient.stock_quantity, ingredient.unit)} {ingredient.unit}
+                    </span>
+                  </div>
+                );
+              })
             ) : (
               <p className="text-gray-600">Ma'lumotlar yo'q</p>
             )}
