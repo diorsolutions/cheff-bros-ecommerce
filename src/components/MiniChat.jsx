@@ -24,9 +24,6 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   }, [messages, isPopoverOpen, readMessageIds]);
 
   useEffect(() => {
-    console.log("MiniChat useEffect running. isPopoverOpen:", isPopoverOpen, "messages.length:", messages.length);
-    console.log("Current readMessageIds state (before update):", readMessageIds);
-
     // Agar popover ochilgan bo'lsa
     if (isPopoverOpen) {
       // Barcha joriy xabarlarni o'qilgan deb belgilash
@@ -40,7 +37,6 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
           }
         });
         if (changed) {
-          console.log("Marking messages as read (new state):", newReadIds);
           return newReadIds;
         }
         return prev; // O'zgarish bo'lmasa, keraksiz re-renderlardan qochish
@@ -106,7 +102,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
                 Hozircha xabarlar yo'q
               </p>
             ) : (
-              messages.map((message) => (
+              messages.map((message, index) => (
                 <React.Fragment key={message.id}>
                   {showNewMessageIndicatorId === message.id && (
                     <div className="relative flex justify-center my-4">
@@ -121,7 +117,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`shadow-[0px_0px_29px_-2px_rgba(0,_0,_0,_0.1)] p-3 rounded-lg max-w-[85%] bg-white border border-blue-200 text-blue-600 ${
-                      readMessageIds[message.id] ? "message-read" : "message-unread"
+                      index === messages.length - 1 ? "message-unread" : "message-read"
                     }`}
                   >
                     <p className="text-sm text-black/70 font-semibold">
