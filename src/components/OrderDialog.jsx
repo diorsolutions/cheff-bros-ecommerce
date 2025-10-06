@@ -379,7 +379,7 @@ const OrderDialog = ({
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
               </div>
-              {(location && !isGettingLocation) && (
+              {(location && !isGettingLocation) && ( // Shartni 'location' mavjudligiga o'zgartirdim
                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                   <span className="text-gray-800">{location} - </span>
                   {isMobile ? (
@@ -406,18 +406,6 @@ const OrderDialog = ({
                             </a>
                           </DropdownMenuItem>
                         )}
-                        {googleLink && (
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={googleLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Google Mapsda ochish
-                            </a>
-                          </DropdownMenuItem>
-                        )}
                         {geoUri && (
                           <DropdownMenuItem asChild>
                             <a
@@ -430,7 +418,7 @@ const OrderDialog = ({
                             </a>
                           </DropdownMenuItem>
                         )}
-                        {(!yandexLink && !googleLink && !geoUri) && (
+                        {(!yandexLink && !geoUri) && ( // Shartni soddalashtirdim
                           <DropdownMenuItem disabled className="text-gray-500">
                             Xarita havolalari mavjud emas
                           </DropdownMenuItem>
