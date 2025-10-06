@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId } from "@/lib/utils";
+import { generateShortOrderId, formatUzbekDateTime } from "@/lib/utils"; // formatUzbekDateTime import qilindi
 import InfoModal from "./InfoModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
@@ -477,12 +477,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           ></span>
                           Buyurtma{" "}
                           <span className="text-gray-400 text-sm">
-                            {generateShortOrderId(order.id)}
+                           ID: {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400 hidden sm:inline">
-                            {new Date(order.created_at).toLocaleDateString("uz-UZ", { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {formatUzbekDateTime(order.created_at)}
                           </span>
                           {!order.curier_id && !order.chef_id && !isFinal ? (
                             <DropdownMenu>

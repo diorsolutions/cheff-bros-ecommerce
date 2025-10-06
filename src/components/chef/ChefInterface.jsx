@@ -17,7 +17,7 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import ChefSettingsDialog from "./ChefSettingsDialog";
-import { generateShortOrderId } from "@/lib/utils";
+import { generateShortOrderId, formatUzbekDateTime } from "@/lib/utils"; // formatUzbekDateTime import qilindi
 import {
   AlertDialog,
   AlertDialogAction,
@@ -233,21 +233,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return statusText;
   };
 
-  const formatOrderDateTime = (timestamp) => {
-    const orderDate = new Date(timestamp);
-    const formattedDate = orderDate.toLocaleDateString("uz-UZ", {
-      day: "numeric",
-      month: "long", // "2-digit" dan "long" ga o'zgartirildi
-      year: "numeric",
-    });
-    const formattedTime = orderDate.toLocaleTimeString("uz-UZ", {
-      hour: "2-digit",
-      minute: "2-digit",
-      // second: "2-digit", // Sekundlar olib tashlandi
-      hour12: false,
-    });
-    return `${formattedDate}, soat: ${formattedTime}`; // "kun:" olib tashlandi, format o'zgartirildi
-  };
+  // formatOrderDateTime funksiyasi olib tashlandi va formatUzbekDateTime bilan almashtirildi
+  // const formatOrderDateTime = (timestamp) => { ... };
 
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
@@ -472,7 +459,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           </CardTitle>
                           <div className="flex items-center gap-1">
                             <span className="text-gray-500 text-xs sm:text-sm">
-                              {formatOrderDateTime(order.created_at)}
+                              {formatUzbekDateTime(order.created_at)}
                             </span>
                           </div>
                         </div>

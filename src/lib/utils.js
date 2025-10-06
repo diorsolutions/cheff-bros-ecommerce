@@ -13,3 +13,14 @@ export function generateShortOrderId(uuid) {
   const hash = parseInt(uuid.substring(0, 8), 16);
   return (hash % 1000000).toString().padStart(6, '0');
 }
+
+export function formatUzbekDateTime(timestamp) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = date.toLocaleDateString('uz-UZ', { month: 'long' });
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+
+  return `${year}, ${day}-${month}, soat: ${hours}:${minutes}`;
+}
