@@ -40,6 +40,12 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
 
     setLoading(true);
     const calculateAdminStats = () => {
+      console.log("AdminStatistics: Calculating stats...");
+      console.log("AdminStatistics: All orders received:", orders);
+      console.log("AdminStatistics: All chefs received:", chefs);
+      console.log("AdminStatistics: All ingredients received:", ingredients);
+
+
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
@@ -72,9 +78,11 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
           totalCancelled: 0,
         };
       });
+      console.log("AdminStatistics: Initial chefPerformance:", chefPerformance);
 
 
       orders.forEach((order) => {
+        console.log(`AdminStatistics: Processing order ID: ${order.id}, Status: ${order.status}, Chef ID: ${order.chef_id}`);
         const orderDate = new Date(order.created_at);
         orderDate.setHours(0, 0, 0, 0);
 
@@ -118,14 +126,20 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
             }
           }
         } else if (order.status === "ready") { // Chef tayyorlagan buyurtmalar
+          console.log(`AdminStatistics: Found READY order ${order.id}. Chef ID: ${order.chef_id}`);
           if (order.chef_id && chefPerformance[order.chef_id]) {
+            console.log(`AdminStatistics: Chef ${order.chef_id} found in performance stats. Incrementing prepared count.`);
             chefPerformance[order.chef_id].totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               chefPerformance[order.chef_id].todayPrepared++;
             }
+            console.log(`AdminStatistics: After increment, totalPrepared: ${chefPerformance[order.chef_id].totalPrepared}`);
+          } else {
+            console.log(`AdminStatistics: Chef ${order.chef_id} not found in performance stats or chef_id is null for READY order ${order.id}.`);
           }
         }
       });
+      console.log("AdminStatistics: ChefPerformance after orders loop:", chefPerformance);
 
 
       // Calculate ingredient statistics
