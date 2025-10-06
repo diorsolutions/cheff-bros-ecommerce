@@ -380,61 +380,56 @@ const OrderDialog = ({
                   readOnly={locationMethod === "auto" && isGettingLocation} // Aniqlash jarayonida readOnly
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
-                {coordinates && !isGettingLocation && (
-                  <div className="absolute right-3 top-3">
-                    {isMobile ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0 text-gray-800 hover:bg-gray-200"
-                          >
-                            <MapPin className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-white border-gray-300">
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={yandexLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Yandex Mapsda ochish
-                            </a>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={geoUri}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                            >
-                              Boshqa ilovada ochish
-                            </a>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <a
-                        href={yandexLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 p-0 text-gray-800 hover:bg-gray-200"
-                        >
-                          <MapPin className="h-4 w-4" />
-                        </Button>
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
+              {coordinates && !isGettingLocation && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+                  <span className="text-gray-800">{location} - </span>
+                  {isMobile ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-blue-600 hover:underline"
+                        >
+                          <MapPin className="mr-1 h-4 w-4" />
+                          Xaritada ochish
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-white border-gray-300">
+                        <DropdownMenuItem asChild>
+                          <a
+                            href={yandexLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                          >
+                            Yandex Mapsda ochish
+                          </a>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <a
+                            href={geoUri}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                          >
+                            Boshqa ilovada ochish
+                          </a>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <a
+                      href={yandexLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Xaritada ochish
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             <Button

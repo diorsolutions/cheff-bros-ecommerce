@@ -50,34 +50,25 @@ body {
     box-shadow: 0 0 30px rgba(251, 146, 60, 0.6);
   }
 }
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Yangi: Gradient pulsatsiya animatsiyasi */
 @keyframes newOrderPulse {
-  0%, 100% {
-    transform: rotate(0deg);
+  0%,
+  100% {
+    transform: rotate(3deg);
   }
-  20% {
-    transform: rotate(2deg);
+  25% {
+    transform: rotate(-3deg);
   }
-  40% {
-    transform: rotate(-2deg);
+  50% {
+    transform: rotate(3deg);
   }
-  60% {
-    transform: rotate(1.5deg);
-  }
-  80% {
-    transform: rotate(-1.5deg);
+  75% {
+    transform: rotate(-3deg);
   }
 }
 
 .animate-newOrderPulse {
-  animation: newOrderPulse 0.6s both 3s infinite !important; /* tez va 3 marta titraydi */
+  animation: newOrderPulse 0.7s ease-in-out infinite;
 }
-
 
 /* Glass morphism effect */
 .glass {
