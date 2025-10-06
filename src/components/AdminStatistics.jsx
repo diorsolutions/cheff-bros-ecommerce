@@ -82,6 +82,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
 
 
       orders.forEach((order) => {
+        console.log(`AdminStatistics: Processing order ID: ${order.id}, Status: ${order.status}, Chef ID: ${order.chef_id}`);
         const orderDate = new Date(order.created_at);
         orderDate.setHours(0, 0, 0, 0);
 
@@ -125,16 +126,16 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
             }
           }
         } else if (order.status === "ready") { // Chef tayyorlagan buyurtmalar
-          console.log(`AdminStatistics: Processing READY order ${order.id} for chef ${order.chef_id}`);
+          console.log(`AdminStatistics: Found READY order ${order.id} for chef ${order.chef_id}`);
           if (order.chef_id && chefPerformance[order.chef_id]) {
-            console.log(`AdminStatistics: Chef ${order.chef_id} found in performance stats. Current prepared: ${chefPerformance[order.chef_id].totalPrepared}`);
+            console.log(`AdminStatistics: Incrementing prepared count for chef ${order.chef_id}`);
             chefPerformance[order.chef_id].totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               chefPerformance[order.chef_id].todayPrepared++;
             }
             console.log(`AdminStatistics: After increment, prepared: ${chefPerformance[order.chef_id].totalPrepared}`);
           } else {
-            console.log(`AdminStatistics: Chef ${order.chef_id} not found in performance stats for READY order ${order.id} or chef_id is null.`);
+            console.log(`AdminStatistics: Chef ${order.chef_id} not found in performance stats or chef_id is null for READY order ${order.id}.`);
           }
         }
       });

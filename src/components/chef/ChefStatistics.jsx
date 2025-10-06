@@ -31,8 +31,9 @@ const ChefStatistics = ({ chefId, orders }) => {
       let todayCancelled = 0;
 
       orders.forEach((order) => {
+        console.log(`ChefStatistics: Processing order ID: ${order.id}, Status: ${order.status}, Chef ID: ${order.chef_id} (Current Chef ID: ${chefId})`);
         if (order.chef_id === chefId) {
-          console.log("ChefStatistics: Processing order for this chef:", order.id, "Status:", order.status);
+          console.log("ChefStatistics: Order belongs to current chef.");
           const orderDate = new Date(order.created_at);
           orderDate.setHours(0, 0, 0, 0);
 
@@ -52,7 +53,7 @@ const ChefStatistics = ({ chefId, orders }) => {
             console.log("ChefStatistics: After increment, totalCancelled:", totalCancelled, "todayCancelled:", todayCancelled);
           }
         } else {
-          // console.log(`ChefStatistics: Skipping order ${order.id} because chef_id (${order.chef_id}) does not match current chefId (${chefId}).`);
+          console.log(`ChefStatistics: Skipping order ${order.id} because chef_id (${order.chef_id}) does not match current chefId (${chefId}).`);
         }
       });
 
