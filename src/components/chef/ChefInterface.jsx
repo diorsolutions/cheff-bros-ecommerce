@@ -18,7 +18,11 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import ChefSettingsDialog from "./ChefSettingsDialog";
-import { generateShortOrderId, formatUzbekDateTime, getMapLinks } from "@/lib/utils"; // formatUzbekDateTime va getMapLinks import qilindi
+import {
+  generateShortOrderId,
+  formatUzbekDateTime,
+  getMapLinks,
+} from "@/lib/utils"; // formatUzbekDateTime va getMapLinks import qilindi
 import {
   AlertDialog,
   AlertDialogAction,
@@ -211,7 +215,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         case "en_route_to_kitchen":
           statusText = assignedCurierName
             ? `${assignedCurierName} olish uchun yo'lda`
-            : "Kuryer olish uchun yo'lda";
+            : "olish uchun yo'lda";
           break;
         case "picked_up_from_kitchen":
           statusText = assignedCurierName
@@ -225,16 +229,14 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
         default:
           statusText = assignedCurierName
-            ? `${assignedCurierName} buyurtmani boshqarmoqda`
-            : "Kuryer boshqarmoqda";
+            ? `${assignedCurierName} olish uchun yo'lda`
+            : "olish uchun yo'lda";
           break;
       }
     } else if (orderChefId) {
       switch (status) {
         case "preparing":
-          statusText = assignedChefName
-            ? `${assignedChefName} tayyorlanmoqda`
-            : "Tayyorlanmoqda";
+          statusText = assignedChefName ? ` Tayyorlayapsiz` : "Tayyorlayapsiz";
           break;
         case "ready":
           statusText = assignedChefName
@@ -242,9 +244,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
             : "Tayyor";
           break;
         default:
-          statusText = assignedChefName
-            ? `${assignedChefName} buyurtmani boshqarmoqda`
-            : "Oshpaz boshqarmoqda";
+          statusText = assignedChefName ? ` buyurtma sizda` : " buyurtma sizda";
           break;
       }
     } else {
@@ -289,13 +289,13 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
     return filtered.sort((a, b) => {
       const statusPriority = {
-        "new": 1,         // Yangi buyurtmalar, oshpaz uchun eng yuqori ustuvorlik
-        "preparing": 2,   // Faol tayyorlanmoqda
-        "ready": 3,       // Kuryer olishi uchun tayyor
-        "en_route_to_kitchen": 4, // Kuryer yo'lda (oshpaz ishi tugagan)
-        "picked_up_from_kitchen": 5, // Kuryer olib ketdi (oshpaz ishi tugagan)
-        "delivered_to_customer": 98, // Yakuniy status
-        "cancelled": 99   // Yakuniy status
+        new: 1, // Yangi buyurtmalar, oshpaz uchun eng yuqori ustuvorlik
+        preparing: 2, // Faol tayyorlanmoqda
+        ready: 3, // Kuryer olishi uchun tayyor
+        en_route_to_kitchen: 4, // Kuryer yo'lda (oshpaz ishi tugagan)
+        picked_up_from_kitchen: 5, // Kuryer olib ketdi (oshpaz ishi tugagan)
+        delivered_to_customer: 98, // Yakuniy status
+        cancelled: 99, // Yakuniy status
       };
 
       const aIsAssignedToMe = a.chef_id === chefId;
@@ -322,7 +322,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
 
       // 4. Bir xil ustuvorlikdagi buyurtmalarni yaratilish sanasi bo'yicha saralash (eng eskisi birinchi)
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return (
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
     });
   }, [orders, searchTerm, chefId]);
 
@@ -467,7 +469,11 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   !isCancelled &&
                   isAssignedToThisChef;
 
-                const { yandexLink, googleLink, geoUri } = getMapLinks(order.coordinates?.lat, order.coordinates?.lng, order.location);
+                const { yandexLink, googleLink, geoUri } = getMapLinks(
+                  order.coordinates?.lat,
+                  order.coordinates?.lng,
+                  order.location
+                );
 
                 return (
                   <motion.div
@@ -582,8 +588,11 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                       </a>
                                     </DropdownMenuItem>
                                   )}
-                                  {(!yandexLink && !googleLink && !geoUri) && (
-                                    <DropdownMenuItem disabled className="text-gray-500">
+                                  {!yandexLink && !googleLink && !geoUri && (
+                                    <DropdownMenuItem
+                                      disabled
+                                      className="text-gray-500"
+                                    >
                                       Xarita havolalari mavjud emas
                                     </DropdownMenuItem>
                                   )}
@@ -599,11 +608,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 (xaritada ochish)
                               </a>
                             )
-                          ) : ( // If no coordinates (manual entry)
-                            <span> {/* Fragment o'rniga span ishlatildi */}
+                          ) : (
+                            // If no coordinates (manual entry)
+                            <>
                               {order.location}{" "}
-                              {order.location && (
-                                isMobile ? (
+                              {order.location &&
+                                (isMobile ? (
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button
@@ -651,11 +661,16 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                           </a>
                                         </DropdownMenuItem>
                                       )}
-                                      {(!yandexLink && !googleLink && !geoUri) && (
-                                        <DropdownMenuItem disabled className="text-gray-500">
-                                          Xarita havolalari mavjud emas
-                                        </DropdownMenuItem>
-                                      )}
+                                      {!yandexLink &&
+                                        !googleLink &&
+                                        !geoUri && (
+                                          <DropdownMenuItem
+                                            disabled
+                                            className="text-gray-500"
+                                          >
+                                            Xarita havolalari mavjud emas
+                                          </DropdownMenuItem>
+                                        )}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 ) : (
@@ -667,9 +682,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                   >
                                     (xaritada ochish)
                                   </a>
-                                )
-                              )}
-                            </span>
+                                ))}
+                            </>
                           )}
                         </p>
 
@@ -735,17 +749,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           </span>
                         </div>
 
-                        {order.chef_id && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <ChefHat className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm text-gray-500">
-                              Oshpaz:
-                            </span>
-                            <span className="text-sm font-medium text-gray-800">
-                              {getChefInfo(order.chef_id)?.name || "Noma'lum"}
-                            </span>
-                          </div>
-                        )}
                         {order.curier_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
