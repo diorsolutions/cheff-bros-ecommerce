@@ -109,6 +109,15 @@ body {
   -moz-appearance: textfield;
 }
 
+/* MiniChat uchun maxsus klasslar */
+.message-read {
+  opacity: 0.5;
+}
+
+.message-unread {
+  opacity: 1;
+}
+
 @layer base {
   * {
     @apply border-border;
