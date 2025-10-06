@@ -7,13 +7,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
+  // useRef deklaratsiyalari eng boshida
+  const messagesEndRef = useRef(null);
+  const messagesLengthAtLastRenderRef = useRef(0); // Dastlab 0 bilan boshlaymiz
+
   const [readMessageIds, setReadMessageIds] = useLocalStorage("readMessageIds", {});
   const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null);
-  const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // messagesLengthAtLastRenderRef ni har doim yangilab turish uchun alohida useEffect
+  useEffect(() => {
+    messagesLengthAtLastRenderRef.current = messages.length;
+  }, [messages.length]);
 
   const currentUnreadCount = useMemo(() => {
     if (isPopoverOpen) return 0; // Chat ochiq bo'lsa, o'qilmaganlar soni 0
@@ -39,9 +47,9 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         return prev; // O'zgarish bo'lmasa, keraksiz re-renderlardan qochish
       });
       setShowNewMessageIndicatorId(null); // Indikatorni tozalash
+      scrollToBottom(); // Ochilganda pastga aylantirish
     } else {
       // Agar popover yopiq bo'lsa va yangi xabar kelgan bo'lsa
-      // Bu qism faqat badge uchun yangi xabarni aniqlaydi, scroll uchun emas
       const prevMessagesLength = messagesLengthAtLastRenderRef.current;
       if (messages.length > prevMessagesLength) {
         const newMessages = messages.slice(prevMessagesLength);
@@ -51,15 +59,15 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         }
       }
     }
-    messagesLengthAtLastRenderRef.current = messages.length; // Xabarlar sonini yangilash
   }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
+  // Avtomatik aylantirishni boshqarish uchun alohida useEffect
   useEffect(() => {
-    // Har safar popover ochilganda yoki yangi xabar kelganda (agar ochiq bo'lsa) pastga aylantirish
-    if (isPopoverOpen) {
+    // Agar popover ochiq bo'lsa va yangi xabarlar kelgan bo'lsa, pastga aylantirish
+    if (isPopoverOpen && messages.length > messagesLengthAtLastRenderRef.current) {
       scrollToBottom();
     }
-  }, [isPopoverOpen, messages.length]); // isPopoverOpen yoki messages.length o'zgarganda ishga tushadi
+  }, [isPopoverOpen, messages.length]);
 
 
   return (
