@@ -877,7 +877,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.curier_id && (isFinal || (!isEnRouteToKitchen && !isPickedUpFromKitchen)) && (
+                      {order.curier_id && hideMainStatus && ( // Faqat hideMainStatus true bo'lganda kuryer ma'lumotini ko'rsatish
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
