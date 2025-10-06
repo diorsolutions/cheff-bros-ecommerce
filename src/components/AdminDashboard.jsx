@@ -172,6 +172,27 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     }
   };
 
+  const handleShowUserInfo = (user, role) => {
+    setInfoModalTitle(
+      `${role === "curier" ? "Kuryer" : "Oshpaz"} ma'lumotlari`
+    );
+    setInfoModalDescription("");
+    setInfoModalDetails([
+      { label: "Ism", value: user.name },
+      { label: "Telefon", value: user.phone || "Kiritilmagan" },
+    ]);
+    setShowInfoModal(true);
+  };
+
+  const renderUserLink = (user, role) => (
+    <p
+      onClick={() => handleShowUserInfo(user, role)}
+      className="inline text-blue-500 cursor-pointer"
+    >
+      {user?.name || "Noma'lum"}
+    </p>
+  );
+
   const getDetailedStatusText = (
     status,
     curierId,
@@ -179,65 +200,89 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     cancellationReason,
     orderObject
   ) => {
-    const courierName = curierId ? getCurierInfo(curierId)?.name : null;
-    const chefName = chefId ? getChefInfo(chefId)?.name : null;
+    const courierInfo = curierId ? getCurierInfo(curierId) : null;
+    const chefInfo = chefId ? getChefInfo(chefId) : null;
 
     let statusText = "";
 
     if (status === "cancelled") {
       if (orderObject.curier_id && orderObject.cancellation_reason) {
-        statusText = `Kuryer: ${courierName || "Noma'lum"} bekor qildi`;
-        if (chefName) {
-          statusText = `Oshpaz: ${chefName} tayyorladi! ${statusText}`;
+        statusText = (
+          <>
+            Kuryer: {renderUserLink(courierInfo, "curier")} bekor qildi
+          </>
+        );
+        if (chefInfo) {
+          statusText = (
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi! {statusText}
+            </>
+          );
         }
       } else if (orderObject.chef_id && orderObject.cancellation_reason) {
-        statusText = `Oshpaz: ${chefName || "Noma'lum"} bekor qildi`;
+        statusText = (
+          <>
+            Oshpaz: {renderUserLink(chefInfo, "chef")} bekor qildi
+          </>
+        );
       } else {
         statusText = "Bekor qilingan";
-        if (chefName) statusText += ` (Oshpaz: ${chefName})`;
-        if (courierName) statusText += ` (Kuryer: ${courierName})`;
+        if (chefInfo) statusText += ` (Oshpaz: ${chefInfo.name})`;
+        if (courierInfo) statusText += ` (Kuryer: ${courierInfo.name})`;
       }
     } else if (curierId) {
       switch (status) {
         case "en_route_to_kitchen":
-          statusText = `Kuryer: ${
-            courierName || "Noma'lum"
-          } olish uchun yo'lda`;
+          statusText = (
+            <>
+              Kuryer: {renderUserLink(courierInfo, "curier")} olish uchun yo'lda
+            </>
+          );
           break;
         case "picked_up_from_kitchen":
-          statusText = `Kuryer: ${courierName || "Noma'lum"} buyurtmani oldi`;
+          statusText = (
+            <>
+              Kuryer: {renderUserLink(courierInfo, "curier")} buyurtmani oldi
+            </>
+          );
           break;
         case "delivered_to_customer":
           statusText = (
             <>
-              Kuryer:{" "}
-              <p
-                onClick={() => handleShowUserInfo(getCurierInfo(curierId), "curier")}
-                className="inline text-blue-500 cursor-pointer"
-              >
-                {courierName || "Noma'lum"}
-              </p>{" "}
-              mijozga yetkazdi
+              Kuryer: {renderUserLink(courierInfo, "curier")} mijozga yetkazdi
             </>
           );
           break;
-
         default:
-          statusText = `Kuryer: ${
-            courierName || "Noma'lum"
-          } - olish uchun yo'lda`;
+          statusText = (
+            <>
+              Kuryer: {renderUserLink(courierInfo, "curier")} - olish uchun yo'lda
+            </>
+          );
           break;
       }
     } else if (chefId) {
       switch (status) {
         case "preparing":
-          statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorlanmoqda`;
+          statusText = (
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorlanmoqda
+            </>
+          );
           break;
         case "ready":
-          statusText = `Oshpaz: ${chefName || "Noma'lum"} tayyorladi`;
+          statusText = (
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi
+            </>
+          );
           break;
         default:
-          statusText = `Oshpaz: ${chefName || "Noma'lum"} oshpaz kutilmoqda`;
+          statusText = (
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} oshpaz kutilmoqda
+            </>
+          );
           break;
       }
     } else {
@@ -251,18 +296,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
       }
     }
     return statusText;
-  };
-
-  const handleShowUserInfo = (user, role) => {
-    setInfoModalTitle(
-      `${role === "curier" ? "Kuryer" : "Oshpaz"} ma'lumotlari`
-    );
-    setInfoModalDescription("");
-    setInfoModalDetails([
-      { label: "Ism", value: user.name },
-      { label: "Telefon", value: user.phone || "Kiritilmagan" },
-    ]);
-    setShowInfoModal(true);
   };
 
   const handleShowCancellationReason = (reason) => {
@@ -836,7 +869,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {/* {order.curier_id && (
+                      {order.curier_id && (
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
@@ -870,7 +903,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             </span>
                           )}{" "}
                         </div>
-                      )} */}
+                      )}
 
                       {order.status === "cancelled" &&
                         order.cancellation_reason && (
