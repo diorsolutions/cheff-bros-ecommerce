@@ -47,7 +47,6 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         return prev; // O'zgarish bo'lmasa, keraksiz re-renderlardan qochish
       });
       setShowNewMessageIndicatorId(null); // Indikatorni tozalash
-      scrollToBottom(); // Ochilganda pastga aylantirish
     } else {
       // Agar popover yopiq bo'lsa va yangi xabar kelgan bo'lsa
       const prevMessagesLength = messagesLengthAtLastRenderRef.current;
@@ -62,12 +61,17 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
   // Avtomatik aylantirishni boshqarish uchun alohida useEffect
+  // Endi har safar popover ochilganda ishlaydi
   useEffect(() => {
-    // Agar popover ochiq bo'lsa va yangi xabarlar kelgan bo'lsa, pastga aylantirish
-    if (isPopoverOpen && messages.length > messagesLengthAtLastRenderRef.current) {
-      scrollToBottom();
+    if (isPopoverOpen) {
+      // setTimeout orqali scrollni biroz kechiktiramiz,
+      // bu DOM elementlari to'liq render bo'lishini ta'minlaydi.
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 0); 
+      return () => clearTimeout(timer); // Cleanup the timer
     }
-  }, [isPopoverOpen, messages.length]);
+  }, [isPopoverOpen]); // Faqat isPopoverOpen holati o'zgarganda ishga tushadi
 
 
   return (
