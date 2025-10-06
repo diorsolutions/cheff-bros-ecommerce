@@ -56,20 +56,28 @@ body {
 }
 
 /* Yangi: Gradient pulsatsiya animatsiyasi */
-@keyframes gradient-pulse {
-  0%,
-  100% {
-    background-position: 0% 50%;
+@keyframes newOrderPulse {
+  0%, 100% {
+    transform: rotate(0deg);
   }
-  50% {
-    background-position: 100% 50%;
+  20% {
+    transform: rotate(2deg);
+  }
+  40% {
+    transform: rotate(-2deg);
+  }
+  60% {
+    transform: rotate(1.5deg);
+  }
+  80% {
+    transform: rotate(-1.5deg);
   }
 }
 
-.animate-gradient-pulse {
-  background-size: 200% 200%; /* Gradientni elementdan kattaroq qilish */
-  animation: gradient-pulse 3s ease infinite;
+.animate-newOrderPulse {
+  animation: newOrderPulse 0.6s both 3s infinite !important; /* tez va 3 marta titraydi */
 }
+
 
 /* Glass morphism effect */
 .glass {

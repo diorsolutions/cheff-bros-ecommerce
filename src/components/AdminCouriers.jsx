@@ -155,7 +155,7 @@ const AdminCouriers = ({ curiers, orders }) => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid grid-flow-row auto-cols-fr gap-4">
         <AnimatePresence>
           {Object.values(courierStats).length === 0 ? (
             <Card className="bg-white/10 border-gray-600">

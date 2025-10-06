@@ -33,45 +33,59 @@ import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 // Umumiy tovush ijro etish funksiyasi
-const playSound = (audioRef, setHasInteracted, hasInteracted, toastTitle, toastDescription) => {
+const playSound = (
+  audioRef,
+  setHasInteracted,
+  hasInteracted,
+  toastTitle,
+  toastDescription
+) => {
   if (audioRef.current) {
     audioRef.current.currentTime = 0; // Tovushni boshidan boshlash
-    audioRef.current.play().then(() => {
-      setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
-    }).catch(e => {
-      if (e.name === "NotAllowedError" && !hasInteracted) {
-        // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
-        toast({
-          title: toastTitle,
-          description: toastDescription,
-          action: (
-            <Button
-              onClick={() => {
-                audioRef.current.play().then(() => {
-                  setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
-                  toast({
-                    title: "Tovush yoqildi!",
-                    description: "Bildirishnoma tovushlari endi ijro etiladi.",
-                  });
-                }).catch(err => console.error("Manual play failed:", err));
-              }}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              Tovushni yoqish
-            </Button>
-          ),
-          duration: 10000, // Uzoqroq ko'rsatish
-        });
-      } else if (e.name === "NotSupportedError") {
-        toast({
-          title: "Tovush fayli xatosi",
-          description: "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
-          variant: "destructive",
-        });
-      } else {
-        console.error("Error playing sound:", e);
-      }
-    });
+    audioRef.current
+      .play()
+      .then(() => {
+        setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
+      })
+      .catch((e) => {
+        if (e.name === "NotAllowedError" && !hasInteracted) {
+          // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
+          toast({
+            title: toastTitle,
+            description: toastDescription,
+            action: (
+              <Button
+                onClick={() => {
+                  audioRef.current
+                    .play()
+                    .then(() => {
+                      setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
+                      toast({
+                        title: "Tovush yoqildi!",
+                        description:
+                          "Bildirishnoma tovushlari endi ijro etiladi.",
+                      });
+                    })
+                    .catch((err) => console.error("Manual play failed:", err));
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Tovushni yoqish
+              </Button>
+            ),
+            duration: 10000, // Uzoqroq ko'rsatish
+          });
+        } else if (e.name === "NotSupportedError") {
+          toast({
+            title: "Tovush fayli xatosi",
+            description:
+              "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
+            variant: "destructive",
+          });
+        } else {
+          console.error("Error playing sound:", e);
+        }
+      });
   }
 };
 
@@ -86,9 +100,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const [cancellationReason, setCancellationReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const chefOrderSound = useRef(new Audio("/notification_chef_sound.mp3"));
+  const chefOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
   const prevSortedOrdersRef = useRef([]);
-  const [hasInteracted, setHasInteracted] = useLocalStorage("chefHasInteracted", false);
+  const [hasInteracted, setHasInteracted] = useLocalStorage(
+    "chefHasInteracted",
+    false
+  );
 
   useEffect(() => {
     const fetchChefInfo = async () => {
@@ -248,7 +265,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       }
       const isAssignedToMe = order.chef_id === chefId;
       const isNewAndUnassigned = !order.chef_id && order.status === "new";
-      
+
       if (isAssignedToMe || isNewAndUnassigned) {
         return true;
       }

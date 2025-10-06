@@ -621,7 +621,6 @@ function App() {
       updateData.cancellation_reason = cancellationReason;
     }
 
-
     if (actorRole === "curier") {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
         toast({
@@ -786,13 +785,17 @@ function App() {
 
       // Agar admin statusni 'preparing' yoki 'ready' ga o'tkazsa va oshpaz biriktirilmagan bo'lsa,
       // birinchi oshpazni biriktiramiz.
-      if ((newStatus === "preparing" || newStatus === "ready") && !orderToUpdate.chef_id) {
+      if (
+        (newStatus === "preparing" || newStatus === "ready") &&
+        !orderToUpdate.chef_id
+      ) {
         if (chefs.length > 0) {
           updateData.chef_id = chefs[0].id; // Birinchi oshpazni standart sifatida biriktiramiz
         } else {
           toast({
             title: "Xatolik!",
-            description: "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
+            description:
+              "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
             variant: "destructive",
           });
           return;
@@ -808,7 +811,6 @@ function App() {
       });
       return;
     }
-
 
     const { error } = await supabase
       .from("orders")
@@ -830,16 +832,13 @@ function App() {
       let message = "";
       // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const itemNames = order.items.map((item) => item.name).join(", ");
-        message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+        const message = `Sizning *${itemNames}* nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
         // Buyurtma yetkazilganda modalni yashirish
         // if (orderId === activeCustomerOrderId) { // Eski logic
         //   setActiveCustomerOrderId(null);
         // }
       } else if (newStatus === "cancelled") {
-        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababi: ${
-          cancellationReason || "ko'rsatilmagan"
-        }. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+        message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
         // Buyurtma bekor qilinganda modalni yashirish
         // if (orderId === activeCustomerOrderId) { // Eski logic
         //   setActiveCustomerOrderId(null);
@@ -868,7 +867,9 @@ function App() {
   );
 
   return (
-    <div className="app-container"> {/* Fragment o'rniga div ishlatildi */}
+    <div className="app-container">
+      {" "}
+      {/* Fragment o'rniga div ishlatildi */}
       <Helmet>
         <title>Restoran - Online Buyurtma Tizimi</title>
         <meta
@@ -876,7 +877,6 @@ function App() {
           content="Eng mazali taomlarni online buyurtma qiling. Tez va qulay yetkazib berish xizmati."
         />
       </Helmet>
-
       <Routes>
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/curier-login" element={<CurierLoginPage />} />
@@ -967,7 +967,6 @@ function App() {
           }
         />
       </Routes>
-
       <OrderDialog
         isOpen={isOrderDialogOpen}
         onClose={() => setIsOrderDialogOpen(false)}
@@ -1014,7 +1013,7 @@ function MainLayout({
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
-    };
+    }
     return () => {
       document.body.style.overflow = "unset";
     };

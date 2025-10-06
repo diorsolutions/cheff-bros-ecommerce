@@ -11,8 +11,6 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Oldingi isPopoverOpen holatini kuzatish uchun ref
-  const prevIsPopoverOpenRef = useRef(isPopoverOpen);
   // Oldingi xabarlar sonini kuzatish uchun ref
   const messagesLengthAtLastRenderRef = useRef(messages.length);
 
@@ -21,28 +19,14 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   };
 
   const currentUnreadCount = useMemo(() => {
-    if (isPopoverOpen) return 0;
+    if (isPopoverOpen) return 0; // Chat ochiq bo'lsa, o'qilmaganlar soni 0
     return messages.filter((msg) => !readMessageIds[msg.id]).length;
   }, [messages, isPopoverOpen, readMessageIds]);
 
   useEffect(() => {
-    // Popover endigina ochilganini aniqlash
-    const justOpened = !prevIsPopoverOpenRef.current && isPopoverOpen;
-
-    if (justOpened) {
-      scrollToBottom(); // Faqat ochilganda bir marta pastga aylantirish
-    }
-
+    // Agar popover ochilgan bo'lsa
     if (isPopoverOpen) {
-      // Birinchi o'qilmagan xabarni aniqlash (barcha xabarlar o'qilgan deb belgilanishidan oldin)
-      const firstUnread = messages.find((msg) => !readMessageIds[msg.id]);
-      if (firstUnread) {
-        setShowNewMessageIndicatorId(firstUnread.id);
-      } else {
-        setShowNewMessageIndicatorId(null);
-      }
-
-      // Chat ochilganda barcha joriy xabarlarni o'qilgan deb belgilash
+      // Barcha joriy xabarlarni o'qilgan deb belgilash
       setReadMessageIds((prev) => {
         const newReadIds = { ...prev };
         messages.forEach((msg) => {
@@ -50,30 +34,33 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         });
         return newReadIds;
       });
+      setShowNewMessageIndicatorId(null); // Indikatorni tozalash
+      scrollToBottom(); // Ochilganda pastga aylantirish
     } else {
-      // Chat yopilganda indikatorni tozalash
-      setShowNewMessageIndicatorId(null);
+      // Agar popover yopiq bo'lsa va yangi xabar kelgan bo'lsa
+      if (messages.length > messagesLengthAtLastRenderRef.current) {
+        const newMessages = messages.slice(messagesLengthAtLastRenderRef.current);
+        const firstUnreadNewMessage = newMessages.find(msg => !readMessageIds[msg.id]);
+        if (firstUnreadNewMessage) {
+          setShowNewMessageIndicatorId(firstUnreadNewMessage.id);
+        }
+      }
     }
-
-    // prevIsPopoverOpenRef ni joriy holatga yangilash
-    prevIsPopoverOpenRef.current = isPopoverOpen;
-  }, [isPopoverOpen, messages, readMessageIds]); // isPopoverOpen, messages, readMessageIds o'zgarganda ishga tushadi
+    messagesLengthAtLastRenderRef.current = messages.length; // Xabarlar sonini yangilash
+  }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
   useEffect(() => {
     // Agar chat ochiq bo'lsa va yangi xabar kelgan bo'lsa, pastga aylantirish
     if (isPopoverOpen && messages.length > messagesLengthAtLastRenderRef.current) {
       scrollToBottom();
     }
-    // messagesLengthAtLastRenderRef ni joriy xabarlar soniga yangilash
-    messagesLengthAtLastRenderRef.current = messages.length;
-  }, [messages.length, isPopoverOpen]); // messages.length yoki isPopoverOpen o'zgarganda ishga tushadi
+    messagesLengthAtLastRenderRef.current = messages.length; // Xabarlar sonini yangilash
+  }, [messages.length, isPopoverOpen]);
 
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
-        <Button
-          className="relative w-10 h-10 p-3 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
-        >
+        <Button className="relative w-10 h-10 p-3 rounded-full bg-gradient-to-r text-white from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg">
           {isPopoverOpen ? (
             <X className="h-5 w-5" />
           ) : (
@@ -95,9 +82,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
       <PopoverContent className="w-80 h-96 p-0 bg-white border-gray-500">
         <Card className="h-full flex flex-col bg-white border-gray-300">
           <CardHeader className="pb-3">
-            <CardTitle className="text-gray-800 text-lg">
-              Xabarlar
-            </CardTitle>
+            <CardTitle className="text-gray-800 text-lg">Xabarlar</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 ? (
@@ -119,17 +104,46 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
                     layout
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={`p-3 rounded-lg max-w-[85%] bg-blue-100 border border-blue-300 text-blue-600 ${
-                      readMessageIds[message.id]
-                        ? "opacity-50"
-                        : "opacity-100"
+                    className={`shadow-[0px_0px_29px_-2px_rgba(0,_0,_0,_0.1)] p-3 rounded-lg max-w-[85%] bg-white border border-blue-200 text-blue-600 ${
+                      readMessageIds[message.id] ? "opacity-50" : "opacity-100"
                     }`}
                   >
-                    <p className="text-sm">{message.text}</p>
+                    <p className="text-sm text-black/70 font-semibold">
+                      {message.text}
+                    </p>
                     <span className="text-xs opacity-70 block text-right mt-1">
-                      {new Date(message.timestamp).toLocaleTimeString(
-                        "uz-UZ"
-                      )}
+                      {(() => {
+                        const date = new Date(message.timestamp);
+
+                        const oylar = [
+                          "yanvar",
+                          "fevral",
+                          "mart",
+                          "aprel",
+                          "may",
+                          "iyun",
+                          "iyul",
+                          "avgust",
+                          "sentabr",
+                          "oktyabr",
+                          "noyabr",
+                          "dekabr",
+                        ];
+
+                        const year = date.getFullYear();
+                        const day = date.getDate();
+                        const monthName = oylar[date.getMonth()];
+                        const hours = date
+                          .getHours()
+                          .toString()
+                          .padStart(2, "0");
+                        const minutes = date
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, "0");
+
+                        return `${year}, ${day}-${monthName}, soat: ${hours}:${minutes}`;
+                      })()}
                     </span>
                   </motion.div>
                 </React.Fragment>
