@@ -790,6 +790,22 @@ function App() {
         return;
       }
       canUpdate = true;
+
+      // Agar admin statusni 'preparing' yoki 'ready' ga o'tkazsa va oshpaz biriktirilmagan bo'lsa,
+      // birinchi oshpazni biriktiramiz.
+      if ((newStatus === "preparing" || newStatus === "ready") && !orderToUpdate.chef_id) {
+        if (chefs.length > 0) {
+          updateData.chef_id = chefs[0].id; // Birinchi oshpazni standart sifatida biriktiramiz
+          console.log(`Admin assigned order ${orderId} to default chef ${chefs[0].id} for status ${newStatus}`);
+        } else {
+          toast({
+            title: "Xatolik!",
+            description: "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
 
     if (!canUpdate) {

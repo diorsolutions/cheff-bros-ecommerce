@@ -19,9 +19,6 @@ const ChefStatistics = ({ chefId, orders }) => {
 
     setLoading(true);
     const calculateStats = () => {
-      console.log("ChefStatistics: Calculating stats for chefId:", chefId);
-      console.log("ChefStatistics: All orders received:", orders);
-
       const now = new Date();
       now.setHours(0, 0, 0, 0); // Bugunning boshlanishi
 
@@ -31,29 +28,21 @@ const ChefStatistics = ({ chefId, orders }) => {
       let todayCancelled = 0;
 
       orders.forEach((order) => {
-        console.log(`ChefStatistics: Processing order ID: ${order.id}, Status: ${order.status}, Chef ID: ${order.chef_id} (Current Chef ID: ${chefId})`);
         if (order.chef_id === chefId) {
-          console.log("ChefStatistics: Order belongs to current chef.");
           const orderDate = new Date(order.created_at);
           orderDate.setHours(0, 0, 0, 0);
 
           if (order.status === "ready") {
-            console.log(`ChefStatistics: Order ${order.id} is READY. Incrementing prepared count.`);
             totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               todayPrepared++;
             }
-            console.log("ChefStatistics: After increment, totalPrepared:", totalPrepared, "todayPrepared:", todayPrepared);
           } else if (order.status === "cancelled") {
-            console.log(`ChefStatistics: Order ${order.id} is CANCELLED. Incrementing cancelled count.`);
             totalCancelled++;
             if (orderDate.getTime() === now.getTime()) {
               todayCancelled++;
             }
-            console.log("ChefStatistics: After increment, totalCancelled:", totalCancelled, "todayCancelled:", todayCancelled);
           }
-        } else {
-          console.log(`ChefStatistics: Skipping order ${order.id} because chef_id (${order.chef_id}) does not match current chefId (${chefId}).`);
         }
       });
 
@@ -64,7 +53,6 @@ const ChefStatistics = ({ chefId, orders }) => {
         todayCancelled: todayCancelled,
       });
       setLoading(false);
-      console.log("ChefStatistics: Final stats:", { totalPrepared, todayPrepared, totalCancelled, todayCancelled });
     };
 
     calculateStats();
