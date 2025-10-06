@@ -519,6 +519,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order
               );
 
+              // Asosiy status qismini yashirish sharti
+              const hideMainStatus =
+                isFinal ||
+                (order.curier_id &&
+                  (order.status === "en_route_to_kitchen" ||
+                    order.status === "picked_up_from_kitchen"));
+
               return (
                 <motion.div
                   key={order.id}
@@ -797,7 +804,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       </div>
 
-                      {!isFinal && ( // Faqat yakunlanmagan buyurtmalar uchun statusni ko'rsatish
+                      {!hideMainStatus && ( // Yangi shart qo'shildi
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Status:</span>
