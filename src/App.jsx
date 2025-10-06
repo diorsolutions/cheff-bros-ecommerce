@@ -621,13 +621,6 @@ function App() {
       updateData.cancellation_reason = cancellationReason;
     }
 
-    console.log("handleUpdateOrderStatus: Initial state:", {
-      orderId,
-      newStatus,
-      actorId,
-      actorRole,
-      orderToUpdate,
-    });
 
     if (actorRole === "curier") {
       if (orderToUpdate.curier_id && orderToUpdate.curier_id !== actorId) {
@@ -796,7 +789,6 @@ function App() {
       if ((newStatus === "preparing" || newStatus === "ready") && !orderToUpdate.chef_id) {
         if (chefs.length > 0) {
           updateData.chef_id = chefs[0].id; // Birinchi oshpazni standart sifatida biriktiramiz
-          console.log(`Admin assigned order ${orderId} to default chef ${chefs[0].id} for status ${newStatus}`);
         } else {
           toast({
             title: "Xatolik!",
@@ -817,7 +809,6 @@ function App() {
       return;
     }
 
-    console.log("handleUpdateOrderStatus: Updating with data:", updateData);
 
     const { error } = await supabase
       .from("orders")

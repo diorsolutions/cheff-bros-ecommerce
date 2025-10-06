@@ -252,9 +252,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
-    console.log("ChefInterface: Recalculating sorted orders for chefId:", chefId);
-    console.log("ChefInterface: All orders received:", orders);
-
     let filtered = orders.filter((order) => {
       if (
         order.status === "delivered_to_customer" ||
@@ -266,7 +263,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       const isNewAndUnassigned = !order.chef_id && order.status === "new";
       
       if (isAssignedToMe || isNewAndUnassigned) {
-        console.log(`ChefInterface: Including order ${generateShortOrderId(order.id)} (Status: ${order.status}, Chef ID: ${order.chef_id})`);
         return true;
       }
       return false;

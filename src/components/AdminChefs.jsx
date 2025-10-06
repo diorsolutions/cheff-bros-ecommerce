@@ -56,7 +56,7 @@ const AdminChefs = ({ chefs, orders }) => {
 
       orders.forEach((order) => {
         if (order.chef_id && stats[order.chef_id]) {
-          if (order.status === "ready") {
+          if (order.status === "ready" || order.status === "delivered_to_customer") {
             stats[order.chef_id].totalPrepared++;
           } else if (order.status === "cancelled") { // Redundant condition `order.chef_id === order.chef_id` removed
             stats[order.chef_id].totalCancelled++;

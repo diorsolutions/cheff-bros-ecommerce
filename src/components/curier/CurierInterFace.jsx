@@ -315,7 +315,6 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         (!prevOrder || !(prevOrder.status === "preparing" || prevOrder.status === "ready") || prevOrder.curier_id);
 
       if (isNewlyAvailableForCourier) {
-        console.log(`[Courier Sound] Playing sound for order ID: ${generateShortOrderId(currentOrder.id)} (Status: ${currentOrder.status}, Curier ID: ${currentOrder.curier_id})`);
         playCurierOrderSound();
       }
     });
