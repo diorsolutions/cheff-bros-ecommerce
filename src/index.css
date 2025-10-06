@@ -67,7 +67,9 @@ body {
   @apply bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600;
   transition: all 0.3s ease;
 }
-
+.custom-select-content *:focus {
+  color: #f1f1f1 !important; /* text-red-400 */
+}
 .btn-gradient:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
