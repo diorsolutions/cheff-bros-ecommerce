@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
 
 const CurierStatistics = ({ curierId, orders }) => {
   const [stats, setStats] = useState({
@@ -80,14 +78,14 @@ const CurierStatistics = ({ curierId, orders }) => {
           <p className="text-gray-600">
             Yetkazilgan:{" "}
             <span className="font-bold text-green-600">
-              {stats.todayDelivered}
+              {stats.todayDelivered.toLocaleString()}
             </span>
           </p>{" "}
           {/* Matn rangi yangilandi */}
           <p className="text-gray-600">
             Bekor qilingan:{" "}
             <span className="font-bold text-red-600">
-              {stats.todayCancelled}
+              {stats.todayCancelled.toLocaleString()}
             </span>
           </p>{" "}
           {/* Matn rangi yangilandi */}
@@ -105,14 +103,14 @@ const CurierStatistics = ({ curierId, orders }) => {
           <p className="text-gray-600">
             Jami yetkazilgan buyurtmalar:{" "}
             <span className="font-bold text-orange-500">
-              {stats.totalDelivered}
+              {stats.totalDelivered.toLocaleString()}
             </span>
           </p>{" "}
           {/* Matn rangi yangilandi */}
           <p className="text-gray-600">
             Jami bekor qilingan buyurtmalar:{" "}
             <span className="font-bold text-red-600">
-              {stats.totalCancelled}
+              {stats.totalCancelled.toLocaleString()}
             </span>
           </p>{" "}
           {/* Matn rangi yangilandi */}

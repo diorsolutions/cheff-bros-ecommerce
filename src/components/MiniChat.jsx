@@ -128,7 +128,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
                     <p className="text-sm text-black/70 font-semibold">
                       {message.text}
                     </p>
-                    <span className="text-xs opacity-70 block text-right mt-1">
+                    <span className="text-xs text-black/70 opacity-90 block text-right mt-1">
                       {(() => {
                         const date = new Date(message.timestamp);
 

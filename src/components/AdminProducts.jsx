@@ -49,7 +49,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { cn, formatQuantity, formatPrice } from "@/lib/utils"; // formatQuantity va formatPrice import qilindi
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -522,7 +522,7 @@ const AdminProducts = memo(
                       </p>
                       <p className="text-white/80 font-bold text-lg">
                         <span className="text-gray-200 font-bold">Narxi: </span>
-                        {Number(product.price).toLocaleString()} so'm
+                        {formatPrice(product.price)} so'm
                       </p>
                       <div className="mt-2">
                         <span className="text-gray-200 font-bold">Soni: </span>
@@ -602,14 +602,15 @@ const AdminProducts = memo(
                   id="price"
                   type="number"
                   placeholder="Narxi"
-                  value={currentProduct?.price || ""}
+                  value={formatPrice(currentProduct?.price)}
                   onChange={(e) =>
                     setCurrentProduct({
                       ...currentProduct,
-                      price: e.target.value,
+                      price: Number(e.target.value),
                     })
                   }
                   className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
+                  step="0.01" // Narx uchun 2 o'nlik kasrga ruxsat berish
                 />
               </div>
 
@@ -706,7 +707,7 @@ const AdminProducts = memo(
                         type="number"
                         min="0.1"
                         step={pi.unit === "dona" ? "1" : "0.1"}
-                        value={pi.quantity_needed}
+                        value={formatQuantity(pi.quantity_needed, pi.unit)}
                         onChange={(e) =>
                           handleQuantityNeededChange(
                             pi.ingredient_id,

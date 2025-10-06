@@ -30,3 +30,22 @@ export function formatUzbekDateTime(timestamp) {
 
   return `${year}, ${day}-${monthName}, soat: ${hours}:${minutes}`;
 }
+
+// Yangi: Miqdorlarni birligiga qarab formatlash
+export const formatQuantity = (value, unit) => {
+  if (value === null || value === undefined || isNaN(value)) return '';
+  const numValue = parseFloat(value);
+  if (unit === 'dona') {
+    return Math.round(numValue).toString();
+  }
+  // Boshqa birliklar uchun 2 o'nlik kasrgacha formatlash
+  return numValue.toFixed(2);
+};
+
+// Yangi: Narxlarni formatlash
+export const formatPrice = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return '';
+  const numValue = parseFloat(value);
+  // toLocaleString bilan 2 o'nlik kasrgacha formatlash
+  return numValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+};

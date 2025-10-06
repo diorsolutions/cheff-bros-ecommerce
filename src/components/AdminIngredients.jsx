@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { formatQuantity } from "@/lib/utils"; // formatQuantity import qilindi
 
 const AdminIngredients = ({
   allProducts,
@@ -293,7 +294,7 @@ const AdminIngredients = ({
                   <CardContent className="flex-grow space-y-2">
                     <p className="text-white/80 font-bold text-lg">
                       <span className="text-gray-200 font-bold">Miqdori: </span>
-                      {Number(ingredient.stock_quantity).toLocaleString()}{" "}
+                      {formatQuantity(ingredient.stock_quantity, ingredient.unit)}{" "}
                       {ingredient.unit}
                     </p>
                     <div className="mt-4">
@@ -317,7 +318,7 @@ const AdminIngredients = ({
                               return (
                                 product && (
                                   <li key={product.id}>
-                                    {product.name} ({pi.quantity_needed}{" "}
+                                    {product.name} ({formatQuantity(pi.quantity_needed, ingredient.unit)}{" "}
                                     {ingredient.unit})
                                   </li>
                                 )
@@ -369,7 +370,7 @@ const AdminIngredients = ({
                 id="stock_quantity"
                 type="number"
                 placeholder="Miqdor"
-                value={currentIngredient?.stock_quantity ?? ""}
+                value={formatQuantity(currentIngredient?.stock_quantity, currentIngredient?.unit)}
                 onChange={(e) =>
                   setCurrentIngredient({
                     ...currentIngredient,
@@ -378,6 +379,7 @@ const AdminIngredients = ({
                 }
                 className="col-span-2 bg-gray-100 border-gray-300 text-gray-800"
                 min="0"
+                step={currentIngredient?.unit === 'dona' ? "1" : "0.1"} // Birlikga qarab step
               />
               <Select
                 value={currentIngredient?.unit || "dona"}
@@ -432,7 +434,7 @@ const AdminIngredients = ({
                             type="number"
                             min="0.1"
                             step="0.1"
-                            value={link.quantity_needed}
+                            value={formatQuantity(link.quantity_needed, currentIngredient?.unit)}
                             readOnly // Faqat o'qish uchun
                             className="w-24 bg-white border-gray-300 text-gray-800"
                           />

@@ -73,13 +73,13 @@ const ChefStatistics = ({ chefId, orders }) => {
           <p className="text-gray-600">
             Tayyorlangan:{" "}
             <span className="font-bold text-green-600">
-              {stats.todayPrepared}
+              {stats.todayPrepared.toLocaleString()}
             </span>
           </p>
           <p className="text-gray-600">
             Bekor qilingan:{" "}
             <span className="font-bold text-red-600">
-              {stats.todayCancelled}
+              {stats.todayCancelled.toLocaleString()}
             </span>
           </p>
         </CardContent>
@@ -93,13 +93,13 @@ const ChefStatistics = ({ chefId, orders }) => {
           <p className="text-gray-600">
             Jami tayyorlangan buyurtmalar:{" "}
             <span className="font-bold text-orange-500">
-              {stats.totalPrepared}
+              {stats.totalPrepared.toLocaleString()}
             </span>
           </p>
           <p className="text-gray-600">
             Jami bekor qilingan buyurtmalar:{" "}
             <span className="font-bold text-red-600">
-              {stats.totalCancelled}
+              {stats.totalCancelled.toLocaleString()}
             </span>
           </p>
         </CardContent>

@@ -32,7 +32,7 @@ import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
 import ChefInterface from "./components/chef/ChefInterface"; // Import new ChefInterface
 import { useWindowSize } from "react-use";
-import { generateShortOrderId } from "@/lib/utils";
+import { generateShortOrderId, formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 import { calculateProductStock } from "@/utils/stockCalculator"; // Yangi import
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
@@ -832,7 +832,8 @@ function App() {
       let message = "";
       // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const message = `Sizning *${itemNames}* nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+        const itemNames = order.items.map(item => item.name).join(", ");
+        message = `Sizning *${itemNames}* nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
         // Buyurtma yetkazilganda modalni yashirish
         // if (orderId === activeCustomerOrderId) { // Eski logic
         //   setActiveCustomerOrderId(null);
@@ -1013,7 +1014,7 @@ function MainLayout({
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
-    }
+    };
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -1032,6 +1033,15 @@ function MainLayout({
 
   return (
     <div className="min-h-screen bg-[#ffffff]">
+      {" "}
+      {/* Fragment o'rniga div ishlatildi */}
+      <Helmet>
+        <title>Restoran - Online Buyurtma Tizimi</title>
+        <meta
+          name="description"
+          content="Eng mazali taomlarni online buyurtma qiling. Tez va qulay yetkazib berish xizmati."
+        />
+      </Helmet>
       <header className="bg-white/70 backdrop-blur-lg border-b border-gray-300 sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -1230,7 +1240,7 @@ function MainLayout({
                             </span>
                           </span>
                           <span className="text-black font-medium">
-                            {(item.price * item.quantity).toLocaleString()} so'm
+                            {formatPrice(item.price * item.quantity)} so'm
                           </span>
                         </div>
                       </div>
@@ -1240,13 +1250,12 @@ function MainLayout({
                     <div className="flex justify-between font-bold">
                       <span className="text-gray-800">Jami:</span>
                       <span className="text-orange-500">
-                        {cartItems
+                        {formatPrice(cartItems
                           .reduce(
                             (sum, item) => sum + item.price * item.quantity,
                             0
-                          )
-                          .toLocaleString()}{" "}
-                        so'm
+                          ))}
+                        {" "}so'm
                       </span>
                     </div>
                   </div>

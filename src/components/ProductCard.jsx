@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useWindowSize } from "react-use";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
+import { formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 
 const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allProductIngredients, cartItems }) => {
   const [quantity, setQuantity] = useState(1);
@@ -159,7 +160,7 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
             <span className="mob_xr:text-xs text-[1rem] big_tablet:text-[1.2rem] mob_small:text-[0.8rem] font-semibold text-orange-500 extra_small:text-[0.73rem] ">
               {" "}
               {/* Matn rangi yangilandi */}
-              {Number(product.price).toLocaleString()} so'm
+              {formatPrice(product.price)} so'm
             </span>
             <div className="flex mob_xr:text-xs mob_xr:gap-0 mob_small:gap-0 items-center gap-2 bg-gray-100 rounded-lg p-1 extra_small:p-0 extra_small:gap-0 extra_small:text-[0.75rem] ">
               {" "}

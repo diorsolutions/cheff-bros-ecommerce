@@ -13,6 +13,7 @@ import {
   Salad, // Masalliqlar uchun icon
 } from "lucide-react";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
+import { formatQuantity } from "@/lib/utils"; // formatQuantity import qilindi
 
 const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, productIngredients }) => {
   const [stats, setStats] = useState({
@@ -291,7 +292,7 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
                     {ingredient.name}
                   </span>
                   <span className="font-semibold text-red-600">
-                    {ingredient.stock_quantity} {ingredient.unit}
+                    {formatQuantity(ingredient.stock_quantity, ingredient.unit)} {ingredient.unit}
                   </span>
                 </div>
               ))

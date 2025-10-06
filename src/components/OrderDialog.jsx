@@ -31,6 +31,7 @@ import {
 }
 from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
+import { formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 // useLocalStorage import olib tashlandi, chunki endi App.jsx dan prop sifatida keladi
 
 const OrderDialog = ({
@@ -264,7 +265,7 @@ const OrderDialog = ({
                       mob:text-sm extra_small:text-xs
                     "
                         >
-                          {(item.price * item.quantity).toLocaleString()} so'm
+                          {formatPrice(item.price * item.quantity)} so'm
                         </span>
                         <Button
                           size="icon"
@@ -285,7 +286,7 @@ const OrderDialog = ({
                     Jami:
                   </span>
                   <span className="text-2xl font-bold text-orange-500 mob:text-xl">
-                    {totalPrice.toLocaleString()} so'm
+                    {formatPrice(totalPrice)} so'm
                   </span>
                 </div>
               </div>

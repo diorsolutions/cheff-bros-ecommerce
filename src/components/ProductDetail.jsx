@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useWindowSize } from "react-use";
 import { supabase } from "@/lib/supabase";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
+import { formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 
 const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients, cartItems }) => {
   const { id } = useParams();
@@ -222,7 +223,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
                       <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500 big_tablet:text-[1.4rem]">
                         {" "}
                         {/* Matn rangi yangilandi */}
-                        {Number(product.price).toLocaleString()} so'm
+                        {formatPrice(product.price)} so'm
                       </span>
                     </div>
                   </div>
