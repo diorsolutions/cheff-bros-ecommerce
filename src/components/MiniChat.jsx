@@ -8,8 +8,13 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   const [readMessageIds, setReadMessageIds] = useLocalStorage("readMessageIds", {});
-  const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null); // New state for indicator
+  const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // Oldingi isPopoverOpen holatini kuzatish uchun ref
+  const prevIsPopoverOpenRef = useRef(isPopoverOpen);
+  // Oldingi xabarlar sonini kuzatish uchun ref
+  const messagesLengthAtLastRenderRef = useRef(messages.length);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,8 +26,15 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   }, [messages, isPopoverOpen, readMessageIds]);
 
   useEffect(() => {
+    // Popover endigina ochilganini aniqlash
+    const justOpened = !prevIsPopoverOpenRef.current && isPopoverOpen;
+
+    if (justOpened) {
+      scrollToBottom(); // Faqat ochilganda bir marta pastga aylantirish
+    }
+
     if (isPopoverOpen) {
-      // When opening the chat, identify the first unread message to show the indicator
+      // Birinchi o'qilmagan xabarni aniqlash (barcha xabarlar o'qilgan deb belgilanishidan oldin)
       const firstUnread = messages.find((msg) => !readMessageIds[msg.id]);
       if (firstUnread) {
         setShowNewMessageIndicatorId(firstUnread.id);
@@ -30,8 +42,7 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         setShowNewMessageIndicatorId(null);
       }
 
-      scrollToBottom();
-      // Mark all current messages as read when chat is opened
+      // Chat ochilganda barcha joriy xabarlarni o'qilgan deb belgilash
       setReadMessageIds((prev) => {
         const newReadIds = { ...prev };
         messages.forEach((msg) => {
@@ -40,17 +51,22 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         return newReadIds;
       });
     } else {
-      // When closing the chat, clear the indicator
+      // Chat yopilganda indikatorni tozalash
       setShowNewMessageIndicatorId(null);
     }
-  }, [isPopoverOpen, messages, readMessageIds]); // readMessageIds is a dependency here to correctly identify first unread
 
-  // Also, scroll to bottom when new messages arrive *while the chat is already open*
+    // prevIsPopoverOpenRef ni joriy holatga yangilash
+    prevIsPopoverOpenRef.current = isPopoverOpen;
+  }, [isPopoverOpen, messages, readMessageIds]); // isPopoverOpen, messages, readMessageIds o'zgarganda ishga tushadi
+
   useEffect(() => {
-    if (isPopoverOpen) {
+    // Agar chat ochiq bo'lsa va yangi xabar kelgan bo'lsa, pastga aylantirish
+    if (isPopoverOpen && messages.length > messagesLengthAtLastRenderRef.current) {
       scrollToBottom();
     }
-  }, [messages.length, isPopoverOpen]); // Trigger scroll when message count changes and chat is open
+    // messagesLengthAtLastRenderRef ni joriy xabarlar soniga yangilash
+    messagesLengthAtLastRenderRef.current = messages.length;
+  }, [messages.length, isPopoverOpen]); // messages.length yoki isPopoverOpen o'zgarganda ishga tushadi
 
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
