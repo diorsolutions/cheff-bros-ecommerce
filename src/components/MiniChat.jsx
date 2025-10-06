@@ -61,12 +61,17 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
   }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
   useEffect(() => {
-    // Agar chat ochiq bo'lsa va yangi xabar kelgan bo'lsa, pastga aylantirish
-    if (isPopoverOpen && messages.length > messagesLengthAtLastRenderRef.current) {
+    // Har safar popover ochilganda pastga aylantirish
+    if (isPopoverOpen) {
+      scrollToBottom();
+    }
+    // messages.length o'zgarganda ham pastga aylantirish (agar popover ochiq bo'lsa)
+    else if (messages.length > messagesLengthAtLastRenderRef.current) {
       scrollToBottom();
     }
     messagesLengthAtLastRenderRef.current = messages.length; // Xabarlar sonini yangilash
   }, [messages.length, isPopoverOpen]);
+
 
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
