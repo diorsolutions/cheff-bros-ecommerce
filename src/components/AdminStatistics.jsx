@@ -125,11 +125,16 @@ const AdminStatistics = ({ orders, products, curiers, chefs, ingredients, produc
             }
           }
         } else if (order.status === "ready") { // Chef tayyorlagan buyurtmalar
+          console.log(`AdminStatistics: Processing READY order ${order.id} for chef ${order.chef_id}`);
           if (order.chef_id && chefPerformance[order.chef_id]) {
+            console.log(`AdminStatistics: Chef ${order.chef_id} found in performance stats. Current prepared: ${chefPerformance[order.chef_id].totalPrepared}`);
             chefPerformance[order.chef_id].totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               chefPerformance[order.chef_id].todayPrepared++;
             }
+            console.log(`AdminStatistics: After increment, prepared: ${chefPerformance[order.chef_id].totalPrepared}`);
+          } else {
+            console.log(`AdminStatistics: Chef ${order.chef_id} not found in performance stats for READY order ${order.id} or chef_id is null.`);
           }
         }
       });

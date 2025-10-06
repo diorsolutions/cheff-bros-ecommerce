@@ -37,20 +37,22 @@ const ChefStatistics = ({ chefId, orders }) => {
           orderDate.setHours(0, 0, 0, 0);
 
           if (order.status === "ready") {
-            // Oshpaz tomonidan tayyorlangan buyurtmalar
+            console.log(`ChefStatistics: Order ${order.id} is READY. Incrementing prepared count.`);
             totalPrepared++;
             if (orderDate.getTime() === now.getTime()) {
               todayPrepared++;
             }
-            console.log("ChefStatistics: Order is READY. totalPrepared:", totalPrepared);
+            console.log("ChefStatistics: After increment, totalPrepared:", totalPrepared, "todayPrepared:", todayPrepared);
           } else if (order.status === "cancelled") {
-            // Oshpaz tomonidan bekor qilingan buyurtmalar
+            console.log(`ChefStatistics: Order ${order.id} is CANCELLED. Incrementing cancelled count.`);
             totalCancelled++;
             if (orderDate.getTime() === now.getTime()) {
               todayCancelled++;
             }
-            console.log("ChefStatistics: Order is CANCELLED. totalCancelled:", totalCancelled);
+            console.log("ChefStatistics: After increment, totalCancelled:", totalCancelled, "todayCancelled:", todayCancelled);
           }
+        } else {
+          // console.log(`ChefStatistics: Skipping order ${order.id} because chef_id (${order.chef_id}) does not match current chefId (${chefId}).`);
         }
       });
 
