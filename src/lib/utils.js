@@ -52,9 +52,23 @@ export const formatPrice = (value) => {
 
 // Yangi: Xarita havolalarini yaratish uchun yordamchi funksiya
 export const getMapLinks = (lat, lng, label = "Manzil") => {
-  const yandexLink = `https://yandex.com/maps/?ll=${lng},${lat}&z=16`;
-  const googleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-  const geoUri = `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})`;
+  let yandexLink;
+  let googleLink;
+  let geoUri = null; // geoUri requires lat/lng
+
+  if (lat && lng) {
+    yandexLink = `https://yandex.com/maps/?ll=${lng},${lat}&z=16`;
+    googleLink = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    geoUri = `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})`;
+  } else if (label) {
+    // If no coordinates, use label for search
+    const encodedLabel = encodeURIComponent(label);
+    yandexLink = `https://yandex.com/maps/?text=${encodedLabel}`;
+    googleLink = `https://www.google.com/maps/search/?api=1&query=${encodedLabel}`;
+  } else {
+    // No coordinates and no label, return empty links
+    return { yandexLink: null, googleLink: null, geoUri: null };
+  }
 
   return { yandexLink, googleLink, geoUri };
 };
