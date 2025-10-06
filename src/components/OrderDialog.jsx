@@ -379,69 +379,76 @@ const OrderDialog = ({
                   className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
                 />
               </div>
-              {location && !isGettingLocation && ( // Display location text if available
+              {(location && !isGettingLocation) && (
                 <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                  <span className="text-gray-800">{location}</span>
-                  {coordinates && ( // Only show map link if coordinates are available
-                    isMobile ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-blue-600 hover:underline"
-                          >
-                            <MapPin className="mr-1 h-4 w-4" />
-                            (xaritada ochish)
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-white border-gray-300">
-                          {yandexLink && (
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={yandexLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                              >
-                                Yandex Mapsda ochish
-                              </a>
-                            </DropdownMenuItem>
-                          )}
-                          {googleLink && (
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={googleLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                              >
-                                Google Mapsda ochish
-                              </a>
-                            </DropdownMenuItem>
-                          )}
-                          {geoUri && (
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={geoUri}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                              >
-                                Boshqa ilovada ochish
-                              </a>
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
+                  {locationMethod === "manual" && <span className="text-gray-800">{location} - </span>}
+                  {isMobile ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-blue-600 hover:underline"
+                        >
+                          <MapPin className="mr-1 h-4 w-4" />
+                          Xaritada ochish
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-white border-gray-300">
+                        {yandexLink && (
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={yandexLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                            >
+                              Yandex Mapsda ochish
+                            </a>
+                          </DropdownMenuItem>
+                        )}
+                        {googleLink && coordinates && ( // Google link faqat koordinatalar bo'lsa
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={googleLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                            >
+                              Google Mapsda ochish
+                            </a>
+                          </DropdownMenuItem>
+                        )}
+                        {geoUri && coordinates && ( // GeoUri ham faqat koordinatalar bo'lsa
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={geoUri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                            >
+                              Boshqa ilovada ochish
+                            </a>
+                          </DropdownMenuItem>
+                        )}
+                        {(!yandexLink && (!googleLink || !coordinates) && (!geoUri || !coordinates)) && (
+                          <DropdownMenuItem disabled className="text-gray-500">
+                            Xarita havolalari mavjud emas
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    yandexLink ? (
                       <a
                         href={yandexLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
                       >
-                        (xaritada ochish)
+                        {locationMethod === "manual" ? "(xaritada ochish)" : "Xaritada ochish"}
                       </a>
+                    ) : (
+                      <span className="text-gray-500">Xarita havolasi mavjud emas</span>
                     )
                   )}
                 </div>
