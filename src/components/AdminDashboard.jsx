@@ -30,50 +30,64 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId, formatUzbekDateTime } from "@/lib/utils"; // formatUzbekDateTime import qilindi
+import { generateShortOrderId } from "@/lib/utils";
 import InfoModal from "./InfoModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
 
 // Umumiy tovush ijro etish funksiyasi
-const playSound = (audioRef, setHasInteracted, hasInteracted, toastTitle, toastDescription) => {
+const playSound = (
+  audioRef,
+  setHasInteracted,
+  hasInteracted,
+  toastTitle,
+  toastDescription
+) => {
   if (audioRef.current) {
     audioRef.current.currentTime = 0; // Tovushni boshidan boshlash
-    audioRef.current.play().then(() => {
-      setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
-    }).catch(e => {
-      if (e.name === "NotAllowedError" && !hasInteracted) {
-        // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
-        toast({
-          title: toastTitle,
-          description: toastDescription,
-          action: (
-            <Button
-              onClick={() => {
-                audioRef.current.play().then(() => {
-                  setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
-                  toast({
-                    title: "Tovush yoqildi!",
-                    description: "Bildirishnoma tovushlari endi ijro etiladi.",
-                  });
-                }).catch(err => console.error("Manual play failed:", err));
-              }}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              Tovushni yoqish
-            </Button>
-          ),
-          duration: 10000, // Uzoqroq ko'rsatish
-        });
-      } else if (e.name === "NotSupportedError") {
-        toast({
-          title: "Tovush fayli xatosi",
-          description: "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
-          variant: "destructive",
-        });
-      } else {
-        console.error("Error playing sound:", e);
-      }
-    });
+    audioRef.current
+      .play()
+      .then(() => {
+        setHasInteracted(true); // Muvaffaqiyatli ijro etildi, foydalanuvchi o'zaro aloqada bo'ldi
+      })
+      .catch((e) => {
+        if (e.name === "NotAllowedError" && !hasInteracted) {
+          // Faqat NotAllowedError bo'lsa va hali ko'rsatilmagan bo'lsa toast ko'rsatish
+          toast({
+            title: toastTitle,
+            description: toastDescription,
+            action: (
+              <Button
+                onClick={() => {
+                  audioRef.current
+                    .play()
+                    .then(() => {
+                      setHasInteracted(true); // Foydalanuvchi tugmani bosdi, o'zaro aloqa bo'ldi
+                      toast({
+                        title: "Tovush yoqildi!",
+                        description:
+                          "Bildirishnoma tovushlari endi ijro etiladi.",
+                      });
+                    })
+                    .catch((err) => console.error("Manual play failed:", err));
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Tovushni yoqish
+              </Button>
+            ),
+            duration: 10000, // Uzoqroq ko'rsatish
+          });
+        } else if (e.name === "NotSupportedError") {
+          toast({
+            title: "Tovush fayli xatosi",
+            description:
+              "Tovush fayli ijro etib bo'lmaydi. Iltimos, faylni tekshiring.",
+            variant: "destructive",
+          });
+        } else {
+          console.error("Error playing sound:", e);
+        }
+      });
   }
 };
 
@@ -90,7 +104,10 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [infoModalDetails, setInfoModalDetails] = useState([]);
 
   const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
-  const [hasInteracted, setHasInteracted] = useLocalStorage("adminHasInteracted", false); // Admin uchun hasInteracted
+  const [hasInteracted, setHasInteracted] = useLocalStorage(
+    "adminHasInteracted",
+    false
+  ); // Admin uchun hasInteracted
 
   const playAdminOrderSound = () => {
     playSound(
@@ -303,105 +320,134 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="w-full sm:w-auto">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
-                <SelectValue placeholder="Status" />
+      <div className="flex justify-between flex-row-reverse">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/50">
+                  <SelectItem
+                    value="all"
+                    className="text-white *:hover:cursor-pointer"
+                  >
+                    Hammasi
+                  </SelectItem>
+                  <SelectItem
+                    value="new"
+                    className="text-blue-400 *:hover:cursor-pointer"
+                  >
+                    Yangi
+                  </SelectItem>
+                  <SelectItem
+                    value="preparing"
+                    className="text-yellow-400 *:hover:cursor-pointer"
+                  >
+                    Tayyorlanmoqda (Oshpaz)
+                  </SelectItem>
+                  <SelectItem
+                    value="ready"
+                    className="text-green-400 *:hover:cursor-pointer"
+                  >
+                    Tayyor (Oshpaz)
+                  </SelectItem>
+                  <SelectItem
+                    value="en_route_to_kitchen"
+                    className="text-yellow-400 *:hover:cursor-pointer"
+                  >
+                    Olish uchun yo'lda (Kuryer)
+                  </SelectItem>
+                  <SelectItem
+                    value="picked_up_from_kitchen"
+                    className="text-orange-400 *:hover:cursor-pointer"
+                  >
+                    Buyurtma menda (Kuryer)
+                  </SelectItem>
+                  <SelectItem
+                    value="delivered_to_customer"
+                    className="text-green-400 *:hover:cursor-pointer"
+                  >
+                    Mijozda (Kuryer)
+                  </SelectItem>
+                  <SelectItem
+                    value="cancelled"
+                    className="text-red-400 *:hover:cursor-pointer"
+                  >
+                    Bekor qilingan
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="w-full sm:w-auto">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Tartiblash" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20">
-                <SelectItem value="all" className="text-white">
-                  Hammasi
-                </SelectItem>
-                <SelectItem value="new" className="text-blue-400">
-                  Yangi
-                </SelectItem>
-                <SelectItem value="preparing" className="text-yellow-400">
-                  Tayyorlanmoqda (Oshpaz)
-                </SelectItem>
-                <SelectItem value="ready" className="text-green-400">
-                  Tayyor (Oshpaz)
+              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/50">
+                <SelectItem
+                  value="date-desc"
+                  className="text-white *:hover:cursor-pointer hover:text-white"
+                >
+                  Sana: Yangi → Eski
                 </SelectItem>
                 <SelectItem
-                  value="en_route_to_kitchen"
-                  className="text-yellow-400"
+                  value="date-asc"
+                  className="text-white *:hover:cursor-pointer hover:text-white"
                 >
-                  Olish uchun yo'lda (Kuryer)
+                  Sana: Eski → Yangi
                 </SelectItem>
                 <SelectItem
-                  value="picked_up_from_kitchen"
-                  className="text-orange-400"
+                  value="price-desc"
+                  className="text-white *:hover:cursor-pointer hover:text-white"
                 >
-                  Buyurtma menda (Kuryer)
+                  Narx: Yuqori → Past
                 </SelectItem>
                 <SelectItem
-                  value="delivered_to_customer"
-                  className="text-green-400"
+                  value="price-asc"
+                  className="text-white *:hover:cursor-pointer hover:text-white"
                 >
-                  Mijozda (Kuryer)
-                </SelectItem>
-                <SelectItem value="cancelled" className="text-red-400">
-                  Bekor qilingan
+                  Narx: Past → Yuqori
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-        <div className="w-full sm:w-auto">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
-              <SelectValue placeholder="Tartiblash" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-white/20">
-              <SelectItem value="date-desc" className="text-white">
-                Sana: Yangi → Eski
-              </SelectItem>
-              <SelectItem value="date-asc" className="text-white">
-                Sana: Eski → Yangi
-              </SelectItem>
-              <SelectItem value="price-desc" className="text-white">
-                Narx: Yuqori → Past
-              </SelectItem>
-              <SelectItem value="price-asc" className="text-white">
-                Narx: Past → Yuqori
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="w-full sm:w-auto">
-          <Select value={searchBy} onValueChange={setSearchBy}>
-            <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
-              <SelectValue placeholder="Qidirish bo'yicha" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-white/20">
-              <SelectItem value="id" className="text-white">
-                ID
-              </SelectItem>
-              <SelectItem value="customerName" className="text-white">
-                Mijoz Ismi
-              </SelectItem>
-              <SelectItem value="customerPhone" className="text-white">
-                Mijoz Telefon
-              </SelectItem>
-              <SelectItem value="location" className="text-white">
-                Manzil
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full sm:w-auto flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Qidirish..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-          />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="w-full sm:w-auto">
+            <Select value={searchBy} onValueChange={setSearchBy}>
+              <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Qidirish bo'yicha" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-white/20">
+                <SelectItem value="id" className="text-white">
+                  ID
+                </SelectItem>
+                <SelectItem value="customerName" className="text-white">
+                  Mijoz Ismi
+                </SelectItem>
+                <SelectItem value="customerPhone" className="text-white">
+                  Mijoz Telefon
+                </SelectItem>
+                <SelectItem value="location" className="text-white">
+                  Manzil
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-auto flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Qidirish..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+            />
+          </div>
         </div>
       </div>
 
@@ -411,7 +457,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
             <Card className="bg-white/10 border-white/20">
               <CardContent className="p-8 text-center">
                 <p className="text-gray-400 text-lg">
-                  {statusFilter === "all" && searchTerm.length < 3
+                  {statusFilter === "all" && searchTerm.length < 1
                     ? "Hozircha buyurtmalar yo'q"
                     : "Bu mezonlarga mos buyurtmalar topilmadi"}
                 </p>
@@ -477,12 +523,15 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           ></span>
                           Buyurtma{" "}
                           <span className="text-gray-400 text-sm">
-                           ID: {generateShortOrderId(order.id)}
+                           IF {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400 hidden sm:inline">
-                            {formatUzbekDateTime(order.created_at)}
+                            {new Date(order.created_at).toLocaleDateString(
+                              "uz-UZ",
+                              { day: "numeric", month: "long", year: "numeric" }
+                            )}
                           </span>
                           {!order.curier_id && !order.chef_id && !isFinal ? (
                             <DropdownMenu>
@@ -589,7 +638,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           )
                                         }
                                         className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
-                                    >
+                                      >
                                         <XCircle className="mr-2 h-4 w-4" />
                                         Bekor qilish (Admin)
                                       </DropdownMenuItem>

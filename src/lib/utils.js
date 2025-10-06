@@ -18,7 +18,7 @@ export function formatUzbekDateTime(timestamp) {
   const date = new Date(timestamp);
   const year = date.getFullYear();
   const month = date.toLocaleDateString('uz-UZ', { month: 'long' });
-  const day = date.getDate().toString().padStart(2, '0');
+  const day = date.getDate().toString(); // Kun raqamidan oldingi nol olib tashlandi
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
 
