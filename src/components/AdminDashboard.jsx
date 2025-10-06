@@ -797,29 +797,31 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-400">Status:</span>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded ${
-                            order.status === "new"
-                              ? "bg-blue-500/20 text-blue-400"
-                              : order.status === "preparing"
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : order.status === "ready"
-                              ? "bg-green-500/20 text-green-400"
-                              : order.status === "en_route_to_kitchen"
-                              ? "bg-yellow-500/20 text-yellow-400"
-                              : order.status === "picked_up_from_kitchen"
-                              ? "bg-orange-500/20 text-orange-400"
-                              : order.status === "delivered_to_customer"
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {detailedStatusText}
-                        </span>
-                      </div>
+                      {!isFinal && ( // Faqat yakunlanmagan buyurtmalar uchun statusni ko'rsatish
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">Status:</span>
+                          <span
+                            className={`text-sm font-medium px-2 py-1 rounded ${
+                              order.status === "new"
+                                ? "bg-blue-500/20 text-blue-400"
+                                : order.status === "preparing"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : order.status === "ready"
+                                ? "bg-green-500/20 text-green-400"
+                                : order.status === "en_route_to_kitchen"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : order.status === "picked_up_from_kitchen"
+                                ? "bg-orange-500/20 text-orange-400"
+                                : order.status === "delivered_to_customer"
+                                ? "bg-green-500/20 text-green-400"
+                                : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {detailedStatusText}
+                          </span>
+                        </div>
+                      )}
 
                       {order.chef_id && (
                         <div className="flex items-center gap-2 mt-2">
