@@ -523,9 +523,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               );
 
               // Asosiy status qismini yashirish sharti
-              const hideMainStatus =
-                isFinal ||
-                (order.curier_id && (isEnRouteToKitchen || isPickedUpFromKitchen));
+              // Faqat yakuniy holatlarda (yetkazilgan/bekor qilingan) asosiy status yashiriladi.
+              const hideMainStatus = isFinal;
 
               return (
                 <motion.div
@@ -831,7 +830,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.chef_id && (
+                      {order.chef_id && (order.curier_id || isFinal) && ( // Oshpaz ma'lumoti faqat kuryer biriktirilganida yoki yakuniy holatda ko'rsatiladi
                         <div className="flex items-center gap-2 mt-2">
                           <ChefHat className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Oshpaz:</span>
@@ -877,7 +876,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {order.curier_id && hideMainStatus && ( // Faqat hideMainStatus true bo'lganda kuryer ma'lumotini ko'rsatish
+                      {order.curier_id && isFinal && ( // Kuryer ma'lumoti faqat yakuniy holatda ko'rsatiladi
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>
