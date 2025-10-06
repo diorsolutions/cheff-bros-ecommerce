@@ -509,8 +509,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           <span className="font-bold text-gray-800">
                             Manzil:
                           </span>{" "}
-                          {order.location}{" "}
-                          {order.location && (
+                          {order.coordinates ? ( // If coordinates exist (auto-location)
                             isMobile ? (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -535,7 +534,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                       </a>
                                     </DropdownMenuItem>
                                   )}
-                                  {googleLink && order.coordinates && (
+                                  {googleLink && (
                                     <DropdownMenuItem asChild>
                                       <a
                                         href={googleLink}
@@ -547,7 +546,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                       </a>
                                     </DropdownMenuItem>
                                   )}
-                                  {geoUri && order.coordinates && (
+                                  {geoUri && (
                                     <DropdownMenuItem asChild>
                                       <a
                                         href={geoUri}
@@ -559,7 +558,7 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                       </a>
                                     </DropdownMenuItem>
                                   )}
-                                  {(!yandexLink && (!googleLink || !order.coordinates) && (!geoUri || !order.coordinates)) && (
+                                  {(!yandexLink && !googleLink && !geoUri) && (
                                     <DropdownMenuItem disabled className="text-gray-500">
                                       Xarita havolalari mavjud emas
                                     </DropdownMenuItem>
@@ -576,6 +575,77 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 (xaritada ochish)
                               </a>
                             )
+                          ) : ( // If no coordinates (manual entry)
+                            <>
+                              {order.location}{" "}
+                              {order.location && (
+                                isMobile ? (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="link"
+                                        className="p-0 h-auto text-blue-600 hover:underline"
+                                      >
+                                        <MapPin className="mr-1 h-4 w-4" />
+                                        (xaritada ochish)
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="bg-white border-gray-300">
+                                      {yandexLink && (
+                                        <DropdownMenuItem asChild>
+                                          <a
+                                            href={yandexLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                          >
+                                            Yandex Mapsda ochish
+                                          </a>
+                                        </DropdownMenuItem>
+                                      )}
+                                      {googleLink && (
+                                        <DropdownMenuItem asChild>
+                                          <a
+                                            href={googleLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                          >
+                                            Google Mapsda ochish
+                                          </a>
+                                        </DropdownMenuItem>
+                                      )}
+                                      {geoUri && (
+                                        <DropdownMenuItem asChild>
+                                          <a
+                                            href={geoUri}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                          >
+                                            Boshqa ilovada ochish
+                                          </a>
+                                        </DropdownMenuItem>
+                                      )}
+                                      {(!yandexLink && !googleLink && !geoUri) && (
+                                        <DropdownMenuItem disabled className="text-gray-500">
+                                          Xarita havolalari mavjud emas
+                                        </DropdownMenuItem>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                ) : (
+                                  <a
+                                    href={yandexLink}
+                                    className="text-blue-600 hover:underline"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    (xaritada ochish)
+                                  </a>
+                                )
+                              )}
+                            </>
                           )}
                         </p>
                         <div className="border-t border-gray-300 pt-2 mt-2">
