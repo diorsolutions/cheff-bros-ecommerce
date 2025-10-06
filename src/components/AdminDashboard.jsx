@@ -187,7 +187,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const renderUserLink = (user, role) => (
     <p
       onClick={() => handleShowUserInfo(user, role)}
-      className="inline text-blue-500 cursor-pointer"
+      className="inline underline cursor-pointer"
     >
       {user?.name || "Noma'lum"}
     </p>
@@ -208,22 +208,19 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     if (status === "cancelled") {
       if (orderObject.curier_id && orderObject.cancellation_reason) {
         statusText = (
-          <>
-            Kuryer: {renderUserLink(courierInfo, "curier")} bekor qildi
-          </>
+          <>Kuryer: {renderUserLink(courierInfo, "curier")} bekor qildi</>
         );
         if (chefInfo) {
           statusText = (
             <>
-              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi! {statusText}
+              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi!{" "}
+              {statusText}
             </>
           );
         }
       } else if (orderObject.chef_id && orderObject.cancellation_reason) {
         statusText = (
-          <>
-            Oshpaz: {renderUserLink(chefInfo, "chef")} bekor qildi
-          </>
+          <>Oshpaz: {renderUserLink(chefInfo, "chef")} bekor qildi</>
         );
       } else {
         statusText = "Bekor qilingan";
@@ -241,9 +238,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           break;
         case "picked_up_from_kitchen":
           statusText = (
-            <>
-              Kuryer: {renderUserLink(courierInfo, "curier")} buyurtmani oldi
-            </>
+            <>Kuryer: {renderUserLink(courierInfo, "curier")} buyurtmani oldi</>
           );
           break;
         case "delivered_to_customer":
@@ -256,7 +251,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         default:
           statusText = (
             <>
-              Kuryer: {renderUserLink(courierInfo, "curier")} - olish uchun yo'lda
+              Kuryer: {renderUserLink(courierInfo, "curier")} - olish uchun
+              yo'lda
             </>
           );
           break;
@@ -265,23 +261,17 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
       switch (status) {
         case "preparing":
           statusText = (
-            <>
-              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorlanmoqda
-            </>
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorlanmoqda</>
           );
           break;
         case "ready":
           statusText = (
-            <>
-              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi
-            </>
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi</>
           );
           break;
         default:
           statusText = (
-            <>
-              Oshpaz: {renderUserLink(chefInfo, "chef")} oshpaz kutilmoqda
-            </>
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} oshpaz kutilmoqda</>
           );
           break;
       }
@@ -835,6 +825,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         <div className="flex items-center gap-2 mt-2">
                           <ChefHat className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Oshpaz:</span>
+
                           <Button
                             variant="link"
                             className="p-0 h-auto text-blue-300 hover:text-blue-200"
@@ -842,30 +833,37 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                           >
                             {chefInfo?.name || "Noma'lum"}
                           </Button>
-                          {order.status === "preparing" && (
-                            <span className="text-sm text-yellow-400">
-                              tayyorlanmoqda
-                            </span>
-                          )}
-                          {order.status === "ready" && (
-                            <span className="text-sm text-green-400">
-                              tayyorladi
-                            </span>
-                          )}
-                          {order.status === "cancelled" &&
-                            !order.curier_id &&
-                            order.chef_id && (
-                              <span className="text-sm text-red-400">
-                                bekor qildi
-                              </span>
-                            )}
-                          {order.status === "cancelled" &&
-                            order.curier_id &&
-                            order.chef_id && (
+
+                          {(() => {
+                            // oshpaz status logikasi
+                            if (order.status === "preparing")
+                              return (
+                                <span className="text-sm text-yellow-400">
+                                  tayyorlanmoqda
+                                </span>
+                              );
+
+                            if (order.status === "cancelled") {
+                              if (!order.curier_id)
+                                return (
+                                  <span className="text-sm text-red-400">
+                                    bekor qildi
+                                  </span>
+                                );
+                              return (
+                                <span className="text-sm text-green-400">
+                                  tayyorladi
+                                </span>
+                              );
+                            }
+
+                            // boshqa barcha holatlar (ready, delivered, va hok.)
+                            return (
                               <span className="text-sm text-green-400">
                                 tayyorladi
                               </span>
-                            )}{" "}
+                            );
+                          })()}
                         </div>
                       )}
 

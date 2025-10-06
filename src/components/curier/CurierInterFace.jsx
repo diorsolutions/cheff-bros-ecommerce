@@ -413,9 +413,10 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   order.status === "en_route_to_kitchen";
                 const isPickedUpFromKitchen =
                   order.status === "picked_up_from_kitchen";
-                const isFinal =
-                  order.status === "delivered_to_customer" ||
-                  order.status === "cancelled";
+                const isDelivered = order.status === "delivered_to_customer"; // Yangi: delivered_to_customer holati
+                const isCancelled = order.status === "cancelled";
+
+                const isFinal = isDelivered || isCancelled; // isFinal ni yangilash
 
                 const isAssignedToThisCourier = order.curier_id === curierId;
                 const isUnassignedAndPreparingOrReady = !order.curier_id && (isPreparing || isReady);
@@ -435,15 +436,15 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           ? "opacity-50 pointer-events-none"
                           : ""
                       } ${
-                        order.status === "delivered_to_customer"
+                        isDelivered
                           ? "bg-green-100 border-green-300 opacity-80"
-                          : order.status === "cancelled"
+                          : isCancelled
                           ? "bg-red-100 border-red-300 opacity-80"
-                          : order.status === "picked_up_from_kitchen"
+                          : isPickedUpFromKitchen
                           ? "bg-orange-100 border-orange-300"
-                          : order.status === "en_route_to_kitchen"
+                          : isEnRouteToKitchen
                           ? "bg-yellow-100 border-yellow-300"
-                          : order.status === "ready"
+                          : isReady
                           ? "bg-green-50/50 border-green-100"
                           : isPreparing
                           ? "bg-yellow-50/50 border-yellow-100"
@@ -538,31 +539,34 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             {order.total_price.toLocaleString()} so'm
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Truck className="h-4 w-4 text-gray-500" />{" "}
-                          <span className="text-sm text-gray-500">
-                            Status:
-                          </span>{" "}
-                          <span
-                            className={`text-sm font-medium px-2 py-1 rounded ${
-                              order.status === "new"
-                                ? "bg-blue-100 text-blue-600"
-                                : order.status === "preparing"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : order.status === "ready"
-                                ? "bg-green-100 text-green-600"
-                                : order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600"
-                                : order.status === "delivered_to_customer"
-                                ? "bg-green-100 text-green-600"
-                                : "bg-red-100 text-red-600"
-                            }`}
-                          >
-                            {getStatusText(order.status, order.chef_id, order.curier_id)}
-                          </span>
-                        </div>
+                        {/* Status qismini faqat isFinal bo'lmaganda ko'rsatish */}
+                        {!isFinal && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Truck className="h-4 w-4 text-gray-500" />{" "}
+                            <span className="text-sm text-gray-500">
+                              Status:
+                            </span>{" "}
+                            <span
+                              className={`text-sm font-medium px-2 py-1 rounded ${
+                                order.status === "new"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : order.status === "preparing"
+                                  ? "bg-yellow-100 text-yellow-600"
+                                  : order.status === "ready"
+                                  ? "bg-green-100 text-green-600"
+                                  : order.status === "en_route_to_kitchen"
+                                  ? "bg-yellow-100 text-yellow-600"
+                                  : order.status === "picked_up_from_kitchen"
+                                  ? "bg-orange-100 text-orange-600"
+                                  : order.status === "delivered_to_customer"
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-red-100 text-red-600"
+                              }`}
+                            >
+                              {getStatusText(order.status, order.chef_id, order.curier_id)}
+                            </span>
+                          </div>
+                        )}
 
                         {order.chef_id && (
                           <div className="flex items-center gap-2 mt-2">
