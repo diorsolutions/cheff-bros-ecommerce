@@ -59,6 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox"; // Checkbox import qilindi
 
 const AdminProducts = memo(
   ({ products, allIngredients, allProductIngredients }) => {
@@ -97,6 +98,8 @@ const AdminProducts = memo(
           price: "",
           image_url: "",
           category: "",
+          manual_stock_enabled: false, // Yangi holat
+          manual_stock_quantity: 0, // Yangi holat
         }
       );
       setSelectedImage(null);
@@ -170,62 +173,76 @@ const AdminProducts = memo(
         return;
       }
 
-      // Check if any ingredient is selected and has quantity_needed > 0
-      if (
-        selectedProductIngredients.length > 0 &&
-        selectedProductIngredients.some((pi) => pi.quantity_needed <= 0)
-      ) {
-        toast({
-          title: "Xatolik",
-          description:
-            "Masalliqlar uchun kerakli miqdor 0 dan katta bo'lishi kerak.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // New validation: Check if quantity_needed is an integer for "dona" unit
-      for (const pi of selectedProductIngredients) {
-        const ingredient = allIngredients.find(
-          (ing) => ing.id === pi.ingredient_id
-        );
+      if (currentProduct.manual_stock_enabled) {
         if (
-          ingredient &&
-          ingredient.unit === "dona" &&
-          !Number.isInteger(pi.quantity_needed)
+          currentProduct.manual_stock_quantity === null ||
+          currentProduct.manual_stock_quantity < 0
         ) {
           toast({
             title: "Xatolik",
-            description: `'${ingredient.name}' masallig'i uchun faqat butun sonlar (1, 2, va hokazo) kiritish mumkin. O'nlik sonlar (1.2, 3.5) mumkin emas.`,
+            description: "Qo'lda kiritilgan stok miqdori 0 dan kam bo'lishi mumkin emas.",
             variant: "destructive",
           });
-          setIsSaving(false);
-          setIsUploading(false);
           return;
         }
-      }
-
-      // Existing check: Ensure selected quantity needed does not exceed available ingredient stock
-      for (const pi of selectedProductIngredients) {
-        const ingredient = allIngredients.find(
-          (ing) => ing.id === pi.ingredient_id
-        );
+      } else {
+        // Check if any ingredient is selected and has quantity_needed > 0
         if (
-          ingredient &&
-          pi.quantity_needed > (ingredient.stock_quantity ?? 0)
+          selectedProductIngredients.length > 0 &&
+          selectedProductIngredients.some((pi) => pi.quantity_needed <= 0)
         ) {
           toast({
             title: "Xatolik",
-            description: `${
-              ingredient.name
-            } masallig'ining yetarli zaxirasi yo'q. Mavjud: ${
-              ingredient.stock_quantity ?? 0
-            } ${ingredient.unit}.`,
+            description:
+              "Masalliqlar uchun kerakli miqdor 0 dan katta bo'lishi kerak.",
             variant: "destructive",
           });
-          setIsSaving(false);
-          setIsUploading(false);
           return;
+        }
+
+        // New validation: Check if quantity_needed is an integer for "dona" unit
+        for (const pi of selectedProductIngredients) {
+          const ingredient = allIngredients.find(
+            (ing) => ing.id === pi.ingredient_id
+          );
+          if (
+            ingredient &&
+            ingredient.unit === "dona" &&
+            !Number.isInteger(pi.quantity_needed)
+          ) {
+            toast({
+              title: "Xatolik",
+              description: `'${ingredient.name}' masallig'i uchun faqat butun sonlar (1, 2, va hokazo) kiritish mumkin. O'nlik sonlar (1.2, 3.5) mumkin emas.`,
+              variant: "destructive",
+            });
+            setIsSaving(false);
+            setIsUploading(false);
+            return;
+          }
+        }
+
+        // Existing check: Ensure selected quantity needed does not exceed available ingredient stock
+        for (const pi of selectedProductIngredients) {
+          const ingredient = allIngredients.find(
+            (ing) => ing.id === pi.ingredient_id
+          );
+          if (
+            ingredient &&
+            pi.quantity_needed > (ingredient.stock_quantity ?? 0)
+          ) {
+            toast({
+              title: "Xatolik",
+              description: `${
+                ingredient.name
+              } masallig'ining yetarli zaxirasi yo'q. Mavjud: ${
+                ingredient.stock_quantity ?? 0
+              } ${ingredient.unit}.`,
+              variant: "destructive",
+            });
+            setIsSaving(false);
+            setIsUploading(false);
+            return;
+          }
         }
       }
 
@@ -247,6 +264,10 @@ const AdminProducts = memo(
           price: Number(currentProduct.price),
           image_url: imageUrl,
           category: currentProduct.category || null,
+          manual_stock_enabled: currentProduct.manual_stock_enabled, // Yangi maydon
+          manual_stock_quantity: currentProduct.manual_stock_enabled
+            ? Number(currentProduct.manual_stock_quantity)
+            : null, // Yangi maydon
         };
 
         let error;
@@ -279,8 +300,8 @@ const AdminProducts = memo(
             .delete()
             .eq("product_id", productId);
 
-          // Insert new links
-          if (selectedProductIngredients.length > 0) {
+          // Insert new links ONLY if manual stock is NOT enabled
+          if (!currentProduct.manual_stock_enabled && selectedProductIngredients.length > 0) {
             const newProductIngredients = selectedProductIngredients.map(
               (pi) => ({
                 product_id: productId,
@@ -434,119 +455,135 @@ const AdminProducts = memo(
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {filteredProducts.map((product) => {
-              const calculatedStock = calculateProductStock(
-                product.id,
-                products,
-                allIngredients,
-                allProductIngredients
-              );
-              const isOutOfStock = calculatedStock === 0;
+            {filteredProducts.length === 0 ? (
+              <Card className="bg-white/10 border-gray-600">
+                <CardContent className="p-8 text-center">
+                  <p className="text-gray-600 text-lg">
+                    Hozircha mahsulotlar yo'q.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredProducts.map((product) => {
+                const displayedStock = product.manual_stock_enabled
+                  ? product.manual_stock_quantity
+                  : calculateProductStock(
+                      product.id,
+                      products,
+                      allIngredients,
+                      allProductIngredients
+                    );
+                const isOutOfStock = displayedStock === 0;
 
-              return (
-                <motion.div
-                  key={product.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                >
-                  <Card className="bg-white/10 border-gray-500 rounded-[0.5rem] h-full flex flex-col">
-                    <CardHeader>
-                      <CardTitle className="text-gray-800 flex justify-between items-start">
-                        <span className="flex-1 text-xl mr-4 text-white/90">
-                          {product.name}
-                        </span>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-200 hover:bg-gray-200 rounded-[0.3rem]"
-                            onClick={() => openDialog(product)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 hover:bg-red-100"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-white border-gray-300">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-gray-800">
-                                  O'chirishni tasdiqlang
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="text-gray-600">
-                                  "{product.name}" mahsulotini o'chirishga
-                                  ishonchingiz komilmi? Bu amalni orqaga
-                                  qaytarib bo'lmaydi.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200">
-                                  Bekor qilish
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(product.id)}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
+                return (
+                  <motion.div
+                    key={product.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                  >
+                    <Card className="bg-white/10 border-gray-500 rounded-[0.5rem] h-full flex flex-col">
+                      <CardHeader>
+                        <CardTitle className="text-gray-800 flex justify-between items-start">
+                          <span className="flex-1 text-xl mr-4 text-white/90">
+                            {product.name}
+                          </span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-gray-200 hover:bg-gray-200 rounded-[0.3rem]"
+                              onClick={() => openDialog(product)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-red-100"
                                 >
-                                  O'chirish
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      {product.category && (
-                        <div className="mb-2">
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white border-gray-300">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle className="text-gray-800">
+                                    O'chirishni tasdiqlang
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-600">
+                                    "{product.name}" mahsulotini o'chirishga
+                                    ishonchingiz komilmi? Bu amalni orqaga
+                                    qaytarib bo'lmaydi.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel className="text-gray-800 border-gray-300 hover:bg-gray-200">
+                                    Bekor qilish
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(product.id)}
+                                    className="bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    O'chirish
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-grow">
+                        {product.category && (
+                          <div className="mb-2">
+                            <span className="text-gray-200 font-bold">
+                              Kategoriya:
+                            </span>
+                            <span className="text-[1rem] font-semibold px-2 py-1 text-orange-400">
+                              {product.category}
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-gray-200 my-2">
                           <span className="text-gray-200 font-bold">
-                            Kategoriya:
+                            Tavsifi:{" "}
                           </span>
-                          <span className="text-[1rem] font-semibold px-2 py-1 text-orange-400">
-                            {product.category}
+                          {product.description}
+                        </p>
+                        <p className="text-white/80 font-bold text-lg">
+                          <span className="text-gray-200 font-bold">
+                            Narxi:{" "}
+                          </span>
+                          {formatPrice(product.price)} so'm
+                        </p>
+                        <div className="mt-2">
+                          <span className="text-gray-200 font-bold">
+                            Soni:{" "}
+                          </span>
+                          <span
+                            className={`text-sm font-medium px-2 py-1 rounded ${
+                              displayedStock > 10
+                                ? "bg-green-100 text-green-600"
+                                : displayedStock > 5
+                                ? "bg-orange-100 text-orange-600"
+                                : displayedStock > 0
+                                ? "bg-red-100 text-red-600"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {displayedStock > 0
+                              ? `${displayedStock} ta qoldi`
+                              : "Tugadi"}
                           </span>
                         </div>
-                      )}
-                      <p className="text-gray-200 my-2">
-                        <span className="text-gray-200 font-bold">
-                          Tavsifi:{" "}
-                        </span>
-                        {product.description}
-                      </p>
-                      <p className="text-white/80 font-bold text-lg">
-                        <span className="text-gray-200 font-bold">Narxi: </span>
-                        {formatPrice(product.price)} so'm
-                      </p>
-                      <div className="mt-2">
-                        <span className="text-gray-200 font-bold">Soni: </span>
-                        <span
-                          className={`text-sm font-medium px-2 py-1 rounded ${
-                            calculatedStock > 10
-                              ? "bg-green-100 text-green-600"
-                              : calculatedStock > 5
-                              ? "bg-orange-100 text-orange-600"
-                              : calculatedStock > 0
-                              ? "bg-red-100 text-red-600"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {calculatedStock > 0
-                            ? `${calculatedStock} ta qoldi`
-                            : "Tugadi"}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })
+            )}
           </AnimatePresence>
         </div>
 
@@ -685,115 +722,159 @@ const AdminProducts = memo(
                 </div>
               </div>
 
-              {/* Ishlatiladigan masalliqlar bo'limi */}
-              <div className="space-y-2 mt-6">
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <Salad className="h-5 w-5" /> Ishlatiladigan masalliqlar
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Bu mahsulotni tayyorlash uchun kerak bo'ladigan masalliqlarni
-                  tanlang va har biri uchun miqdorini kiriting.
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedProductIngredients.map((pi) => (
-                    <Badge
-                      key={pi.ingredient_id}
-                      variant="secondary"
-                      className="flex items-center gap-2 p-2 pr-1 bg-orange-100 border border-orange-300 text-orange-700"
-                    >
-                      <span>{pi.name}</span>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step={pi.unit === "dona" ? "1" : "0.1"}
-                        value={formatQuantity(pi.quantity_needed, pi.unit)}
-                        onChange={(e) =>
-                          handleQuantityNeededChange(
-                            pi.ingredient_id,
-                            e.target.value
-                          )
-                        }
-                        // Increment/decrement tugmalarini va klaviatura o'qlarini o'chirish
-                        onKeyDown={(e) => {
-                          if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                            e.preventDefault();
-                          }
-                        }}
-                        onWheel={(e) => e.currentTarget.blur()} // Scroll bilan o'zgarishni o'chirish
-                        className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800 no-spinners"
-                      />
-                      <span className="text-sm">{pi.unit}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 p-0 text-red-500 hover:bg-red-100"
-                        onClick={() =>
-                          setSelectedProductIngredients((prev) =>
-                            prev.filter(
-                              (item) => item.ingredient_id !== pi.ingredient_id
-                            )
-                          )
-                        }
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-
-                <Popover
-                  open={isIngredientsSelectOpen}
-                  onOpenChange={setIsIngredientsSelectOpen}
-                >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={isIngredientsSelectOpen}
-                      className="w-full justify-between bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200"
-                    >
-                      Masalliq tanlash...
-                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-gray-300">
-                    <Command>
-                      <CommandInput
-                        placeholder="Masalliq qidirish..."
-                        value={ingredientSearchTerm}
-                        onValueChange={setIngredientSearchTerm}
-                        className="h-9"
-                      />
-                      <CommandEmpty>Masalliq topilmadi.</CommandEmpty>
-                      <CommandGroup>
-                        {filteredAvailableIngredients.map((ingredient) => (
-                          <CommandItem
-                            key={ingredient.id}
-                            value={ingredient.name}
-                            onSelect={() => handleSelectIngredient(ingredient)}
-                            className={cn("flex items-center justify-between")}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedProductIngredients.some(
-                                    (pi) => pi.ingredient_id === ingredient.id
-                                  )
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {ingredient.name}
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+              {/* Yangi: Qo'lda stok kiritish checkboxi */}
+              <div className="flex items-center space-x-2 mt-6">
+                <Checkbox
+                  id="manual-stock"
+                  checked={currentProduct?.manual_stock_enabled || false}
+                  onCheckedChange={(checked) =>
+                    setCurrentProduct((prev) => ({
+                      ...prev,
+                      manual_stock_enabled: checked,
+                      manual_stock_quantity: checked ? prev?.manual_stock_quantity || 0 : null, // Agar o'chirilgan bo'lsa, miqdorni tozalash
+                    }))
+                  }
+                />
+                <Label htmlFor="manual-stock" className="text-gray-800">
+                  Qo'lda stok kiritish
+                </Label>
               </div>
+
+              {/* Yangi: Qo'lda stok kiritish inputi */}
+              {currentProduct?.manual_stock_enabled && (
+                <div className="grid grid-cols-4 items-center gap-4 mt-4">
+                  <Label htmlFor="manual_stock_quantity" className="text-right">
+                    Stok miqdori
+                  </Label>
+                  <Input
+                    id="manual_stock_quantity"
+                    type="number"
+                    placeholder="Stok miqdori"
+                    value={currentProduct?.manual_stock_quantity || ""}
+                    onChange={(e) =>
+                      setCurrentProduct({
+                        ...currentProduct,
+                        manual_stock_quantity: Number(e.target.value),
+                      })
+                    }
+                    className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
+                    min="0"
+                    step="1"
+                  />
+                </div>
+              )}
+
+              {/* Ishlatiladigan masalliqlar bo'limi - faqat qo'lda stok kiritish yoqilmagan bo'lsa ko'rsatiladi */}
+              {!currentProduct?.manual_stock_enabled && (
+                <div className="space-y-2 mt-6">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Salad className="h-5 w-5" /> Ishlatiladigan masalliqlar
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Bu mahsulotni tayyorlash uchun kerak bo'ladigan masalliqlarni
+                    tanlang va har biri uchun miqdorini kiriting.
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {selectedProductIngredients.map((pi) => (
+                      <Badge
+                        key={pi.ingredient_id}
+                        variant="secondary"
+                        className="flex items-center gap-2 p-2 pr-1 bg-orange-100 border border-orange-300 text-orange-700"
+                      >
+                        <span>{pi.name}</span>
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step={pi.unit === "dona" ? "1" : "0.1"}
+                          value={formatQuantity(pi.quantity_needed, pi.unit)}
+                          onChange={(e) =>
+                            handleQuantityNeededChange(
+                              pi.ingredient_id,
+                              e.target.value
+                            )
+                          }
+                          // Increment/decrement tugmalarini va klaviatura o'qlarini o'chirish
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                              e.preventDefault();
+                            }
+                          }}
+                          onWheel={(e) => e.currentTarget.blur()} // Scroll bilan o'zgarishni o'chirish
+                          className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800 no-spinners"
+                        />
+                        <span className="text-sm">{pi.unit}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 p-0 text-red-500 hover:bg-red-100"
+                          onClick={() =>
+                            setSelectedProductIngredients((prev) =>
+                              prev.filter(
+                                (item) => item.ingredient_id !== pi.ingredient_id
+                              )
+                            )
+                          }
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <Popover
+                    open={isIngredientsSelectOpen}
+                    onOpenChange={setIsIngredientsSelectOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={isIngredientsSelectOpen}
+                        className="w-full justify-between bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200"
+                      >
+                        Masalliq tanlash...
+                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-gray-300">
+                      <Command>
+                        <CommandInput
+                          placeholder="Masalliq qidirish..."
+                          value={ingredientSearchTerm}
+                          onValueChange={setIngredientSearchTerm}
+                          className="h-9"
+                        />
+                        <CommandEmpty>Masalliq topilmadi.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredAvailableIngredients.map((ingredient) => (
+                            <CommandItem
+                              key={ingredient.id}
+                              value={ingredient.name}
+                              onSelect={() => handleSelectIngredient(ingredient)}
+                              className={cn("flex items-center justify-between")}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedProductIngredients.some(
+                                      (pi) => pi.ingredient_id === ingredient.id
+                                    )
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {ingredient.name}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <DialogClose asChild>

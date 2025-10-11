@@ -14,19 +14,21 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false); // Yangi holat: animatsiya uchun
   
-  // calculateProductStock funksiyasini to'g'ri `allProducts` prop bilan chaqirish
-  const calculatedStock = calculateProductStock(
-    product.id,
-    allProducts,
-    allIngredients,
-    allProductIngredients
-  );
+  // Mahsulotning haqiqiy stokini aniqlash
+  const actualStock = product.manual_stock_enabled
+    ? product.manual_stock_quantity
+    : calculateProductStock(
+        product.id,
+        allProducts,
+        allIngredients,
+        allProductIngredients
+      );
 
   // Savatda allaqachon mavjud bo'lgan miqdorni hisoblash
   const quantityInCart = cartItems.find(item => item.id === product.id)?.quantity || 0;
 
   // Haqiqiy mavjud stok (umumiy stok - savatdagi miqdor)
-  const effectiveStock = calculatedStock - quantityInCart;
+  const effectiveStock = actualStock - quantityInCart;
 
   const isOutOfStock = effectiveStock <= 0;
 

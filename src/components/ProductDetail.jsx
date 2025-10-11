@@ -39,7 +39,9 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
 
       setProduct(data);
       // Mahsulot yuklangandan so'ng stokni hisoblash
-      const stock = calculateProductStock(data.id, products, ingredients, productIngredients);
+      const stock = data.manual_stock_enabled
+        ? data.manual_stock_quantity
+        : calculateProductStock(data.id, products, ingredients, productIngredients);
       setCalculatedStock(stock);
       setLoading(false);
     };
@@ -62,27 +64,19 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
           } else {
             setProduct(payload.new);
             // Realtime yangilanishda ham stokni qayta hisoblash
-            // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
-            // ular App.jsx da yangilanganda bu yerda ham avtomatik yangi qiymatlar ishlatiladi.
-            const stock = calculateProductStock(payload.new.id, products, ingredients, productIngredients);
+            const stock = payload.new.manual_stock_enabled
+              ? payload.new.manual_stock_quantity
+              : calculateProductStock(payload.new.id, products, ingredients, productIngredients);
             setCalculatedStock(stock);
           }
         }
       )
       .subscribe();
 
-    // `ingredientChannel` va `productIngredientChannel` obunalari olib tashlandi.
-    // Chunki `App.jsx` allaqachon bu ma'lumotlarni real-time yangilab turadi
-    // va ularni `ProductDetail` komponentiga prop sifatida uzatadi.
-    // `calculateProductStock` funksiyasi har doim eng so'nggi prop qiymatlaridan foydalanadi.
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, navigate, products, ingredients, productIngredients]); // `product` dependency array'dan olib tashlandi
-  // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
-  // ularning o'zgarishi `useEffect` ni qayta ishga tushirishi kerak,
-  // chunki `calculateProductStock` ularga bog'liq.
+  }, [id, navigate, products, ingredients, productIngredients]);
 
   if (loading) {
     return (
