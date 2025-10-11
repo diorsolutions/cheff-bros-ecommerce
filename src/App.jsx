@@ -860,18 +860,14 @@ function App() {
       let message = "";
       // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const itemNames = order.items.map(item => item.name).join(", ");
-        message = `Sizning *${itemNames}* nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
-        // Buyurtma yetkazilganda modalni yashirish
-        // if (orderId === activeCustomerOrderId) { // Eski logic
-        //   setActiveCustomerOrderId(null);
-        // }
+        const itemNames = order.items.map(item => `*${item.name}*`).join(", ");
+        if (order.delivery_option === "o_zim_olib_ketaman") {
+          message = `Sizning ${itemNames} nomli buyurtmangiz muvaffaqiyatli topshirildi!`;
+        } else {
+          message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+        }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
-        // Buyurtma bekor qilinganda modalni yashirish
-        // if (orderId === activeCustomerOrderId) { // Eski logic
-        //   setActiveCustomerOrderId(null);
-        // }
       }
 
       if (message) {
