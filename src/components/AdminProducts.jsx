@@ -634,7 +634,7 @@ const AdminProducts = memo(
                   id="price"
                   type="number"
                   placeholder="Narxi"
-                  value={currentProduct?.price || ""} {/* formatPrice olib tashlandi */}
+                  value={currentProduct?.price || ""} 
                   onChange={(e) =>
                     setCurrentProduct({
                       ...currentProduct,
@@ -782,7 +782,7 @@ const AdminProducts = memo(
                           type="number"
                           min="0.1"
                           step={pi.unit === "dona" ? "1" : "0.1"}
-                          value={pi.quantity_needed || ""} {/* formatQuantity olib tashlandi */}
+                          value={pi.quantity_needed || ""}
                           onChange={(e) =>
                             handleQuantityNeededChange(
                               pi.ingredient_id,

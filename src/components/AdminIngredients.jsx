@@ -370,7 +370,7 @@ const AdminIngredients = ({
                 id="stock_quantity"
                 type="number"
                 placeholder="Miqdor"
-                value={currentIngredient?.stock_quantity || ""} {/* formatQuantity olib tashlandi */}
+                value={currentIngredient?.stock_quantity || ""}
                 onChange={(e) =>
                   setCurrentIngredient({
                     ...currentIngredient,

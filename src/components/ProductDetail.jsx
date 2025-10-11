@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion"; // AnimatePresence import qilindi
-import { ArrowLeft, ShoppingCart, Plus, Minus, Check } from "lucide-react"; // Check iconini import qilish
+import { ArrowLeft, ShoppingCart, Plus, Minus, Check, Salad } from "lucide-react"; // Check va Salad iconlarini import qilish
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
@@ -141,6 +141,17 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
 
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
 
+  // Mahsulotga bog'langan masalliqlarni topish
+  const ingredientsForProduct = product.manual_stock_enabled
+    ? [] // Agar qo'lda stok kiritish yoqilgan bo'lsa, masalliqlarni ko'rsatmaymiz
+    : productIngredients
+        .filter((pi) => pi.product_id === product.id)
+        .map((pi) => {
+          const ingredient = ingredients.find((ing) => ing.id === pi.ingredient_id);
+          return ingredient ? ingredient.name : null;
+        })
+        .filter(Boolean); // null qiymatlarni olib tashlash
+
   return (
     <div className="min-h-screen bg-[#eaeaea]">
       {" "}
@@ -194,6 +205,22 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
                       {/* Matn rangi yangilandi */}
                       {product.description}
                     </p>
+
+                    {/* Yangi: Masalliqlar bo'limi */}
+                    {ingredientsForProduct.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                          <Salad className="h-5 w-5 text-green-600" /> Masalliqlar:
+                        </h3>
+                        <ul className="flex flex-wrap gap-2">
+                          {ingredientsForProduct.map((ingredientName, index) => (
+                            <li key={index} className="text-gray-700 text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                              {ingredientName}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     <div className="mb-6">
                       <span
