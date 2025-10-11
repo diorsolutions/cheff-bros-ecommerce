@@ -469,7 +469,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
                 const canCancel =
-                  (isNew || isPreparing || isReady) &&
+                  (isNew || isPreparing) && // Faqat yangi yoki tayyorlanmoqda bo'lsa bekor qilish mumkin
                   !isDelivered &&
                   !isCancelled &&
                   isAssignedToThisChef;
