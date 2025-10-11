@@ -211,6 +211,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   ) => {
     const courierInfo = curierId ? getCurierInfo(curierId) : null;
     const chefInfo = chefId ? getChefInfo(chefId) : null;
+    const isPickup = orderObject.delivery_option === "o_zim_olib_ketaman";
 
     let statusText = "";
 
@@ -235,6 +236,28 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         statusText = "Bekor qilingan";
         if (chefInfo) statusText += ` (Oshpaz: ${chefInfo.name})`;
         if (courierInfo) statusText += ` (Kuryer: ${courierInfo.name})`;
+      }
+    } else if (isPickup) {
+      switch (status) {
+        case "new":
+          statusText = "Yangi (Olib ketish)";
+          break;
+        case "preparing":
+          statusText = (
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorlanmoqda</>
+          );
+          break;
+        case "ready":
+          statusText = (
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi (Olib ketishga tayyor)</>
+          );
+          break;
+        case "delivered_to_customer":
+          statusText = "Mijozga topshirildi (Olib ketildi)";
+          break;
+        default:
+          statusText = "Noma'lum (Olib ketish)";
+          break;
       }
     } else if (curierId) {
       switch (status) {
@@ -933,20 +956,20 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           </DropdownMenuContent>
                                         </DropdownMenu>
                                       ) : (
-                                        <a
-                                          className="underline text-blue-300"
-                                          href={yandexLink}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          (xaritada ochish)
-                                        </a>
-                                      )
-                                    )}
-                                  </>
+                                    <a
+                                      className="underline text-blue-300"
+                                      href={yandexLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      (xaritada ochish)
+                                    </a>
+                                  )
                                 )}
-                              </p>
+                              </>
                             )}
+                          </p>
+                        )}
                           </div>
                         </div>
 
@@ -1055,7 +1078,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {showCourierInfo && (
+                      {showCourierInfo && !isPickup && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
                         <div className="flex items-center gap-2 mt-2">
                           <Truck className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-400">Kuryer:</span>

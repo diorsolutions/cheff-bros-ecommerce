@@ -198,7 +198,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     }
   };
 
-  const getStatusText = (status, orderChefId, orderCurierId) => {
+  const getStatusText = (status, orderChefId, orderCurierId, deliveryOption) => {
     const assignedChefName = orderChefId
       ? getChefInfo(orderChefId)?.name
       : null;
@@ -210,6 +210,28 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
     if (status === "cancelled") {
       statusText = "Bekor qilingan";
+    } else if (deliveryOption === "o_zim_olib_ketaman") {
+      switch (status) {
+        case "new":
+          statusText = "Yangi (Olib ketish)";
+          break;
+        case "preparing":
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorlanmoqda`
+            : "Tayyorlanmoqda";
+          break;
+        case "ready":
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorladi (Olib ketishga tayyor)`
+            : "Tayyor (Olib ketishga tayyor)";
+          break;
+        case "delivered_to_customer":
+          statusText = "Mijozga topshirildi (Olib ketildi)";
+          break;
+        default:
+          statusText = "Noma'lum (Olib ketish)";
+          break;
+      }
     } else if (orderCurierId) {
       switch (status) {
         case "en_route_to_kitchen":
@@ -264,19 +286,19 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return statusText;
   };
 
-  // formatOrderDateTime funksiyasi olib tashlandi va formatUzbekDateTime bilan almashtirildi
-  // const formatOrderDateTime = (timestamp) => { ... };
-
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
     let filtered = orders.filter((order) => {
-      if (
-        order.status === "delivered_to_customer" ||
-        order.status === "cancelled"
-      ) {
+      // "O'zim olib ketaman" buyurtmalari "delivered_to_customer" bo'lsa, yashiramiz
+      if (order.delivery_option === "o_zim_olib_ketaman" && order.status === "delivered_to_customer") {
         return false;
       }
+      // Boshqa turdagi buyurtmalar "delivered_to_customer" yoki "cancelled" bo'lsa, yashiramiz
+      if (order.delivery_option !== "o_zim_olib_ketaman" && (order.status === "delivered_to_customer" || order.status === "cancelled")) {
+        return false;
+      }
+
       const isAssignedToMe = order.chef_id === chefId;
       const isNewAndUnassigned = !order.chef_id && order.status === "new";
 
@@ -437,21 +459,17 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
-                const isEnRouteToKitchen =
-                  order.curier_id && order.status === "en_route_to_kitchen";
-                const isPickedUpFromKitchen =
-                  order.curier_id && order.status === "picked_up_from_kitchen";
                 const isDelivered = order.status === "delivered_to_customer";
                 const isCancelled = order.status === "cancelled";
 
                 const isAssignedToThisChef = order.chef_id === chefId;
+                const isPickup = order.delivery_option === "o_zim_olib_ketaman";
 
                 const canMarkPreparing =
                   (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
                 const canCancel =
-                  (isNew || isPreparing || isReady || isEnRouteToKitchen) &&
-                  !isPickedUpFromKitchen &&
+                  (isNew || isPreparing || isReady) &&
                   !isDelivered &&
                   !isCancelled &&
                   isAssignedToThisChef;
@@ -461,8 +479,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                   order.coordinates?.lng,
                   order.location
                 );
-
-                const isPickup = order.delivery_option === "o_zim_olib_ketaman"; // Yangi: Olib ketish opsiyasi
 
                 return (
                   <motion.div
@@ -721,12 +737,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 ? "bg-yellow-100 text-yellow-600"
                                 : isReady
                                 ? "bg-green-100 text-green-600"
-                                : order.curier_id &&
-                                  order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : order.curier_id &&
-                                  order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600"
                                 : isDelivered
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
@@ -735,7 +745,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             {getStatusText(
                               order.status,
                               order.chef_id,
-                              order.curier_id
+                              order.curier_id,
+                              order.delivery_option
                             )}
                           </span>
                         </div>
@@ -751,7 +762,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             </span>
                           </div>
                         )}
-                        {order.curier_id && (
+                        {!isPickup && order.curier_id && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
                             <span className="text-sm text-gray-500">
@@ -786,7 +797,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               onClick={() =>
                                 onUpdateOrderStatus(
                                   order.id,
-                                  "ready",
+                                  isPickup ? "delivered_to_customer" : "ready", // Agar olib ketish bo'lsa, to'g'ridan-to'g'ri delivered_to_customer ga o'tkazamiz
                                   chefId,
                                   "chef"
                                 )
