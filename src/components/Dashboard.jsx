@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, NavLink, Outlet } from "react-router-dom"; // NavLink va Outlet import qilindi
+import { useNavigate, NavLink, Outlet } from "react-router-dom";
 import {
   ListOrdered,
   Utensils,
@@ -9,24 +9,22 @@ import {
   BarChart2,
   Users,
   ChefHat,
-  Salad, // Yangi: Salad iconi
+  Salad,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+import { useMediaQuery } from "react-responsive";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
 const Dashboard = () => {
-  const isLargeScreen = useMediaQuery({ minWidth: 780 }); // nor_tablet breakpointidan kattaroq ekranlar uchun
-  const [isSidebarOpen, setIsSidebarOpen] = useState(isLargeScreen);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const isNorTablet = useMediaQuery({ maxWidth: 780 }); // nor_tablet breakpoint
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isNorTablet); // Default open for large, closed for small
 
   useEffect(() => {
-    setIsSidebarOpen(isLargeScreen);
-  }, [isLargeScreen]);
+    setIsSidebarOpen(!isNorTablet); // Set initial state based on screen size
+  }, [isNorTablet]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -58,9 +56,11 @@ const Dashboard = () => {
       </header>
       <main className="flex flex-col md:flex-row">
         <aside
-          className={`transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 p-[0.87rem] pt-0 ${
-            isSidebarOpen ? "w-64" : "w-20"
-          } ${!isSidebarOpen ? "bg-[#332a00]/10 p-[1rem]" : ""}`}
+          className={`transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 p-[0.87rem] pt-0
+            ${isNorTablet ? "fixed z-50 bg-black/80 h-full" : ""}
+            ${isSidebarOpen ? "w-64" : "w-20"}
+            ${!isSidebarOpen && !isNorTablet ? "bg-[#332a00]/10 p-[1rem]" : ""}
+          `}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
             {/* Sidebar toggle button */}
@@ -170,13 +170,12 @@ const Dashboard = () => {
 
         <div className="flex-1 p-4 md:p-6">
           <motion.div
-            key={location.pathname} // Marshrut o'zgarganda animatsiyani qayta ishga tushirish
+            key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Outlet />{" "}
-            {/* Ichki marshrut komponentlari shu yerda render qilinadi */}
+            <Outlet />
           </motion.div>
         </div>
       </main>
