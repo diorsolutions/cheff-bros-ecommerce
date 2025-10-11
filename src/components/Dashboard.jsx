@@ -47,11 +47,11 @@ const Dashboard = () => {
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            {/* Sidebar toggle button - always visible in header */}
+            {/* NEW: Sidebar toggle button for mob_small screens in header */}
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20 mr-2"
+              className="hidden mob_small:block text-white hover:bg-white/20 mr-2"
               onClick={() => setIsSidebarOpen((prev) => !prev)}
             >
               {isSidebarOpen ? (
@@ -86,6 +86,22 @@ const Dashboard = () => {
           )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
+            {/* Sidebar toggle button - now hidden on mob_small */}
+            <div className="w-full flex justify-end mb-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/20 mob_small:hidden" {/* Added mob_small:hidden */}
+                onClick={() => setIsSidebarOpen((prev) => !prev)}
+              >
+                {isSidebarOpen ? (
+                  <PanelLeftClose className="h-5 w-5" />
+                ) : (
+                  <PanelRightClose className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+
             {/* Navigation buttons */}
             <div className="flex flex-col w-full">
               <NavLink

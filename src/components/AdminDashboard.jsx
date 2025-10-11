@@ -34,8 +34,8 @@ import { toast } from "@/components/ui/use-toast";
 import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils"; // cn va getMapLinks import qilindi
 import InfoModal from "./InfoModal";
 // import OrderItemsModal from "./OrderItemsModal"; // Yangi: OrderItemsModal import qilindi
-import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilildi
-import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilildi
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
 
 // Umumiy tovush ijro etish funksiyasi
 const playSound = (
@@ -737,7 +737,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-white/50 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                     >
                                       <CheckCircle className="mr-2 h-4 w-4" />
                                       Tayyor (Admin)
@@ -772,7 +772,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                             null
                                           )
                                         }
-                                        className="text-white/50 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                       >
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         Mijozda (Admin)
@@ -810,8 +810,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                     <CardContent className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
-                        {/* Mijoz ma'lumotlari Card ichida */}
-                        <Card className="bg-gray-500/20 border-white/10 shadow-lg rounded-lg p-4">
+                        <div>
                           <h4 className="font-medium text-white mb-2 text-base">
                             Mijoz ma'lumotlari
                           </h4>
@@ -994,10 +993,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               </p>
                             )}
                           </div>
-                        </Card>
+                        </div>
 
-                        {/* Buyurtma tafsilotlari Card ichida */}
-                        <Card className="bg-gray-500/20 border-white/10 shadow-md rounded-lg p-4">
+                        <div>
                           <h4 className="font-medium text-white mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
@@ -1027,7 +1025,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               </div>
                             </div>
                           </div>
-                        </Card>
+                        </div>
                       </div>
 
                       {!hideMainStatus && ( // Asosiy status qatori faqat hideMainStatus false bo'lganda ko'rsatiladi
@@ -1063,7 +1061,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                           <Button
                             variant="link"
-                            className="p-0 h-auto text-white/70 hover:text-blue-200"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
                             onClick={() => handleShowUserInfo(chefInfo, "chef")}
                           >
                             {chefInfo?.name || "Noma'lum"}
@@ -1086,7 +1084,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                   </span>
                                 );
                               return (
-                                <span className="text-sm text-white">
+                                <span className="text-sm text-green-400">
                                   tayyorladi
                                 </span>
                               );
@@ -1094,7 +1092,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                             // boshqa barcha holatlar (ready, delivered, va hok.)
                             return (
-                              <span className="text-sm text-white/50">
+                              <span className="text-sm text-green-400">
                                 tayyorladi
                               </span>
                             );
@@ -1111,7 +1109,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             </span>
                             <Button
                               variant="link"
-                              className="p-0 h-auto text-white/70 hover:text-blue-200"
+                              className="p-0 h-auto text-blue-300 hover:text-blue-200"
                               onClick={() =>
                                 handleShowUserInfo(courierInfo, "curier")
                               }
@@ -1119,13 +1117,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               {courierInfo?.name || "Noma'lum"}
                             </Button>
                             {order.status === "delivered_to_customer" && (
-                              <span className="text-sm text-white/50">
+                              <span className="text-sm text-green-400">
                                 mijozga yetkazdi
                               </span>
                             )}
                             {order.status === "cancelled" &&
                               order.curier_id && (
-                                <span className="text-sm text-white/90">
+                                <span className="text-sm text-red-400">
                                   bekor qildi
                                 </span>
                               )}{" "}
