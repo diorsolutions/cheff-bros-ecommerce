@@ -34,8 +34,8 @@ import { toast } from "@/components/ui/use-toast";
 import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils"; // cn va getMapLinks import qilindi
 import InfoModal from "./InfoModal";
 // import OrderItemsModal from "./OrderItemsModal"; // Yangi: OrderItemsModal import qilindi
-import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
-import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilildi
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilildi
 
 // Umumiy tovush ijro etish funksiyasi
 const playSound = (
@@ -249,12 +249,18 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           break;
         case "ready":
           statusText = (
-            <>Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi (Olib ketishga tayyor)</>
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} tayyorladi (Olib
+              ketishga tayyor)
+            </>
           );
           break;
         case "delivered_to_customer":
           statusText = (
-            <>Oshpaz: {renderUserLink(chefInfo, "chef")} mijozga topshirdi (Olib ketildi)</>
+            <>
+              Oshpaz: {renderUserLink(chefInfo, "chef")} mijozga topshirdi (Olib
+              ketildi)
+            </>
           );
           break;
         default:
@@ -588,7 +594,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
               // Kuryer ma'lumotini ko'rsatish sharti
               const showCourierInfo = order.curier_id && isFinal;
 
-              const { yandexLink, googleLink, geoUri } = getMapLinks(order.coordinates?.lat, order.coordinates?.lng, order.location);
+              const { yandexLink, googleLink, geoUri } = getMapLinks(
+                order.coordinates?.lat,
+                order.coordinates?.lng,
+                order.location
+              );
 
               const isPickup = order.delivery_option === "o_zim_olib_ketaman"; // Yangi: Olib ketish opsiyasi
 
@@ -727,7 +737,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                      className="text-white/50 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                     >
                                       <CheckCircle className="mr-2 h-4 w-4" />
                                       Tayyor (Admin)
@@ -762,7 +772,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                             null
                                           )
                                         }
-                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                        className="text-white/50 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
                                       >
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         Mijozda (Admin)
@@ -800,7 +810,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                     <CardContent className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
+                        {/* Mijoz ma'lumotlari Card ichida */}
+                        <Card className="bg-white/5 border-white/10 shadow-md rounded-lg p-4">
                           <h4 className="font-medium text-white mb-2 text-base">
                             Mijoz ma'lumotlari
                           </h4>
@@ -881,11 +892,16 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                             </a>
                                           </DropdownMenuItem>
                                         )}
-                                        {(!yandexLink && !googleLink && !geoUri) && (
-                                          <DropdownMenuItem disabled className="text-gray-500">
-                                            Xarita havolalari mavjud emas
-                                          </DropdownMenuItem>
-                                        )}
+                                        {!yandexLink &&
+                                          !googleLink &&
+                                          !geoUri && (
+                                            <DropdownMenuItem
+                                              disabled
+                                              className="text-gray-500"
+                                            >
+                                              Xarita havolalari mavjud emas
+                                            </DropdownMenuItem>
+                                          )}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   ) : (
@@ -898,11 +914,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                       (xaritada ochish)
                                     </a>
                                   )
-                                ) : ( // If no coordinates (manual entry)
+                                ) : (
+                                  // If no coordinates (manual entry)
                                   <>
                                     {order.location}{" "}
-                                    {order.location && (
-                                      isMobile ? (
+                                    {order.location &&
+                                      (isMobile ? (
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <Button
@@ -950,32 +967,37 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                                 </a>
                                               </DropdownMenuItem>
                                             )}
-                                            {(!yandexLink && !googleLink && !geoUri) && (
-                                              <DropdownMenuItem disabled className="text-gray-500">
-                                                Xarita havolalari mavjud emas
-                                              </DropdownMenuItem>
-                                            )}
+                                            {!yandexLink &&
+                                              !googleLink &&
+                                              !geoUri && (
+                                                <DropdownMenuItem
+                                                  disabled
+                                                  className="text-gray-500"
+                                                >
+                                                  Xarita havolalari mavjud emas
+                                                </DropdownMenuItem>
+                                              )}
                                           </DropdownMenuContent>
                                         </DropdownMenu>
                                       ) : (
-                                    <a
-                                      className="underline text-blue-300"
-                                      href={yandexLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      (xaritada ochish)
-                                    </a>
-                                  )
+                                        <a
+                                          className="underline text-blue-300"
+                                          href={yandexLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          (xaritada ochish)
+                                        </a>
+                                      ))}
+                                  </>
                                 )}
-                              </>
+                              </p>
                             )}
-                          </p>
-                        )}
                           </div>
-                        </div>
+                        </Card>
 
-                        <div>
+                        {/* Buyurtma tafsilotlari Card ichida */}
+                        <Card className="bg-white/5 border-white/10 shadow-md rounded-lg p-4">
                           <h4 className="font-medium text-white mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
@@ -1005,7 +1027,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </Card>
                       </div>
 
                       {!hideMainStatus && ( // Asosiy status qatori faqat hideMainStatus false bo'lganda ko'rsatiladi
@@ -1041,7 +1063,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                           <Button
                             variant="link"
-                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            className="p-0 h-auto text-white/70 hover:text-blue-200"
                             onClick={() => handleShowUserInfo(chefInfo, "chef")}
                           >
                             {chefInfo?.name || "Noma'lum"}
@@ -1064,7 +1086,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                   </span>
                                 );
                               return (
-                                <span className="text-sm text-green-400">
+                                <span className="text-sm text-white">
                                   tayyorladi
                                 </span>
                               );
@@ -1072,7 +1094,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                             // boshqa barcha holatlar (ready, delivered, va hok.)
                             return (
-                              <span className="text-sm text-green-400">
+                              <span className="text-sm text-white/50">
                                 tayyorladi
                               </span>
                             );
@@ -1080,31 +1102,35 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       )}
 
-                      {showCourierInfo && !isPickup && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
-                        <div className="flex items-center gap-2 mt-2">
-                          <Truck className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-400">Kuryer:</span>
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
-                            onClick={() =>
-                              handleShowUserInfo(courierInfo, "curier")
-                            }
-                          >
-                            {courierInfo?.name || "Noma'lum"}
-                          </Button>
-                          {order.status === "delivered_to_customer" && (
-                            <span className="text-sm text-green-400">
-                              mijozga yetkazdi
+                      {showCourierInfo &&
+                        !isPickup && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
+                          <div className="flex items-center gap-2 mt-2">
+                            <Truck className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-400">
+                              Kuryer:
                             </span>
-                          )}
-                          {order.status === "cancelled" && order.curier_id && (
-                            <span className="text-sm text-red-400">
-                              bekor qildi
-                            </span>
-                          )}{" "}
-                        </div>
-                      )}
+                            <Button
+                              variant="link"
+                              className="p-0 h-auto text-white/70 hover:text-blue-200"
+                              onClick={() =>
+                                handleShowUserInfo(courierInfo, "curier")
+                              }
+                            >
+                              {courierInfo?.name || "Noma'lum"}
+                            </Button>
+                            {order.status === "delivered_to_customer" && (
+                              <span className="text-sm text-white/50">
+                                mijozga yetkazdi
+                              </span>
+                            )}
+                            {order.status === "cancelled" &&
+                              order.curier_id && (
+                                <span className="text-sm text-white/90">
+                                  bekor qildi
+                                </span>
+                              )}{" "}
+                          </div>
+                        )}
 
                       {order.status === "cancelled" &&
                         order.cancellation_reason && (
