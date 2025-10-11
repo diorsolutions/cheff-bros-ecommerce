@@ -77,17 +77,15 @@ const Dashboard = () => {
         <aside
           className={cn(
             "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full",
-            // Mobile small specific styles (overlay)
-            isMobSmall
-              ? "fixed inset-y-0 z-50 bg-black/80"
-              : "bg-black/20", // Default for larger screens (static)
+            // Base styles for larger screens (pushing behavior)
+            !isMobSmall && "bg-black/20",
+            !isMobSmall && isSidebarOpen && "w-64 p-4",
+            !isMobSmall && !isSidebarOpen && "w-20 p-2",
 
-            // Width and transform based on isSidebarOpen
-            isSidebarOpen
-              ? "w-64 transform-none p-4"
-              : isMobSmall // If small mobile and closed, hide completely
-                ? "w-64 -translate-x-full p-4"
-                : "w-20 p-2" // If larger screen and closed, show as collapsed
+            // Styles for mob_small (overlay behavior)
+            isMobSmall && "fixed inset-y-0 z-50 bg-black/80",
+            isMobSmall && isSidebarOpen && "w-64 transform-none p-4",
+            isMobSmall && !isSidebarOpen && "w-64 -translate-x-full p-4"
           )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
@@ -189,13 +187,13 @@ const Dashboard = () => {
         )}
 
         <div
-  className={cn(
-    "flex-1 p-4 md:p-6 transition-all duration-300",
-    // Apply margin-left only if not mobSmall
-    !isMobSmall && !isSidebarOpen && "ml-20", // Large/medium screen, sidebar closed
-    !isMobSmall && isSidebarOpen && "ml-64" // Large/medium screen, sidebar open
-  )}
->
+          className={cn(
+            "flex-1 p-4 md:p-6 transition-all duration-300",
+            // Apply margin-left only if not mobSmall
+            !isMobSmall && !isSidebarOpen && "ml-20", // Large/medium screen, sidebar closed
+            !isMobSmall && isSidebarOpen && "ml-64" // Large/medium screen, sidebar open
+          )}
+        >
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
