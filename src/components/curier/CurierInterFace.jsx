@@ -242,17 +242,17 @@ const CurierInterFace = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     if (!curierId || !orders) return [];
 
     const relevantOrders = orders.filter(order => {
+      // "O'zim olib ketaman" buyurtmalarini kuryer interfeysidan butunlay olib tashlash
+      if (order.delivery_option === "o_zim_olib_ketaman") {
+        return false;
+      }
       if (order.status === "cancelled" && order.chef_id) {
         return false;
       }
       if (order.status === "delivered_to_customer") {
         return false;
       }
-      // Agar buyurtma "o'zim olib ketaman" bo'lsa, kuryer interfeysida ko'rsatilmasin
-      if (order.delivery_option === "o_zim_olib_ketaman") {
-        return false;
-      }
-
+      
       if (order.curier_id === curierId) {
         return true;
       }

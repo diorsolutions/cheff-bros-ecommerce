@@ -253,7 +253,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           );
           break;
         case "delivered_to_customer":
-          statusText = "Mijozga topshirildi (Olib ketildi)";
+          statusText = (
+            <>Oshpaz: {renderUserLink(chefInfo, "chef")} mijozga topshirdi (Olib ketildi)</>
+          );
           break;
         default:
           statusText = "Noma'lum (Olib ketish)";

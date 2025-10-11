@@ -500,7 +500,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
                               )} ${
-                                !isReady && !isCancelled && !isDelivered
+                                !isReady && !isDelivered && !isCancelled
                                   ? "animate-pulse"
                                   : ""
                               }`}
