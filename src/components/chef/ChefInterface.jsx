@@ -468,8 +468,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const canMarkPreparing =
                   (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
+                const canMarkDeliveredByChef = isReady && isAssignedToThisChef && isPickup; // Yangi: "Mijozga topshirildi" tugmasi uchun shart
                 const canCancel =
-                  (isNew || isPreparing) && // Faqat yangi yoki tayyorlanmoqda bo'lsa bekor qilish mumkin
+                  (isNew || isPreparing || isReady) && // "Tayyor" holatida ham bekor qilish mumkin
                   !isDelivered &&
                   !isCancelled &&
                   isAssignedToThisChef;
@@ -792,12 +793,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               Tayyorlanmoqda
                             </Button>
                           )}
-                          {canMarkReady && (
+                          {canMarkReady && !canMarkDeliveredByChef && ( // Agar "Mijozga topshirildi" tugmasi ko'rinmasa, "Tayyor" tugmasi ko'rinadi
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
                                   order.id,
-                                  isPickup ? "delivered_to_customer" : "ready", // Agar olib ketish bo'lsa, to'g'ridan-to'g'ri delivered_to_customer ga o'tkazamiz
+                                  "ready", // Har doim "ready" ga o'tkazamiz
                                   chefId,
                                   "chef"
                                 )
@@ -806,6 +807,22 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             >
                               <CheckCircle className="mr-2 h-4 w-4" />
                               Tayyor
+                            </Button>
+                          )}
+                          {canMarkDeliveredByChef && ( // Yangi: "Mijozga topshirildi" tugmasi
+                            <Button
+                              onClick={() =>
+                                onUpdateOrderStatus(
+                                  order.id,
+                                  "delivered_to_customer",
+                                  chefId,
+                                  "chef"
+                                )
+                              }
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Mijozga topshirildi
                             </Button>
                           )}
                           {canCancel && (
