@@ -56,10 +56,9 @@ const Dashboard = () => {
       </header>
       <main className="flex flex-col md:flex-row">
         <aside
-          className={`transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 p-[0.87rem] pt-0
-            ${isNorTablet ? "fixed z-50 bg-black/80 h-full" : ""}
-            ${isSidebarOpen ? "w-64" : "w-20"}
-            ${!isSidebarOpen && !isNorTablet ? "bg-[#332a00]/10 p-[1rem]" : ""}
+          className={`transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full
+            ${isNorTablet ? "fixed z-50 bg-black/80" : "bg-black/20"}
+            ${isSidebarOpen ? "w-64 p-4" : "w-16 p-2"}
           `}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
@@ -168,7 +167,12 @@ const Dashboard = () => {
           </nav>
         </aside>
 
-        <div className="flex-1 p-4 md:p-6">
+        <div
+          className={`flex-1 p-4 md:p-6 transition-all duration-300
+            ${isNorTablet && !isSidebarOpen ? "ml-16" : ""}
+            ${isNorTablet && isSidebarOpen ? "ml-64" : ""}
+          `}
+        >
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
