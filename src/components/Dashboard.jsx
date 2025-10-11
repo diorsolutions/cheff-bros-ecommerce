@@ -17,10 +17,13 @@ import { useMediaQuery } from "react-responsive";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils"; // cn utility import qilindi
 
 const Dashboard = () => {
   const isNorTablet = useMediaQuery({ maxWidth: 780 }); // nor_tablet breakpoint
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isNorTablet); // Default open for large, closed for small
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsSidebarOpen(!isNorTablet); // Set initial state based on screen size
@@ -43,7 +46,22 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white">
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold">Admin Paneli</h1>
+          <div className="flex items-center">
+            {/* Sidebar toggle button - always visible in header */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 mr-2"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+            >
+              {isSidebarOpen ? (
+                <PanelLeftClose className="h-5 w-5" />
+              ) : (
+                <PanelRightClose className="h-5 w-5" />
+              )}
+            </Button>
+            <h1 className="text-2xl md:text-3xl font-bold">Admin Paneli</h1>
+          </div>
           <Button
             onClick={handleSignOut}
             variant="ghost"
@@ -56,28 +74,19 @@ const Dashboard = () => {
       </header>
       <main className="flex flex-col md:flex-row">
         <aside
-          className={`transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full
-            ${isNorTablet ? "fixed z-50 bg-black/80" : "bg-black/20"}
-            ${isSidebarOpen ? "w-64 p-4" : "w-16 p-2"}
-          `}
+          className={cn(
+            "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full",
+            isNorTablet
+              ? "fixed inset-y-0 z-50 bg-black/80" // Fixed overlay for small screens
+              : "bg-black/20", // Static for large screens
+            isSidebarOpen
+              ? "w-64 transform-none p-4" // Open state
+              : isNorTablet
+                ? "w-64 -translate-x-full p-4" // Hidden state for small screens
+                : "w-20 p-2" // Closed state for large screens
+          )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
-            {/* Sidebar toggle button */}
-            <div className="w-full flex justify-end mb-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={() => setIsSidebarOpen((prev) => !prev)}
-              >
-                {isSidebarOpen ? (
-                  <PanelLeftClose className="h-5 w-5" />
-                ) : (
-                  <PanelRightClose className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-
             {/* Navigation buttons */}
             <div className="flex flex-col w-full">
               <NavLink
@@ -167,11 +176,21 @@ const Dashboard = () => {
           </nav>
         </aside>
 
+        {/* Overlay for small screens when sidebar is open */}
+        {isNorTablet && isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         <div
-          className={`flex-1 p-4 md:p-6 transition-all duration-300
-            ${isNorTablet && !isSidebarOpen ? "ml-16" : ""}
-            ${isNorTablet && isSidebarOpen ? "ml-64" : ""}
-          `}
+          className={cn(
+            "flex-1 p-4 md:p-6 transition-all duration-300",
+            !isNorTablet && !isSidebarOpen && "ml-20", // Large screen, sidebar closed
+            !isNorTablet && isSidebarOpen && "ml-64" // Large screen, sidebar open
+            // No ml- for small screens, as sidebar is an overlay
+          )}
         >
           <motion.div
             key={location.pathname}
