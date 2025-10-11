@@ -752,6 +752,24 @@ function App() {
             return;
           }
           break;
+        case "delivered_to_customer": // Oshpaz uchun yangi status
+          if (
+            orderToUpdate.status === "ready" &&
+            orderToUpdate.chef_id === actorId &&
+            orderToUpdate.delivery_option === "o_zim_olib_ketaman" // Faqat olib ketish buyurtmalari uchun
+          ) {
+            canUpdate = true;
+            updateData.status = newStatus;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma hali tayyor emas, oshpazga biriktirilmagan yoki yetkazib berish buyurtmasi.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
         case "cancelled":
           if (
             orderToUpdate.status !== "delivered_to_customer" &&
@@ -805,7 +823,7 @@ function App() {
           toast({
             title: "Xatolik!",
             description:
-              "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
+            "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
             variant: "destructive",
           });
           return;
