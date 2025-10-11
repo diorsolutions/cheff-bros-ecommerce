@@ -17,17 +17,18 @@ import { useMediaQuery } from "react-responsive";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import { cn } from "@/lib/utils"; // cn utility import qilindi
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const isNorTablet = useMediaQuery({ maxWidth: 780 }); // nor_tablet breakpoint
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isNorTablet); // Default open for large, closed for small
+  const isMobSmall = useMediaQuery({ maxWidth: 431 }); // mob_small breakpoint
+  const [isSidebarOpen, setIsSidebarOpen] = useState(isMobSmall ? false : !isNorTablet);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsSidebarOpen(!isNorTablet); // Set initial state based on screen size
-  }, [isNorTablet]);
+    setIsSidebarOpen(isMobSmall ? false : !isNorTablet);
+  }, [isNorTablet, isMobSmall]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -76,14 +77,17 @@ const Dashboard = () => {
         <aside
           className={cn(
             "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full",
-            isNorTablet
-              ? "fixed inset-y-0 z-50 bg-black/80" // Fixed overlay for small screens
-              : "bg-black/20", // Static for large screens
+            // Mobile small specific styles (overlay)
+            isMobSmall
+              ? "fixed inset-y-0 z-50 bg-black/80"
+              : "bg-black/20", // Default for larger screens (static)
+
+            // Width and transform based on isSidebarOpen
             isSidebarOpen
-              ? "w-64 transform-none p-4" // Open state
-              : isNorTablet
-                ? "w-64 -translate-x-full p-4" // Hidden state for small screens
-                : "w-20 p-2" // Closed state for large screens
+              ? "w-64 transform-none p-4"
+              : isMobSmall // If small mobile and closed, hide completely
+                ? "w-64 -translate-x-full p-4"
+                : "w-20 p-2" // If larger screen and closed, show as collapsed
           )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
@@ -177,7 +181,7 @@ const Dashboard = () => {
         </aside>
 
         {/* Overlay for small screens when sidebar is open */}
-        {isNorTablet && isSidebarOpen && (
+        {isMobSmall && isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setIsSidebarOpen(false)}
@@ -185,13 +189,13 @@ const Dashboard = () => {
         )}
 
         <div
-          className={cn(
-            "flex-1 p-4 md:p-6 transition-all duration-300",
-            !isNorTablet && !isSidebarOpen && "ml-20", // Large screen, sidebar closed
-            !isNorTablet && isSidebarOpen && "ml-64" // Large screen, sidebar open
-            // No ml- for small screens, as sidebar is an overlay
-          )}
-        >
+  className={cn(
+    "flex-1 p-4 md:p-6 transition-all duration-300",
+    // Apply margin-left only if not mobSmall
+    !isMobSmall && !isSidebarOpen && "ml-20", // Large/medium screen, sidebar closed
+    !isMobSmall && isSidebarOpen && "ml-64" // Large/medium screen, sidebar open
+  )}
+>
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
