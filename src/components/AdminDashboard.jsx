@@ -12,7 +12,7 @@ import {
   Search,
   Utensils,
   ChefHat,
-  MapPin, // MapPin iconini import qilish
+  MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils"; // cn va getMapLinks import qilindi
+import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils";
 import InfoModal from "./InfoModal";
-// import OrderItemsModal from "./OrderItemsModal"; // Yangi: OrderItemsModal import qilindi
-import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
-import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useMediaQuery } from "react-responsive";
 
 // Umumiy tovush ijro etish funksiyasi
 const playSound = (
@@ -106,17 +105,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [infoModalDescription, setInfoModalDescription] = useState("");
   const [infoModalDetails, setInfoModalDetails] = useState([]);
 
-  // const [showOrderItemsModal, setShowOrderItemsModal] = useState(false); // Yangi: OrderItemsModal holati
-  // const [currentOrderItems, setCurrentOrderItems] = useState([]); // Yangi: Joriy buyurtma mahsulotlari
-  // const [currentOrderShortId, setCurrentOrderShortId] = useState(""); // Yangi: Joriy buyurtma ID
-
   const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3"));
   const [hasInteracted, setHasInteracted] = useLocalStorage(
     "adminHasInteracted",
     false
-  ); // Admin uchun hasInteracted
+  );
 
-  const isMobile = useMediaQuery({ maxWidth: 768 }); // Mobil qurilmani aniqlash
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const isMobSmall = useMediaQuery({ maxWidth: 431 }); // mob_small breakpoint
 
   const playAdminOrderSound = () => {
     playSound(
@@ -128,7 +124,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     );
   };
 
-  // Komponent yuklanganda tovushni proaktiv yoqishga urinish
   useEffect(() => {
     if (!hasInteracted) {
       playAdminOrderSound();
@@ -136,12 +131,11 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   }, [hasInteracted]);
 
   useEffect(() => {
-    // Faqat yangi buyurtmalar kelganda tovush va toast ko'rsatish
     const newOrders = orders.filter((order) => order.status === "new");
     const prevNewOrdersCount = prevOrdersCount;
 
     if (newOrders.length > prevNewOrdersCount) {
-      playAdminOrderSound(); // playSound funksiyasini chaqirish
+      playAdminOrderSound();
       toast({
         title: "🔔 Yangi buyurtma!",
         description: `${
@@ -150,7 +144,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
       });
     }
     setPrevOrdersCount(newOrders.length);
-  }, [orders, hasInteracted]); // hasInteracted ni dependency qilib qo'shdik
+  }, [orders, hasInteracted]);
 
   const getCurierInfo = (curierId) => {
     return curiers.find((c) => c.id === curierId);
@@ -387,161 +381,136 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-white">Buyurtmalar</h1>
-        <motion.div
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-300",
-            newOrdersCount > 0
-              ? "bg-gradient-to-r from-red-500 to-yellow-500 border-red-400 animate-newOrderPulse rounded-[0.6rem]"
-              : "bg-blue-500/20 border-blue-500/30 rounded-[1rem]"
-          )}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Bell
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col mob_small:flex-row items-start mob_small:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl mob_small:text-xl font-bold text-white">
+            Buyurtmalar
+          </h1>
+          <motion.div
             className={cn(
-              "h-5 w-5",
-              newOrdersCount > 0 ? "text-white" : "text-blue-400"
+              "flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border transition-all duration-300 text-sm sm:text-base",
+              newOrdersCount > 0
+                ? "bg-gradient-to-r from-red-500 to-yellow-500 border-red-400 animate-newOrderPulse rounded-[0.6rem]"
+                : "bg-blue-500/20 border-blue-500/30 rounded-[1rem]",
+              isMobSmall && "text-xs mob_small:text-sm px-2 py-1" // Smaller on mob_small
             )}
-          />
-          <span
-            className={cn(
-              "font-medium",
-              newOrdersCount > 0 ? "text-white" : "text-blue-400"
-            )}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            {newOrdersCount} yangi buyurtma
-          </span>
-        </motion.div>
+            <Bell
+              className={cn(
+                "h-4 w-4 sm:h-5 sm:w-5",
+                newOrdersCount > 0 ? "text-white" : "text-blue-400",
+                isMobSmall && "h-3 w-3 mob_small:h-4 mob_small:w-4" // Smaller on mob_small
+              )}
+            />
+            <span
+              className={cn(
+                "font-medium whitespace-nowrap",
+                newOrdersCount > 0 ? "text-white" : "text-blue-400"
+              )}
+            >
+              {newOrdersCount} yangi buyurtma
+            </span>
+          </motion.div>
+        </div>
       </div>
 
-      <div className="flex justify-between flex-row-reverse">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <div className="w-full sm:w-auto">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-white/20 hover:text-white/60 custom-select-content custom-select-content-active">
-                  <SelectItem
-                    value="all"
-                    className="text-white *:hover:cursor-pointer"
-                  >
-                    Hammasi
-                  </SelectItem>
-                  <SelectItem
-                    value="new"
-                    className="text-blue-400 *:hover:cursor-pointer"
-                  >
-                    Yangi
-                  </SelectItem>
-                  <SelectItem
-                    value="preparing"
-                    className="text-yellow-400 *:hover:cursor-pointer"
-                  >
-                    Tayyorlanmoqda (Oshpaz)
-                  </SelectItem>
-                  <SelectItem
-                    value="ready"
-                    className="text-green-400 *:hover:cursor-pointer"
-                  >
-                    Tayyor (Oshpaz)
-                  </SelectItem>
-                  <SelectItem
-                    value="en_route_to_kitchen"
-                    className="text-yellow-400 *:hover:cursor-pointer"
-                  >
-                    Olish uchun yo'lda (Kuryer)
-                  </SelectItem>
-                  <SelectItem
-                    value="picked_up_from_kitchen"
-                    className="text-orange-400 *:hover:cursor-pointer"
-                  >
-                    Buyurtma menda (Kuryer)
-                  </SelectItem>
-                  <SelectItem
-                    value="delivered_to_customer"
-                    className="text-green-400 *:hover:cursor-pointer"
-                  >
-                    Mijozda (Kuryer)
-                  </SelectItem>
-                  <SelectItem
-                    value="cancelled"
-                    className="text-red-400 *:hover:cursor-pointer"
-                  >
-                    Bekor qilingan
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="w-full sm:w-auto">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
-                <SelectValue placeholder="Tartiblash" />
+      <div className="flex flex-col lg:flex-row justify-between gap-3 sm:gap-4 w-full">
+        <div className="flex flex-col mob_small:flex-row items-start mob_small:items-center gap-2 w-full lg:w-auto">
+          <div className="flex items-center gap-2 w-full mob_small:w-auto">
+            <Filter className="h-4 w-4 text-gray-400 hidden sm:block" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white text-sm sm:text-base mob_small:text-xs mob_small:w-auto">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20 *:hover:text-white/60 custom-select-content custom-select-content-active">
-                <SelectItem
-                  value="date-desc"
-                  className="text-white *:hover:cursor-pointer hover:text-white"
-                >
-                  Sana: Yangi → Eski
+              <SelectContent className="bg-slate-800 border-white/20">
+                <SelectItem value="all" className="text-white">
+                  Hammasi
+                </SelectItem>
+                <SelectItem value="new" className="text-blue-400">
+                  Yangi
+                </SelectItem>
+                <SelectItem value="preparing" className="text-yellow-400">
+                  Tayyorlanmoqda (Oshpaz)
+                </SelectItem>
+                <SelectItem value="ready" className="text-green-400">
+                  Tayyor (Oshpaz)
                 </SelectItem>
                 <SelectItem
-                  value="date-asc"
-                  className="text-white *:hover:cursor-pointer hover:text-white"
+                  value="en_route_to_kitchen"
+                  className="text-yellow-400"
                 >
-                  Sana: Eski → Yangi
+                  Olish uchun yo'lda (Kuryer)
                 </SelectItem>
                 <SelectItem
-                  value="price-desc"
-                  className="text-white *:hover:cursor-pointer hover:text-white"
+                  value="picked_up_from_kitchen"
+                  className="text-orange-400"
                 >
-                  Narx: Yuqori → Past
+                  Buyurtma menda (Kuryer)
                 </SelectItem>
                 <SelectItem
-                  value="price-asc"
-                  className="text-white *:hover:cursor-pointer hover:text-white"
+                  value="delivered_to_customer"
+                  className="text-green-400"
                 >
-                  Narx: Past → Yuqori
+                  Mijozda (Kuryer)
+                </SelectItem>
+                <SelectItem value="cancelled" className="text-red-400">
+                  Bekor qilingan
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white text-sm sm:text-base mob_small:text-xs mob_small:w-auto">
+              <SelectValue placeholder="Tartiblash" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-white/20">
+              <SelectItem value="date-desc" className="text-white">
+                Sana: Yangi → Eski
+              </SelectItem>
+              <SelectItem value="date-asc" className="text-white">
+                Sana: Eski → Yangi
+              </SelectItem>
+              <SelectItem value="price-desc" className="text-white">
+                Narx: Yuqori → Past
+              </SelectItem>
+              <SelectItem value="price-asc" className="text-white">
+                Narx: Past → Yuqori
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <div className="w-full sm:w-auto">
-            <Select value={searchBy} onValueChange={setSearchBy}>
-              <SelectTrigger className="w-full sm:w-[150px] bg-white/10 border-white/20 text-white">
-                <SelectValue placeholder="Qidirish bo'yicha" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-white/20 custom-select-content custom-select-content-active">
-                <SelectItem value="id" className="text-white">
-                  ID
-                </SelectItem>
-                <SelectItem value="customerName" className="text-white">
-                  Mijoz Ismi
-                </SelectItem>
-                <SelectItem value="customerPhone" className="text-white">
-                  Mijoz Telefon
-                </SelectItem>
-                <SelectItem value="location" className="text-white">
-                  Manzil
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex flex-col mob_small:flex-row items-start mob_small:items-center gap-2 w-full lg:w-auto">
+          <Select value={searchBy} onValueChange={setSearchBy}>
+            <SelectTrigger className="w-auto sm:w-[150px] bg-white/10 border-white/20 text-white text-sm sm:text-base mob_small:text-xs mob_small:w-auto">
+              <SelectValue placeholder="Qidirish bo'yicha" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-white/20">
+              <SelectItem value="id" className="text-white">
+                ID
+              </SelectItem>
+              <SelectItem value="customerName" className="text-white">
+                Mijoz Ismi
+              </SelectItem>
+              <SelectItem value="customerPhone" className="text-white">
+                Mijoz Telefon
+              </SelectItem>
+              <SelectItem value="location" className="text-white">
+                Manzil
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
           <div className="w-full sm:w-auto flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 mob_small:h-3 mob_small:w-3" />
             <Input
               placeholder="Qidirish..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              className="w-full pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm sm:text-base mob_small:text-xs mob_small:pl-8"
             />
           </div>
         </div>
@@ -552,7 +521,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
           {filteredOrders.length === 0 ? (
             <Card className="bg-white/10 border-white/20">
               <CardContent className="p-8 text-center">
-                <p className="text-gray-400 text-lg">
+                <p className="text-gray-400 text-lg mob_small:text-base">
                   {statusFilter === "all" && searchTerm.length < 1
                     ? "Hozircha buyurtmalar yo'q"
                     : "Bu mezonlarga mos buyurtmalar topilmadi"}
@@ -582,16 +551,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order
               );
 
-              // Asosiy status qismini yashirish sharti
-              // Faqat yakuniy holatlarda (yetkazilgan/bekor qilingan) asosiy status yashiriladi.
               const hideMainStatus = isFinal;
 
-              // Oshpaz ma'lumotini ko'rsatish sharti
               const showChefInfo =
                 order.chef_id &&
                 (order.curier_id || isFinal || order.status === "ready");
 
-              // Kuryer ma'lumotini ko'rsatish sharti
               const showCourierInfo = order.curier_id && isFinal;
 
               const { yandexLink, googleLink, geoUri } = getMapLinks(
@@ -600,7 +565,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 order.location
               );
 
-              const isPickup = order.delivery_option === "o_zim_olib_ketaman"; // Yangi: Olib ketish opsiyasi
+              const isPickup = order.delivery_option === "o_zim_olib_ketaman";
 
               return (
                 <motion.div
@@ -611,7 +576,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                   exit={{ opacity: 0, y: -20 }}
                 >
                   <Card
-                    className={`bg-gradient-to-br backdrop-blur-lg border-white/20 hover:border-white/30 transition-all duration-300 ${
+                    className={`bg-gradient-to-br border-white/20 hover:border-white/30 transition-all duration-300 ${
                       order.status === "delivered_to_customer"
                         ? "from-green-500/10 to-green-500/5 border-green-500/30 opacity-80"
                         : order.status === "cancelled"
@@ -626,9 +591,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         : "from-white/10 to-white/5"
                     }`}
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-white flex items-center gap-3 text-base sm:text-lg">
+                    <CardHeader className="pb-2">
+                      <div className="flex flex-col mob_small:flex-row items-start mob_small:items-center justify-between gap-2 mob_small:gap-0">
+                        <CardTitle className="text-white flex items-center gap-2 text-base sm:text-lg mob_small:text-sm">
                           <span
                             className={`w-3 h-3 rounded-full ${getStatusColor(
                               order.status
@@ -642,12 +607,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             }`}
                           ></span>
                           Buyurtma{" "}
-                          <span className="text-gray-400 text-sm">
+                          <span className="text-gray-400 text-xs sm:text-sm">
                             ID: {generateShortOrderId(order.id)}
                           </span>
                         </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-400 hidden sm:inline">
+                        <div className="flex items-center gap-2 mob_small:text-xs">
+                          <span className="text-gray-400 text-xs sm:text-sm">
                             {(() => {
                               const date = new Date(order.created_at);
                               const day = date.getDate();
@@ -662,18 +627,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                 .padStart(2, "0");
 
                               const monthNames = [
-                                "yanvar",
-                                "fevral",
-                                "mart",
-                                "aprel",
-                                "may",
-                                "iyun",
-                                "iyul",
-                                "avgust",
-                                "sentyabr",
-                                "oktyabr",
-                                "noyabr",
-                                "dekabr",
+                                "yanvar", "fevral", "mart", "aprel", "may", "iyun",
+                                "iyul", "avgust", "sentyabr", "oktyabr", "noyabr", "dekabr",
                               ];
 
                               const month = monthNames[date.getMonth()];
@@ -688,7 +643,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-white hover:bg-white/20"
+                                  className="text-white hover:bg-white/20 h-7 w-7 p-0" // Smaller button for mob_small
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
@@ -705,7 +660,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
+                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300 text-sm"
                                     >
                                       <Utensils className="mr-2 h-4 w-4" />
                                       Tayyorlanmoqda (Admin)
@@ -719,7 +674,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300"
+                                      className="text-yellow-400 hover:!bg-yellow-500/20 focus:bg-yellow-500/20 focus:text-yellow-300 text-sm"
                                     >
                                       <Truck className="mr-2 h-4 w-4" />
                                       Olish uchun yo'lda (Admin)
@@ -737,7 +692,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                      className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300 text-sm"
                                     >
                                       <CheckCircle className="mr-2 h-4 w-4" />
                                       Tayyor (Admin)
@@ -754,7 +709,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           null
                                         )
                                       }
-                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300"
+                                      className="text-orange-400 hover:!bg-orange-500/20 focus:bg-orange-500/20 focus:text-orange-300 text-sm"
                                     >
                                       <Package className="mr-2 h-4 w-4" />
                                       Buyurtma menda (Admin)
@@ -772,7 +727,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                             null
                                           )
                                         }
-                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300"
+                                        className="text-green-400 hover:!bg-green-500/20 focus:bg-green-500/20 focus:text-green-300 text-sm"
                                       >
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         Mijozda (Admin)
@@ -786,7 +741,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                             null
                                           )
                                         }
-                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300"
+                                        className="text-red-400 hover:!bg-red-500/20 focus:bg-red-500/20 focus:text-red-300 text-sm"
                                       >
                                         <XCircle className="mr-2 h-4 w-4" />
                                         Bekor qilish (Admin)
@@ -796,7 +751,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           ) : (
-                            <span className="text-xs text-gray-400 italic">
+                            <span className="text-xs text-gray-400 hidden sm:inline italic">
                               {isFinal
                                 ? order.status === "delivered_to_customer"
                                   ? "✓ Mijozga yetkazildi"
@@ -809,12 +764,12 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                      <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="grid sm:grid-cols-2 gap-4 mob_small:grid-cols-1">
                         <div>
-                          <h4 className="font-medium text-white mb-2 text-base">
+                          <h4 className="font-medium text-white mb-2 text-base mob_small:text-sm">
                             Mijoz ma'lumotlari
                           </h4>
-                          <div className="space-y-2 text-sm text-gray-300">
+                          <div className="space-y-2 text-sm text-gray-300 mob_small:text-xs">
                             <p>
                               <span className="font-bold text-gray-100/50">
                                 Ism:
@@ -837,20 +792,20 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                   : "Yetkazib berilsin"}
                               </span>
                             </p>
-                            {!isPickup && ( // Agar "o'zim olib ketaman" bo'lmasa, manzilni ko'rsatish
+                            {!isPickup && (
                               <p>
                                 <span className="font-bold text-gray-100/50">
                                   Manzil:
                                 </span>{" "}
-                                {order.coordinates ? ( // If coordinates exist (auto-location)
+                                {order.coordinates ? (
                                   isMobile ? (
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                         <Button
                                           variant="link"
-                                          className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                                          className="p-0 h-auto text-blue-300 hover:text-blue-200 mob_small:text-xs"
                                         >
-                                          <MapPin className="mr-1 h-4 w-4" />
+                                          <MapPin className="mr-1 h-4 w-4 mob_small:h-3 mob_small:w-3" />
                                           (xaritada ochish)
                                         </Button>
                                       </DropdownMenuTrigger>
@@ -861,7 +816,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                               href={yandexLink}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                             >
                                               Yandex Mapsda ochish
                                             </a>
@@ -873,7 +828,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                               href={googleLink}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                             >
                                               Google Mapsda ochish
                                             </a>
@@ -885,7 +840,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                               href={geoUri}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                              className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                             >
                                               Boshqa ilovada ochish
                                             </a>
@@ -896,7 +851,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           !geoUri && (
                                             <DropdownMenuItem
                                               disabled
-                                              className="text-gray-500"
+                                              className="text-gray-500 text-sm"
                                             >
                                               Xarita havolalari mavjud emas
                                             </DropdownMenuItem>
@@ -914,7 +869,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                     </a>
                                   )
                                 ) : (
-                                  // If no coordinates (manual entry)
                                   <>
                                     {order.location}{" "}
                                     {order.location &&
@@ -923,9 +877,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                           <DropdownMenuTrigger asChild>
                                             <Button
                                               variant="link"
-                                              className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                                              className="p-0 h-auto text-blue-300 hover:text-blue-200 mob_small:text-xs"
                                             >
-                                              <MapPin className="mr-1 h-4 w-4" />
+                                              <MapPin className="mr-1 h-4 w-4 mob_small:h-3 mob_small:w-3" />
                                               (xaritada ochish)
                                             </Button>
                                           </DropdownMenuTrigger>
@@ -936,7 +890,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                                   href={yandexLink}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
-                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                                 >
                                                   Yandex Mapsda ochish
                                                 </a>
@@ -948,7 +902,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                                   href={googleLink}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
-                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                                 >
                                                   Google Mapsda ochish
                                                 </a>
@@ -960,7 +914,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                                   href={geoUri}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
-                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white"
+                                                  className="text-white hover:!bg-white/20 focus:bg-white/20 focus:text-white text-sm"
                                                 >
                                                   Boshqa ilovada ochish
                                                 </a>
@@ -971,7 +925,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                                               !geoUri && (
                                                 <DropdownMenuItem
                                                   disabled
-                                                  className="text-gray-500"
+                                                  className="text-gray-500 text-sm"
                                                 >
                                                   Xarita havolalari mavjud emas
                                                 </DropdownMenuItem>
@@ -996,14 +950,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-white mb-2 text-base">
+                          <h4 className="font-medium text-white mb-2 text-base mob_small:text-sm">
                             Buyurtma tafsilotlari
                           </h4>
                           <div className="space-y-1">
                             {order.items.map((item, index) => (
                               <div
                                 key={index}
-                                className="flex justify-between text-sm"
+                                className="flex justify-between text-sm mob_small:text-xs"
                               >
                                 <span className="text-gray-300">
                                   {item.name} x{item.quantity}
@@ -1018,8 +972,8 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                             ))}
                             <div className="border-t border-white/20 pt-2 mt-2">
                               <div className="flex justify-between font-bold">
-                                <span className="text-white">Jami:</span>
-                                <span className="text-white text-lg">
+                                <span className="text-white mob_small:text-sm">Jami:</span>
+                                <span className="text-white text-lg mob_small:text-base">
                                   {order.total_price.toLocaleString()} so'm
                                 </span>
                               </div>
@@ -1028,9 +982,9 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </div>
                       </div>
 
-                      {!hideMainStatus && ( // Asosiy status qatori faqat hideMainStatus false bo'lganda ko'rsatiladi
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-400" />
+                      {!hideMainStatus && (
+                        <div className="flex items-center gap-2 mob_small:text-xs">
+                          <Clock className="h-4 w-4 text-gray-400 mob_small:h-3 mob_small:w-3" />
                           <span className="text-sm text-gray-400">Status:</span>
                           <span
                             className={`text-sm font-medium px-2 py-1 rounded ${
@@ -1055,20 +1009,19 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                       )}
 
                       {showChefInfo && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <ChefHat className="h-4 w-4 text-gray-400" />
+                        <div className="flex items-center gap-2 mt-2 mob_small:text-xs">
+                          <ChefHat className="h-4 w-4 text-gray-400 mob_small:h-3 mob_small:w-3" />
                           <span className="text-sm text-gray-400">Oshpaz:</span>
 
                           <Button
                             variant="link"
-                            className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                            className="p-0 h-auto text-blue-300 hover:text-blue-200 mob_small:text-xs"
                             onClick={() => handleShowUserInfo(chefInfo, "chef")}
                           >
                             {chefInfo?.name || "Noma'lum"}
                           </Button>
 
                           {(() => {
-                            // oshpaz status logikasi
                             if (order.status === "preparing")
                               return (
                                 <span className="text-sm text-yellow-400">
@@ -1090,7 +1043,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                               );
                             }
 
-                            // boshqa barcha holatlar (ready, delivered, va hok.)
                             return (
                               <span className="text-sm text-green-400">
                                 tayyorladi
@@ -1101,15 +1053,15 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                       )}
 
                       {showCourierInfo &&
-                        !isPickup && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
-                          <div className="flex items-center gap-2 mt-2">
-                            <Truck className="h-4 w-4 text-gray-400" />
+                        !isPickup && (
+                          <div className="flex items-center gap-2 mt-2 mob_small:text-xs">
+                            <Truck className="h-4 w-4 text-gray-400 mob_small:h-3 mob_small:w-3" />
                             <span className="text-sm text-gray-400">
                               Kuryer:
                             </span>
                             <Button
                               variant="link"
-                              className="p-0 h-auto text-blue-300 hover:text-blue-200"
+                              className="p-0 h-auto text-blue-300 hover:text-blue-200 mob_small:text-xs"
                               onClick={() =>
                                 handleShowUserInfo(courierInfo, "curier")
                               }
@@ -1132,14 +1084,14 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
 
                       {order.status === "cancelled" &&
                         order.cancellation_reason && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <XCircle className="h-4 w-4 text-red-400" />
+                          <div className="flex items-center gap-2 mt-2 mob_small:text-xs">
+                            <XCircle className="h-4 w-4 text-red-400 mob_small:h-3 mob_small:w-3" />
                             <span className="text-sm text-red-400">
                               Sababi:
                             </span>
                             <Button
                               variant="link"
-                              className="p-0 h-auto text-red-300 hover:text-red-200"
+                              className="p-0 h-auto text-red-300 hover:text-red-200 mob_small:text-xs"
                               onClick={() =>
                                 handleShowCancellationReason(
                                   order.cancellation_reason
@@ -1165,12 +1117,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
         description={infoModalDescription}
         details={infoModalDetails}
       />
-      {/* <OrderItemsModal
-        isOpen={showOrderItemsModal}
-        onClose={() => setShowOrderItemsModal(false)}
-        orderItems={currentOrderItems}
-        orderId={currentOrderShortId}
-      /> */}
     </div>
   );
 };

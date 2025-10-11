@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, NavLink, Outlet } from "react-router-dom";
+import { useNavigate, NavLink, Outlet } from "react-router-dom"; // NavLink va Outlet import qilindi
 import {
   ListOrdered,
   Utensils,
@@ -9,27 +9,25 @@ import {
   BarChart2,
   Users,
   ChefHat,
-  Salad,
+  Salad, // Yangi: Salad iconi
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMediaQuery } from "react-responsive";
 
+// Admin panelining ichki komponentlari endi App.jsx da render qilinadi, bu yerda ularni import qilish shart emas.
+// import AdminDashboard from "@/components/AdminDashboard";
+// import AdminProducts from "@/components/AdminProducts";
+// import AdminStatistics from "@/components/AdminStatistics";
+// import AdminCouriers from "@/components/AdminCouriers";
+// import AdminChefs from "@/components/AdminChefs";
+// import AdminIngredients from "@/components/AdminIngredients";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
-import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
-  const isMobSmall = useMediaQuery({ maxWidth: 431 }); // mob_small breakpoint
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobSmall);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    // isMobSmall o'zgarganda sidebar holatini yangilash
-    // mob_small bo'lsa yopiq, aks holda ochiq
-    setIsSidebarOpen(!isMobSmall);
-  }, [isMobSmall]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -45,53 +43,61 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white">
-      <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            {/* Header toggle button: visible only on mob_small, hidden otherwise */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden mob_small:block text-white hover:bg-white/20 mr-2"
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-            >
-              {isSidebarOpen ? (
-                <PanelLeftClose className="h-5 w-5" />
-              ) : (
-                <PanelRightClose className="h-5 w-5" />
-              )}
-            </Button>
-            <h1 className="text-2xl md:text-3xl font-bold">Admin Paneli</h1>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white flex flex-col">
+      {/* HEADER - Fixed */}
+      <header className="fixed top-0 left-0 right-0 bg-black/30 backdrop-blur-lg border-b border-white/10 z-50 h-16">
+        <div className="h-full mx-auto px-3 sm:px-4 lg:px-6 flex items-center justify-between">
+          {/* Mobile toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 lg:hidden"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+          >
+            {isSidebarOpen ? (
+              <PanelLeftClose className="h-5 w-5" />
+            ) : (
+              <PanelRightClose className="h-5 w-5" />
+            )}
+          </Button>
+
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold truncate">
+            Admin Paneli
+          </h1>
+
           <Button
             onClick={handleSignOut}
             variant="ghost"
-            className="text-white hover:bg-white/10"
+            className="text-white hover:bg-white/10 text-sm sm:text-base"
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Chiqish</span>
           </Button>
         </div>
       </header>
-      <main className="flex flex-col md:flex-row">
+
+      {/* BODY - with top padding for fixed header */}
+      <div className="flex flex-1 pt-16">
+        {/* SIDEBAR - Fixed on desktop, slide-in on mobile */}
         <aside
-          className={cn(
-            "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full bg-black/20",
-            // Styles for mob_small (overlay behavior)
-            isMobSmall ?
-              (isSidebarOpen ? "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4 mob_small:translate-x-0" : "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4 mob_small:-translate-x-full")
-              : // Styles for larger screens (pushing behavior)
-              (isSidebarOpen ? "w-64 p-4" : "w-0 p-0 overflow-hidden") // Changed to w-0 p-0 overflow-hidden for collapsed state
-          )}
+          className={`
+        fixed lg:fixed top-16 left-0 bottom-0
+        z-40 transition-all duration-300 ease-in-out
+        bg-black/80 backdrop-blur-lg border-r border-white/20
+        ${
+          isSidebarOpen
+            ? "translate-x-0 w-64 sm:w-72"
+            : "-translate-x-full lg:translate-x-0 lg:w-20"
+        }
+      `}
         >
-          <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
-            {/* Sidebar toggle button: hidden on mob_small, visible otherwise */}
-            <div className="w-full flex justify-end mb-4">
+          <nav className="h-full flex flex-col gap-2 p-4 overflow-y-auto">
+            {/* Desktop toggle button */}
+            <div className="hidden lg:flex w-full justify-end mb-4">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 mob_small:hidden"
+                className="text-white hover:bg-white/20"
                 onClick={() => setIsSidebarOpen((prev) => !prev)}
               >
                 {isSidebarOpen ? (
@@ -102,120 +108,68 @@ const Dashboard = () => {
               </Button>
             </div>
 
-            {/* Navigation buttons */}
-            <div className="flex flex-col w-full">
+            {/* Navigation Links */}
+            {[
+              { to: "orders", icon: ListOrdered, label: "Buyurtmalar" },
+              { to: "products", icon: Utensils, label: "Mahsulotlar" },
+              { to: "ingredients", icon: Salad, label: "Masalliqlar" },
+              { to: "statistics", icon: BarChart2, label: "Statistika" },
+              { to: "couriers", icon: Users, label: "Kuryerlar" },
+              { to: "chefs", icon: ChefHat, label: "Oshpazlar" },
+            ].map(({ to, icon: Icon, label }) => (
               <NavLink
-                to="orders"
+                key={to}
+                to={to}
+                onClick={() =>
+                  window.innerWidth < 1024 && setIsSidebarOpen(false)
+                }
                 className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                     isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
+                      ? "bg-white/20 text-orange-400 shadow-lg"
+                      : "text-white hover:bg-white/10 hover:text-orange-300"
+                  } ${!isSidebarOpen && "lg:justify-center lg:px-2"}`
                 }
               >
-                <ListOrdered className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Buyurtmalar</span>}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span
+                  className={`whitespace-nowrap ${
+                    !isSidebarOpen && "lg:hidden"
+                  }`}
+                >
+                  {label}
+                </span>
               </NavLink>
-
-              <NavLink
-                to="products"
-                className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
-                }
-              >
-                <Utensils className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Mahsulotlar</span>}
-              </NavLink>
-
-              <NavLink
-                to="ingredients"
-                className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
-                }
-              >
-                <Salad className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Masalliqlar</span>}
-              </NavLink>
-
-              <NavLink
-                to="statistics"
-                className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
-                }
-              >
-                <BarChart2 className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Statistika</span>}
-              </NavLink>
-
-              <NavLink
-                to="couriers"
-                className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
-                }
-              >
-                <Users className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Kuryerlar</span>}
-              </NavLink>
-
-              <NavLink
-                to="chefs"
-                className={({ isActive }) =>
-                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/20 text-active-orange"
-                      : "text-white hover:bg-white/10 hover:text-active-orange"
-                  }`
-                }
-              >
-                <ChefHat className="mr-3 h-5 w-5 shrink-0" />
-                {isSidebarOpen && <span>Oshpazlar</span>}
-              </NavLink>
-            </div>
+            ))}
           </nav>
         </aside>
 
-        {/* Overlay for mob_small screens when sidebar is open */}
-        {isMobSmall && isSidebarOpen && (
-          <div
-            className="mob_small:fixed mob_small:inset-0 mob_small:bg-black/50 mob_small:z-40"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
-
-        <div
-          className={cn(
-            "flex-1 p-4 md:p-6 transition-all duration-300",
-            // Apply margin-left only if not mobSmall
-            !isMobSmall && (isSidebarOpen ? "ml-64" : "ml-0") // Changed to ml-0 for collapsed state
-          )}
+        {/* MAIN CONTENT */}
+        <main
+          className={`
+        flex-1 p-4 sm:p-6 lg:p-8 transition-all duration-300
+        ${isSidebarOpen ? "lg:ml-64 sm:lg:ml-72" : "lg:ml-20"}
+      `}
         >
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="w-full max-w-full overflow-hidden"
           >
             <Outlet />
           </motion.div>
-        </div>
-      </main>
+        </main>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };
