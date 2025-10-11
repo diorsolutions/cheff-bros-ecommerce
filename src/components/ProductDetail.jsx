@@ -206,8 +206,8 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
                       {product.description}
                     </p>
 
-                    {/* Yangi: Masalliqlar bo'limi */}
-                    {ingredientsForProduct.length > 0 && (
+                    {/* Yangi: Masalliqlar bo'limi - faqat "Ichimliklar" kategoriyasi bo'lmaganda ko'rsatiladi */}
+                    {ingredientsForProduct.length > 0 && product.category !== "Ichimliklar" && (
                       <div className="mb-6">
                         <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
                           <Salad className="h-5 w-5 text-green-600" /> Masalliqlar:
