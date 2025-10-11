@@ -30,7 +30,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/components/ui/use-toast";
-// useLocalStorage import olib tashlandi, chunki endi App.jsx dan prop sifatida keladi
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Select komponentlarini import qilish
 
 const OrderDialog = ({
   isOpen,
@@ -48,6 +54,7 @@ const OrderDialog = ({
   const [locationMethod, setLocationMethod] = useState("manual"); // 'manual' or 'auto'
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [deliveryOption, setDeliveryOption] = useState("yetkazib_berilsin"); // Yangi holat
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -152,10 +159,25 @@ const OrderDialog = ({
   };
 
   const handleSubmitOrder = () => {
-    if (!customerInfo.name || !customerInfo.phone || !location) {
+    if (!customerInfo.name || !customerInfo.phone) {
       toast({
         title: "Ma'lumotlar to'liq emas",
-        description: "Iltimos, barcha maydonlarni to'ldiring",
+        description: "Iltimos, ism va telefon raqamini to'ldiring",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let finalLocation = location;
+    let finalCoordinates = coordinates;
+
+    if (deliveryOption === "o_zim_olib_ketaman") {
+      finalLocation = "Mijoz o'zi olib ketadi";
+      finalCoordinates = null;
+    } else if (!location) {
+      toast({
+        title: "Manzil kiritilmagan",
+        description: "Iltimos, yetkazib berish manzilini kiriting.",
         variant: "destructive",
       });
       return;
@@ -169,9 +191,10 @@ const OrderDialog = ({
         quantity: i.quantity,
       })),
       customer: customerInfo,
-      location,
-      coordinates, // Koordinatalarni ham buyurtma ma'lumotlariga qo'shish
+      location: finalLocation,
+      coordinates: finalCoordinates, // Koordinatalarni ham buyurtma ma'lumotlariga qo'shish
       totalPrice,
+      deliveryOption, // Yangi: deliveryOption ni qo'shish
     };
 
     onOrderSubmit(orderData);
@@ -179,6 +202,7 @@ const OrderDialog = ({
     setLocation("");
     setCoordinates(null); // Yuborilgandan keyin koordinatalarni tozalash
     setLocationMethod("manual"); // Rejimni manualga qaytarish
+    setDeliveryOption("yetkazib_berilsin"); // Delivery optionni reset qilish
   };
 
   return (
@@ -328,47 +352,65 @@ const OrderDialog = ({
               </div>
             </div>
 
-            {/* LOCATION */}
+            {/* DELIVERY OPTION */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 mob:text-base">
-                Yetkazib berish manzili
+                Yetkazib berish usuli
               </h3>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={
-                    locationMethod === "manual" ? "secondary" : "outline"
-                  }
-                  onClick={() => {
-                    setLocationMethod("manual");
-                    setCoordinates(null); // Manualga o'tganda koordinatalarni tozalash
-                    setShowLocationAlert(false); // Alertni yopish
-                  }}
-                  className="flex-1 min-w-[140px] mob:text-sm"
-                >
-                  <Edit3 className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
-                  Qo'lda kiritish
-                </Button>
-                <Button
-                  variant={locationMethod === "auto" ? "secondary" : "outline"}
-                  onClick={handleAutoLocation}
-                  disabled={isGettingLocation}
-                  className="flex-1 min-w-[140px] mob:text-sm"
-                >
-                  <Navigation className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
-                  {isGettingLocation ? "Aniqlanmoqda..." : "Avtomatik aniqlash"}
-                </Button>
-              </div>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500 mob:h-3 mob:w-3" />
-                <Textarea
-                  placeholder="Manzilni qo‘lda kiriting yoki joylashuvingizni aniqlashga ruxsat bering"
-                  value={location}
-                  onChange={handleLocationChange}
-                  readOnly={locationMethod === "auto" && isGettingLocation} // Aniqlash jarayonida readOnly
-                  className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
-                />
-              </div>
+              <Select value={deliveryOption} onValueChange={setDeliveryOption}>
+                <SelectTrigger className="w-full bg-gray-100 border-gray-300 text-gray-800">
+                  <SelectValue placeholder="Yetkazib berish usulini tanlang" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300">
+                  <SelectItem value="yetkazib_berilsin">Yetkazib berilsin</SelectItem>
+                  <SelectItem value="o_zim_olib_ketaman">O'zim olib ketaman</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* LOCATION - Conditional rendering */}
+            {deliveryOption === "yetkazib_berilsin" && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 mob:text-base">
+                  Yetkazib berish manzili
+                </h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    variant={
+                      locationMethod === "manual" ? "secondary" : "outline"
+                    }
+                    onClick={() => {
+                      setLocationMethod("manual");
+                      setCoordinates(null); // Manualga o'tganda koordinatalarni tozalash
+                      setShowLocationAlert(false); // Alertni yopish
+                    }}
+                    className="flex-1 min-w-[140px] mob:text-sm"
+                  >
+                    <Edit3 className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
+                    Qo'lda kiritish
+                  </Button>
+                  <Button
+                    variant={locationMethod === "auto" ? "secondary" : "outline"}
+                    onClick={handleAutoLocation}
+                    disabled={isGettingLocation}
+                    className="flex-1 min-w-[140px] mob:text-sm"
+                  >
+                    <Navigation className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
+                    {isGettingLocation ? "Aniqlanmoqda..." : "Avtomatik aniqlash"}
+                  </Button>
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500 mob:h-3 mob:w-3" />
+                  <Textarea
+                    placeholder="Manzilni qo‘lda kiriting yoki joylashuvingizni aniqlashga ruxsat bering"
+                    value={location}
+                    onChange={handleLocationChange}
+                    readOnly={locationMethod === "auto" && isGettingLocation} // Aniqlash jarayonida readOnly
+                    className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 min-h-[80px] mob:text-sm"
+                  />
+                </div>
+              </div>
+            )}
 
             <Button
               onClick={handleSubmitOrder}

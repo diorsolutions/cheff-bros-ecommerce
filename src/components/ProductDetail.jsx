@@ -156,11 +156,11 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
     <div className="min-h-screen bg-[#eaeaea]">
       {" "}
       {/* Fon rangi yangilandi */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="container mx-auto px-4 sm:px-2 lg:px-8 py-2 sm:py-3">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="text-gray-800 mb-6 bg-white hover:bg-gray-200 border border-black/10 shadow-lg rounded-xl"
+          className="text-gray-800 mb-2 bg-white hover:bg-white/80 border border-black/10 shadow-md rounded-xl"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Orqaga
@@ -171,7 +171,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white/90 border border-black/20 rounded-2xl shadow-lg">
+          <Card className="bg-white/90 border border-black/20 rounded-2xl shadow-inner">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 sm:p-6 lg:p-10">
                 <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 shadow-md">

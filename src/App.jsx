@@ -519,7 +519,7 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const { customer, items, location, coordinates, totalPrice } = orderData; // coordinates ni ham qabul qilish
+    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData; // coordinates va deliveryOption ni ham qabul qilish
 
     // Masalliqlar stokini tekshirish
     for (const item of items) {
@@ -571,6 +571,7 @@ function App() {
           coordinates, // coordinates ni Supabase ga yuborish
           total_price: totalPrice,
           status: "new",
+          delivery_option: deliveryOption, // Yangi: delivery_option ni qo'shish
         },
       ])
       .select("id")
@@ -1339,7 +1340,7 @@ function MainLayout({
         customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
       <Toaster />
-    </div>
+    </div> // Yopuvchi div
   );
 }
 
