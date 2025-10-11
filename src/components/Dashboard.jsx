@@ -91,7 +91,7 @@ const Dashboard = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 mob_small:hidden" {/* Added mob_small:hidden */}
+                className="text-white hover:bg-white/20 mob_small:hidden"
                 onClick={() => setIsSidebarOpen((prev) => !prev)}
               >
                 {isSidebarOpen ? (
