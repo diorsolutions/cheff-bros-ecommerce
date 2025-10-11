@@ -121,7 +121,8 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
             className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 relative group"
           >
             <img
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-contain rounded-lg bg-gray-100
+"
               alt={product.name}
               src={
                 product.image_url ||
@@ -193,7 +194,12 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
-            disabled={isOutOfStock || quantity > effectiveStock || quantity === 0 || isAdding}
+            disabled={
+              isOutOfStock ||
+              quantity > effectiveStock ||
+              quantity === 0 ||
+              isAdding
+            }
             className="mob_xr:text-[0.7rem] extra_small:text-[0.7rem] extra_small:p-0 mob_small:text-[0.8rem] w-full bg-gradient-to-r rounded-[0.4rem] from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <AnimatePresence mode="wait">
