@@ -20,15 +20,14 @@ import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
-  const isNorTablet = useMediaQuery({ maxWidth: 780 }); // nor_tablet breakpoint
   const isMobSmall = useMediaQuery({ maxWidth: 431 }); // mob_small breakpoint
-  const [isSidebarOpen, setIsSidebarOpen] = useState(isMobSmall ? false : !isNorTablet);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobSmall);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsSidebarOpen(isMobSmall ? false : !isNorTablet);
-  }, [isNorTablet, isMobSmall]);
+    setIsSidebarOpen(!isMobSmall);
+  }, [isMobSmall]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -77,15 +76,13 @@ const Dashboard = () => {
         <aside
           className={cn(
             "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full",
-            // Base styles for larger screens (pushing behavior)
-            !isMobSmall && "bg-black/20",
-            !isMobSmall && isSidebarOpen && "w-64 p-4",
-            !isMobSmall && !isSidebarOpen && "w-20 p-2",
+            // Default styles for larger screens (pushing behavior)
+            "bg-black/20", // Default background
+            isSidebarOpen ? "w-64 p-4" : "w-20 p-2", // Default width and padding
 
             // Styles for mob_small (overlay behavior)
-            isMobSmall && "fixed inset-y-0 z-50 bg-black/80",
-            isMobSmall && isSidebarOpen && "w-64 transform-none p-4",
-            isMobSmall && !isSidebarOpen && "w-64 -translate-x-full p-4"
+            isMobSmall && "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4",
+            isMobSmall && (isSidebarOpen ? "mob_small:translate-x-0" : "mob_small:-translate-x-full")
           )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
@@ -178,10 +175,10 @@ const Dashboard = () => {
           </nav>
         </aside>
 
-        {/* Overlay for small screens when sidebar is open */}
+        {/* Overlay for mob_small screens when sidebar is open */}
         {isMobSmall && isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="mob_small:fixed mob_small:inset-0 mob_small:bg-black/50 mob_small:z-40"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
@@ -190,8 +187,7 @@ const Dashboard = () => {
           className={cn(
             "flex-1 p-4 md:p-6 transition-all duration-300",
             // Apply margin-left only if not mobSmall
-            !isMobSmall && !isSidebarOpen && "ml-20", // Large/medium screen, sidebar closed
-            !isMobSmall && isSidebarOpen && "ml-64" // Large/medium screen, sidebar open
+            !isMobSmall && (isSidebarOpen ? "ml-64" : "ml-20")
           )}
         >
           <motion.div
