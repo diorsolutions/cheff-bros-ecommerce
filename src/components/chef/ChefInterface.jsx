@@ -198,7 +198,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     }
   };
 
-  const getStatusText = (status, orderChefId, orderCurierId) => {
+  const getStatusText = (status, orderChefId, orderCurierId, deliveryOption) => {
     const assignedChefName = orderChefId
       ? getChefInfo(orderChefId)?.name
       : null;
@@ -210,6 +210,28 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
     if (status === "cancelled") {
       statusText = "Bekor qilingan";
+    } else if (deliveryOption === "o_zim_olib_ketaman") {
+      switch (status) {
+        case "new":
+          statusText = "Yangi (Olib ketish)";
+          break;
+        case "preparing":
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorlanmoqda`
+            : "Tayyorlanmoqda";
+          break;
+        case "ready":
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorladi (Olib ketishga tayyor)`
+            : "Tayyor (Olib ketishga tayyor)";
+          break;
+        case "delivered_to_customer":
+          statusText = "Mijozga topshirildi (Olib ketildi)";
+          break;
+        default:
+          statusText = "Noma'lum (Olib ketish)";
+          break;
+      }
     } else if (orderCurierId) {
       switch (status) {
         case "en_route_to_kitchen":
@@ -264,19 +286,19 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return statusText;
   };
 
-  // formatOrderDateTime funksiyasi olib tashlandi va formatUzbekDateTime bilan almashtirildi
-  // const formatOrderDateTime = (timestamp) => { ... };
-
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
     let filtered = orders.filter((order) => {
-      if (
-        order.status === "delivered_to_customer" ||
-        order.status === "cancelled"
-      ) {
+      // "O'zim olib ketaman" buyurtmalari "delivered_to_customer" bo'lsa, yashiramiz
+      if (order.delivery_option === "o_zim_olib_ketaman" && order.status === "delivered_to_customer") {
         return false;
       }
+      // Boshqa turdagi buyurtmalar "delivered_to_customer" yoki "cancelled" bo'lsa, yashiramiz
+      if (order.delivery_option !== "o_zim_olib_ketaman" && (order.status === "delivered_to_customer" || order.status === "cancelled")) {
+        return false;
+      }
+
       const isAssignedToMe = order.chef_id === chefId;
       const isNewAndUnassigned = !order.chef_id && order.status === "new";
 
@@ -437,21 +459,18 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                 const isNew = order.status === "new";
                 const isPreparing = order.status === "preparing";
                 const isReady = order.status === "ready";
-                const isEnRouteToKitchen =
-                  order.curier_id && order.status === "en_route_to_kitchen";
-                const isPickedUpFromKitchen =
-                  order.curier_id && order.status === "picked_up_from_kitchen";
                 const isDelivered = order.status === "delivered_to_customer";
                 const isCancelled = order.status === "cancelled";
 
                 const isAssignedToThisChef = order.chef_id === chefId;
+                const isPickup = order.delivery_option === "o_zim_olib_ketaman";
 
                 const canMarkPreparing =
                   (isNew && !order.chef_id) || (isNew && isAssignedToThisChef);
                 const canMarkReady = isPreparing && isAssignedToThisChef;
+                const canMarkDeliveredByChef = isReady && isAssignedToThisChef && isPickup; // Yangi: "Mijozga topshirildi" tugmasi uchun shart
                 const canCancel =
-                  (isNew || isPreparing || isReady || isEnRouteToKitchen) &&
-                  !isPickedUpFromKitchen &&
+                  (isNew || isPreparing || isReady) && // "Tayyor" holatida ham bekor qilish mumkin
                   !isDelivered &&
                   !isCancelled &&
                   isAssignedToThisChef;
@@ -482,7 +501,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               className={`w-3 h-3 rounded-full ${getStatusColor(
                                 order.status
                               )} ${
-                                !isReady && !isCancelled && !isDelivered
+                                !isReady && !isDelivered && !isCancelled
                                   ? "animate-pulse"
                                   : ""
                               }`}
@@ -522,6 +541,159 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             </a>
                           </p>
                         </div>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-bold text-gray-800">
+                            Yetkazib berish usuli:
+                          </span>{" "}
+                          <span className="font-medium text-gray-800">
+                            {isPickup ? "O'zim olib ketaman" : "Yetkazib berilsin"}
+                          </span>
+                        </p>
+                        {!isPickup && ( // Agar "o'zim olib ketaman" bo'lmasa, manzilni ko'rsatish
+                          <p className="text-sm text-gray-600">
+                            <span className="font-bold text-gray-800">
+                              Manzil:
+                            </span>{" "}
+                            {order.coordinates ? (
+                              isMobile ? (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="link"
+                                      className="p-0 h-auto text-blue-600 hover:underline"
+                                    >
+                                      <MapPin className="mr-1 h-4 w-4" />
+                                      (xaritada ochish)
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent className="bg-white border-gray-300">
+                                    {yandexLink && (
+                                      <DropdownMenuItem asChild>
+                                        <a
+                                          href={yandexLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                        >
+                                          Yandex Mapsda ochish
+                                        </a>
+                                      </DropdownMenuItem>
+                                    )}
+                                    {googleLink && (
+                                      <DropdownMenuItem asChild>
+                                        <a
+                                          href={googleLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                        >
+                                          Google Mapsda ochish
+                                        </a>
+                                      </DropdownMenuItem>
+                                    )}
+                                    {geoUri && (
+                                      <DropdownMenuItem asChild>
+                                        <a
+                                          href={geoUri}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                        >
+                                          Boshqa ilovada ochish
+                                        </a>
+                                      </DropdownMenuItem>
+                                    )}
+                                    {(!yandexLink && !googleLink && !geoUri) && (
+                                      <DropdownMenuItem disabled className="text-gray-500">
+                                        Xarita havolalari mavjud emas
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              ) : (
+                                <a
+                                  href={yandexLink}
+                                  className="text-blue-600 hover:underline"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  (xaritada ochish)
+                                </a>
+                              )
+                            ) : (
+                              <>
+                                {order.location}{" "}
+                                {order.location && (
+                                  isMobile ? (
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="link"
+                                          className="p-0 h-auto text-blue-600 hover:underline"
+                                        >
+                                          <MapPin className="mr-1 h-4 w-4" />
+                                          (xaritada ochish)
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent className="bg-white border-gray-300">
+                                        {yandexLink && (
+                                          <DropdownMenuItem asChild>
+                                            <a
+                                              href={yandexLink}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                            >
+                                              Yandex Mapsda ochish
+                                            </a>
+                                          </DropdownMenuItem>
+                                        )}
+                                        {googleLink && (
+                                          <DropdownMenuItem asChild>
+                                            <a
+                                              href={googleLink}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                            >
+                                              Google Mapsda ochish
+                                            </a>
+                                          </DropdownMenuItem>
+                                        )}
+                                        {geoUri && (
+                                          <DropdownMenuItem asChild>
+                                            <a
+                                              href={geoUri}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
+                                            >
+                                              Boshqa ilovada ochish
+                                            </a>
+                                          </DropdownMenuItem>
+                                        )}
+                                        {(!yandexLink && !googleLink && !geoUri) && (
+                                          <DropdownMenuItem disabled className="text-gray-500">
+                                            Xarita havolalari mavjud emas
+                                          </DropdownMenuItem>
+                                        )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  ) : (
+                                    <a
+                                      href={yandexLink}
+                                      className="text-blue-600 hover:underline"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      (xaritada ochish)
+                                    </a>
+                                  )
+                                )}
+                              </>
+                            )}
+                          </p>
+                        )}
 
                         <div className="border-t border-gray-300 pt-2 mt-2">
                           <h4 className="font-medium text-gray-800 mb-2 text-base">
@@ -566,12 +738,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                                 ? "bg-yellow-100 text-yellow-600"
                                 : isReady
                                 ? "bg-green-100 text-green-600"
-                                : order.curier_id &&
-                                  order.status === "en_route_to_kitchen"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : order.curier_id &&
-                                  order.status === "picked_up_from_kitchen"
-                                ? "bg-orange-100 text-orange-600"
                                 : isDelivered
                                 ? "bg-green-100 text-green-600"
                                 : "bg-red-100 text-red-600"
@@ -580,7 +746,8 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             {getStatusText(
                               order.status,
                               order.chef_id,
-                              order.curier_id
+                              order.curier_id,
+                              order.delivery_option
                             )}
                           </span>
                         </div>
@@ -596,7 +763,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             </span>
                           </div>
                         )}
-                        {order.curier_id && (
+                        {!isPickup && order.curier_id && ( // Faqat yetkazib berish bo'lsa kuryerni ko'rsatish
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
                             <span className="text-sm text-gray-500">
@@ -626,12 +793,12 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                               Tayyorlanmoqda
                             </Button>
                           )}
-                          {canMarkReady && (
+                          {canMarkReady && !canMarkDeliveredByChef && ( // Agar "Mijozga topshirildi" tugmasi ko'rinmasa, "Tayyor" tugmasi ko'rinadi
                             <Button
                               onClick={() =>
                                 onUpdateOrderStatus(
                                   order.id,
-                                  "ready",
+                                  "ready", // Har doim "ready" ga o'tkazamiz
                                   chefId,
                                   "chef"
                                 )
@@ -640,6 +807,22 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             >
                               <CheckCircle className="mr-2 h-4 w-4" />
                               Tayyor
+                            </Button>
+                          )}
+                          {canMarkDeliveredByChef && ( // Yangi: "Mijozga topshirildi" tugmasi
+                            <Button
+                              onClick={() =>
+                                onUpdateOrderStatus(
+                                  order.id,
+                                  "delivered_to_customer",
+                                  chefId,
+                                  "chef"
+                                )
+                              }
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Mijozga topshirildi
                             </Button>
                           )}
                           {canCancel && (

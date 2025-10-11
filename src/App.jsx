@@ -519,7 +519,7 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const { customer, items, location, coordinates, totalPrice } = orderData; // coordinates ni ham qabul qilish
+    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData; // coordinates va deliveryOption ni ham qabul qilish
 
     // Masalliqlar stokini tekshirish
     for (const item of items) {
@@ -571,6 +571,7 @@ function App() {
           coordinates, // coordinates ni Supabase ga yuborish
           total_price: totalPrice,
           status: "new",
+          delivery_option: deliveryOption, // Yangi: delivery_option ni qo'shish
         },
       ])
       .select("id")
@@ -751,6 +752,24 @@ function App() {
             return;
           }
           break;
+        case "delivered_to_customer": // Oshpaz uchun yangi status
+          if (
+            orderToUpdate.status === "ready" &&
+            orderToUpdate.chef_id === actorId &&
+            orderToUpdate.delivery_option === "o_zim_olib_ketaman" // Faqat olib ketish buyurtmalari uchun
+          ) {
+            canUpdate = true;
+            updateData.status = newStatus;
+          } else {
+            toast({
+              title: "Xatolik!",
+              description:
+                "Buyurtma hali tayyor emas, oshpazga biriktirilmagan yoki yetkazib berish buyurtmasi.",
+              variant: "destructive",
+            });
+            return;
+          }
+          break;
         case "cancelled":
           if (
             orderToUpdate.status !== "delivered_to_customer" &&
@@ -804,7 +823,7 @@ function App() {
           toast({
             title: "Xatolik!",
             description:
-              "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
+            "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
             variant: "destructive",
           });
           return;
@@ -841,18 +860,14 @@ function App() {
       let message = "";
       // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const itemNames = order.items.map(item => item.name).join(", ");
-        message = `Sizning *${itemNames}* nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
-        // Buyurtma yetkazilganda modalni yashirish
-        // if (orderId === activeCustomerOrderId) { // Eski logic
-        //   setActiveCustomerOrderId(null);
-        // }
+        const itemNames = order.items.map(item => `*${item.name}*`).join(", ");
+        if (order.delivery_option === "o_zim_olib_ketaman") {
+          message = `Sizning ${itemNames} nomli buyurtmangiz muvaffaqiyatli topshirildi!`;
+        } else {
+          message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
+        }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
-        // Buyurtma bekor qilinganda modalni yashirish
-        // if (orderId === activeCustomerOrderId) { // Eski logic
-        //   setActiveCustomerOrderId(null);
-        // }
       }
 
       if (message) {
@@ -1339,7 +1354,7 @@ function MainLayout({
         customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
       <Toaster />
-    </div>
+    </div> // Yopuvchi div
   );
 }
 

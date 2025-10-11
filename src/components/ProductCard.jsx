@@ -14,19 +14,21 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false); // Yangi holat: animatsiya uchun
   
-  // calculateProductStock funksiyasini to'g'ri `allProducts` prop bilan chaqirish
-  const calculatedStock = calculateProductStock(
-    product.id,
-    allProducts,
-    allIngredients,
-    allProductIngredients
-  );
+  // Mahsulotning haqiqiy stokini aniqlash
+  const actualStock = product.manual_stock_enabled
+    ? product.manual_stock_quantity
+    : calculateProductStock(
+        product.id,
+        allProducts,
+        allIngredients,
+        allProductIngredients
+      );
 
   // Savatda allaqachon mavjud bo'lgan miqdorni hisoblash
   const quantityInCart = cartItems.find(item => item.id === product.id)?.quantity || 0;
 
   // Haqiqiy mavjud stok (umumiy stok - savatdagi miqdor)
-  const effectiveStock = calculatedStock - quantityInCart;
+  const effectiveStock = actualStock - quantityInCart;
 
   const isOutOfStock = effectiveStock <= 0;
 
@@ -119,7 +121,8 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
             className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 relative group"
           >
             <img
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-contain rounded-lg bg-gray-100
+"
               alt={product.name}
               src={
                 product.image_url ||
@@ -191,7 +194,12 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
         <CardFooter className="p-2 pt-0">
           <Button
             onClick={handleAddToCart}
-            disabled={isOutOfStock || quantity > effectiveStock || quantity === 0 || isAdding}
+            disabled={
+              isOutOfStock ||
+              quantity > effectiveStock ||
+              quantity === 0 ||
+              isAdding
+            }
             className="mob_xr:text-[0.7rem] extra_small:text-[0.7rem] extra_small:p-0 mob_small:text-[0.8rem] w-full bg-gradient-to-r rounded-[0.4rem] from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <AnimatePresence mode="wait">

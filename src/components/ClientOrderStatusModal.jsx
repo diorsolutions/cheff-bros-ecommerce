@@ -37,8 +37,9 @@ const ClientOrderStatusModal = ({
       (o) =>
         activeOrderIds.includes(o.id) &&
         o.customer_info.phone === customerPhone &&
-        o.status !== "delivered_to_customer" &&
-        o.status !== "cancelled"
+        o.status !== "cancelled" &&
+        !(o.delivery_option === "o_zim_olib_ketaman" && (o.status === "ready" || o.status === "delivered_to_customer")) && // Olib ketish buyurtmasi tayyor bo'lsa yashirish
+        !(o.delivery_option !== "o_zim_olib_ketaman" && o.status === "delivered_to_customer") // Yetkazib berish buyurtmasi yetkazilgan bo'lsa yashirish
     ).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); // Eng eski buyurtma birinchi
   }, [activeOrderIds, orders, customerPhone]);
 
@@ -73,9 +74,10 @@ const ClientOrderStatusModal = ({
   const getStatusDisplay = useMemo(() => {
     if (!currentOrder) return null;
 
-    const { status, chef_id, curier_id } = currentOrder;
+    const { status, chef_id, curier_id, delivery_option } = currentOrder;
     const chefName = chef_id ? getChefInfo(chef_id)?.name : null;
     const curierName = curier_id ? getCurierInfo(curier_id)?.name : null;
+    const isPickup = delivery_option === "o_zim_olib_ketaman";
 
     let chefDisplay = null;
     let courierDisplay = null;
@@ -93,7 +95,7 @@ const ClientOrderStatusModal = ({
         break;
       case "ready":
         mainStatusIcon = <CheckCircle className="h-5 w-5 text-green-500" />;
-        chefDisplay = "Buyurtmangizni tayyorlab bo'ldi!";
+        chefDisplay = isPickup ? "Buyurtmangiz tayyor, kelib olib ketishingiz mumkin!" : "Buyurtmangizni tayyorlab bo'ldi!";
         break;
       case "en_route_to_kitchen":
         mainStatusIcon = <Truck className="h-5 w-5 text-yellow-500" />;
@@ -146,55 +148,6 @@ const ClientOrderStatusModal = ({
             {courierDisplay}
           </p>
         )}
-        {/* {currentOrder.coordinates && (
-          <p className="text-gray-400 text-base ml-7 flex items-center gap-1">
-            <span className="font-medium text-white">Manzil: </span>
-            {isSmallMobile ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto text-blue-300 hover:underline"
-                  >
-                    <MapPin className="mr-1 h-4 w-4" />
-                    Xaritada ochish
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white border-gray-300">
-                  <DropdownMenuItem asChild>
-                    <a
-                      href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).yandexLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                    >
-                      Yandex Mapsda ochish
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <a
-                      href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).geoUri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                    >
-                      Boshqa ilovada ochish
-                    </a>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <a
-                href={getMapLinks(currentOrder.coordinates.lat, currentOrder.coordinates.lng, currentOrder.location).yandexLink}
-                className="text-blue-300 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Xaritada ochish
-              </a>
-            )}
-          </p>
-        )} */}
       </div>
     );
   }, [currentOrder, chefs, curiers, isMobile, isExpanded, isSmallMobile]);

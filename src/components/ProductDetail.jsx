@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion"; // AnimatePresence import qilindi
-import { ArrowLeft, ShoppingCart, Plus, Minus, Check } from "lucide-react"; // Check iconini import qilish
+import { ArrowLeft, ShoppingCart, Plus, Minus, Check, Salad } from "lucide-react"; // Check va Salad iconlarini import qilish
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
@@ -39,7 +39,9 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
 
       setProduct(data);
       // Mahsulot yuklangandan so'ng stokni hisoblash
-      const stock = calculateProductStock(data.id, products, ingredients, productIngredients);
+      const stock = data.manual_stock_enabled
+        ? data.manual_stock_quantity
+        : calculateProductStock(data.id, products, ingredients, productIngredients);
       setCalculatedStock(stock);
       setLoading(false);
     };
@@ -62,27 +64,19 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
           } else {
             setProduct(payload.new);
             // Realtime yangilanishda ham stokni qayta hisoblash
-            // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
-            // ular App.jsx da yangilanganda bu yerda ham avtomatik yangi qiymatlar ishlatiladi.
-            const stock = calculateProductStock(payload.new.id, products, ingredients, productIngredients);
+            const stock = payload.new.manual_stock_enabled
+              ? payload.new.manual_stock_quantity
+              : calculateProductStock(payload.new.id, products, ingredients, productIngredients);
             setCalculatedStock(stock);
           }
         }
       )
       .subscribe();
 
-    // `ingredientChannel` va `productIngredientChannel` obunalari olib tashlandi.
-    // Chunki `App.jsx` allaqachon bu ma'lumotlarni real-time yangilab turadi
-    // va ularni `ProductDetail` komponentiga prop sifatida uzatadi.
-    // `calculateProductStock` funksiyasi har doim eng so'nggi prop qiymatlaridan foydalanadi.
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, navigate, products, ingredients, productIngredients]); // `product` dependency array'dan olib tashlandi
-  // `products`, `ingredients`, `productIngredients` prop sifatida kelganligi sababli,
-  // ularning o'zgarishi `useEffect` ni qayta ishga tushirishi kerak,
-  // chunki `calculateProductStock` ularga bog'liq.
+  }, [id, navigate, products, ingredients, productIngredients]);
 
   if (loading) {
     return (
@@ -147,15 +141,26 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
 
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));
 
+  // Mahsulotga bog'langan masalliqlarni topish
+  const ingredientsForProduct = product.manual_stock_enabled
+    ? [] // Agar qo'lda stok kiritish yoqilgan bo'lsa, masalliqlarni ko'rsatmaymiz
+    : productIngredients
+        .filter((pi) => pi.product_id === product.id)
+        .map((pi) => {
+          const ingredient = ingredients.find((ing) => ing.id === pi.ingredient_id);
+          return ingredient ? ingredient.name : null;
+        })
+        .filter(Boolean); // null qiymatlarni olib tashlash
+
   return (
     <div className="min-h-screen bg-[#eaeaea]">
       {" "}
       {/* Fon rangi yangilandi */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="container mx-auto px-4 sm:px-2 lg:px-8 py-2 sm:py-3">
         <Button
           variant="ghost"
           onClick={() => navigate("/")}
-          className="text-gray-800 mb-6 bg-white hover:bg-gray-200 border border-black/10 shadow-lg rounded-xl"
+          className="text-gray-800 mb-2 bg-white hover:bg-white/80 border border-black/10 shadow-md rounded-xl"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Orqaga
@@ -166,7 +171,7 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white/90 border border-black/20 rounded-2xl shadow-lg">
+          <Card className="bg-white/90 border border-black/20 rounded-2xl shadow-inner">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-4 sm:p-6 lg:p-10">
                 <div className="aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 shadow-md">
@@ -200,6 +205,22 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
                       {/* Matn rangi yangilandi */}
                       {product.description}
                     </p>
+
+                    {/* Yangi: Masalliqlar bo'limi - faqat "Ichimliklar" kategoriyasi bo'lmaganda ko'rsatiladi */}
+                    {ingredientsForProduct.length > 0 && product.category !== "Ichimliklar" && (
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-2">
+                          <Salad className="h-5 w-5 text-green-600" /> Masalliqlar:
+                        </h3>
+                        <ul className="flex flex-wrap gap-2">
+                          {ingredientsForProduct.map((ingredientName, index) => (
+                            <li key={index} className="text-gray-700 text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                              {ingredientName}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     <div className="mb-6">
                       <span
