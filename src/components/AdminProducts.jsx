@@ -437,13 +437,13 @@ const AdminProducts = memo(
             <SelectTrigger className="w-full sm:w-[180px] bg-white/10 border-white/20 text-white">
               <SelectValue placeholder="Kategoriya" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-white/20">
+            <SelectContent className="bg-slate-800 text-white border-white/20 ">
               <SelectItem value="all" className="text-white">
                 Hammasi
               </SelectItem>
-              <SelectItem value="Hoddog">Hoddog</SelectItem>
-              <SelectItem value="Ichimliklar">Ichimliklar</SelectItem>
-              <SelectItem value="Disertlar">Disertlar</SelectItem>
+              <SelectItem className="hover:text-gray-800/30 text-gray-100 cursor-pointer" value="Hoddog">Hoddog</SelectItem>
+              <SelectItem className="hover:text-gray-800/30 text-gray-100 cursor-pointer" value="Ichimliklar">Ichimliklar</SelectItem>
+              <SelectItem className="hover:text-gray-800/30 text-gray-100 cursor-pointer" value="Disertlar">Disertlar</SelectItem>
             </SelectContent>
           </Select>
         </div>
