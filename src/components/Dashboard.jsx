@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink, Outlet } from "react-router-dom"; // NavLink va Outlet import qilindi
 import {
   ListOrdered,
   Utensils,
@@ -13,26 +13,18 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import AdminDashboard from "@/components/AdminDashboard";
-import AdminProducts from "@/components/AdminProducts";
-import AdminStatistics from "@/components/AdminStatistics";
-import AdminCouriers from "@/components/AdminCouriers";
-import AdminChefs from "@/components/AdminChefs";
-import AdminIngredients from "@/components/AdminIngredients"; // Yangi import
+// Admin panelining ichki komponentlari endi App.jsx da render qilinadi, bu yerda ularni import qilish shart emas.
+// import AdminDashboard from "@/components/AdminDashboard";
+// import AdminProducts from "@/components/AdminProducts";
+// import AdminStatistics from "@/components/AdminStatistics";
+// import AdminCouriers from "@/components/AdminCouriers";
+// import AdminChefs from "@/components/AdminChefs";
+// import AdminIngredients from "@/components/AdminIngredients";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
-const Dashboard = ({
-  products,
-  orders,
-  onUpdateOrderStatus,
-  curiers,
-  chefs,
-  ingredients,
-  productIngredients,
-}) => {
-  const [adminView, setAdminView] = useState("orders");
+const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -90,127 +82,101 @@ const Dashboard = ({
 
             {/* Navigation buttons */}
             <div className="flex flex-col w-full">
-              <Button
-                variant={adminView === "orders" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "orders"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("orders")}
+              <NavLink
+                to="orders"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <ListOrdered className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Buyurtmalar</span>}
-              </Button>
+              </NavLink>
 
-              <Button
-                variant={adminView === "products" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "products"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("products")}
+              <NavLink
+                to="products"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <Utensils className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Mahsulotlar</span>}
-              </Button>
+              </NavLink>
 
-              <Button
-                variant={adminView === "ingredients" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "ingredients"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("ingredients")}
+              <NavLink
+                to="ingredients"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <Salad className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Masalliqlar</span>}
-              </Button>
+              </NavLink>
 
-              <Button
-                variant={adminView === "statistics" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "statistics"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("statistics")}
+              <NavLink
+                to="statistics"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <BarChart2 className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Statistika</span>}
-              </Button>
+              </NavLink>
 
-              <Button
-                variant={adminView === "couriers" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "couriers"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("couriers")}
+              <NavLink
+                to="couriers"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <Users className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Kuryerlar</span>}
-              </Button>
+              </NavLink>
 
-              <Button
-                variant={adminView === "chefs" ? "secondary" : "ghost"}
-                className={`min-w-full justify-start ${
-                  adminView === "chefs"
-                    ? "bg-white/20 text-active-orange"
-                    : "text-white hover:bg-white/10 hover:text-active-orange"
-                }`}
-                onClick={() => setAdminView("chefs")}
+              <NavLink
+                to="chefs"
+                className={({ isActive }) =>
+                  `min-w-full justify-start flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/20 text-active-orange"
+                      : "text-white hover:bg-white/10 hover:text-active-orange"
+                  }`
+                }
               >
                 <ChefHat className="mr-3 h-5 w-5 shrink-0" />
                 {isSidebarOpen && <span>Oshpazlar</span>}
-              </Button>
+              </NavLink>
             </div>
           </nav>
         </aside>
 
         <div className="flex-1 p-4 md:p-6">
           <motion.div
-            key={adminView}
+            key={location.pathname} // Marshrut o'zgarganda animatsiyani qayta ishga tushirish
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {adminView === "orders" ? (
-              <AdminDashboard
-                orders={orders}
-                onUpdateOrderStatus={onUpdateOrderStatus}
-                curiers={curiers}
-                chefs={chefs}
-              />
-            ) : adminView === "products" ? (
-              <AdminProducts
-                products={products}
-                allIngredients={ingredients}
-                allProductIngredients={productIngredients}
-              />
-            ) : adminView === "ingredients" ? (
-              <AdminIngredients
-                allProducts={products}
-                allIngredients={ingredients}
-                allProductIngredients={productIngredients}
-              />
-            ) : adminView === "statistics" ? (
-              <AdminStatistics
-                orders={orders}
-                products={products}
-                curiers={curiers}
-                chefs={chefs}
-                ingredients={ingredients}
-                productIngredients={productIngredients}
-              />
-            ) : adminView === "couriers" ? (
-              <AdminCouriers curiers={curiers} orders={orders} />
-            ) : (
-              <AdminChefs chefs={chefs} orders={orders} />
-            )}
+            <Outlet /> {/* Ichki marshrut komponentlari shu yerda render qilinadi */}
           </motion.div>
         </div>
       </main>

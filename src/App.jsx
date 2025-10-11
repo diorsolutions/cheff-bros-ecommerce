@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"; // useRef import qilindi
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom"; // Outlet import qilindi
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
@@ -35,6 +35,15 @@ import { useWindowSize } from "react-use";
 import { generateShortOrderId, formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 import { calculateProductStock } from "@/utils/stockCalculator"; // Yangi import
 import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+
+// Admin panelining ichki komponentlarini import qilish
+import AdminDashboard from "@/components/AdminDashboard";
+import AdminProducts from "@/components/AdminProducts";
+import AdminIngredients from "@/components/AdminIngredients";
+import AdminStatistics from "@/components/AdminStatistics";
+import AdminCouriers from "@/components/AdminCouriers";
+import AdminChefs from "@/components/AdminChefs";
+
 
 function App() {
   const [cartItems, setCartItems] = useLocalStorage("cartItems", []); // localStorage bilan bog'landi
@@ -911,22 +920,79 @@ function App() {
             </ProtectedRouteChef>
           }
         />
+        {/* Dashboard uchun asosiy marshrut va ichki marshrutlar */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard
-                products={products}
+              <Dashboard /> {/* Dashboard endi layout vazifasini bajaradi */}
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            index
+            element={
+              <AdminDashboard
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
                 chefs={chefs}
-                ingredients={ingredients} // Yangi: ingredients propini uzatish
-                productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
               />
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
+          <Route
+            path="orders"
+            element={
+              <AdminDashboard
+                orders={orders}
+                onUpdateOrderStatus={handleUpdateOrderStatus}
+                curiers={curiers}
+                chefs={chefs}
+              />
+            }
+          />
+          <Route
+            path="products"
+            element={
+              <AdminProducts
+                products={products}
+                allIngredients={ingredients}
+                allProductIngredients={productIngredients}
+              />
+            }
+          />
+          <Route
+            path="ingredients"
+            element={
+              <AdminIngredients
+                allProducts={products}
+                allIngredients={ingredients}
+                allProductIngredients={productIngredients}
+              />
+            }
+          />
+          <Route
+            path="statistics"
+            element={
+              <AdminStatistics
+                orders={orders}
+                products={products}
+                curiers={curiers}
+                chefs={chefs}
+                ingredients={ingredients}
+                productIngredients={productIngredients}
+              />
+            }
+          />
+          <Route
+            path="couriers"
+            element={<AdminCouriers curiers={curiers} orders={orders} />}
+          />
+          <Route
+            path="chefs"
+            element={<AdminChefs chefs={chefs} orders={orders} />}
+          />
+        </Route>
         <Route
           path="/product/:id"
           element={
