@@ -12,22 +12,21 @@ import {
   Salad, // Yangi: Salad iconi
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useMediaQuery } from "react-responsive"; // useMediaQuery import qilindi
 
-// Admin panelining ichki komponentlari endi App.jsx da render qilinadi, bu yerda ularni import qilish shart emas.
-// import AdminDashboard from "@/components/AdminDashboard";
-// import AdminProducts from "@/components/AdminProducts";
-// import AdminStatistics from "@/components/AdminStatistics";
-// import AdminCouriers from "@/components/AdminCouriers";
-// import AdminChefs from "@/components/AdminChefs";
-// import AdminIngredients from "@/components/AdminIngredients";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 
 const Dashboard = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const isLargeScreen = useMediaQuery({ minWidth: 780 }); // nor_tablet breakpointidan kattaroq ekranlar uchun
+  const [isSidebarOpen, setIsSidebarOpen] = useState(isLargeScreen);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsSidebarOpen(isLargeScreen);
+  }, [isLargeScreen]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -176,7 +175,8 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Outlet /> {/* Ichki marshrut komponentlari shu yerda render qilinadi */}
+            <Outlet />{" "}
+            {/* Ichki marshrut komponentlari shu yerda render qilinadi */}
           </motion.div>
         </div>
       </main>

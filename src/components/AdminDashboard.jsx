@@ -811,7 +811,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                     <CardContent className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
                         {/* Mijoz ma'lumotlari Card ichida */}
-                        <Card className="bg-white/5 border-white/10 shadow-md rounded-lg p-4">
+                        <Card className="bg-gray-500/20 border-white/10 shadow-lg rounded-lg p-4">
                           <h4 className="font-medium text-white mb-2 text-base">
                             Mijoz ma'lumotlari
                           </h4>
@@ -997,7 +997,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                         </Card>
 
                         {/* Buyurtma tafsilotlari Card ichida */}
-                        <Card className="bg-white/5 border-white/10 shadow-md rounded-lg p-4">
+                        <Card className="bg-gray-500/20 border-white/10 shadow-md rounded-lg p-4">
                           <h4 className="font-medium text-white mb-2 text-base">
                             Buyurtma tafsilotlari
                           </h4>
