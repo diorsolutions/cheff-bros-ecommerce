@@ -26,6 +26,8 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // isMobSmall o'zgarganda sidebar holatini yangilash
+    // mob_small bo'lsa yopiq, aks holda ochiq
     setIsSidebarOpen(!isMobSmall);
   }, [isMobSmall]);
 
@@ -47,7 +49,7 @@ const Dashboard = () => {
       <header className="bg-black/20 backdrop-blur-lg border-b border-white/10 sticky top-0 z-30">
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            {/* NEW: Sidebar toggle button for mob_small screens in header */}
+            {/* Header toggle button: visible only on mob_small, hidden otherwise */}
             <Button
               variant="ghost"
               size="icon"
@@ -75,18 +77,16 @@ const Dashboard = () => {
       <main className="flex flex-col md:flex-row">
         <aside
           className={cn(
-            "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full",
-            // Default styles for larger screens (pushing behavior)
-            "bg-black/20", // Default background
-            isSidebarOpen ? "w-64 p-4" : "w-20 p-2", // Default width and padding
-
+            "transition-all duration-300 flex-shrink-0 items-start border-r border-white/20 h-full bg-black/20",
             // Styles for mob_small (overlay behavior)
-            isMobSmall && "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4",
-            isMobSmall && (isSidebarOpen ? "mob_small:translate-x-0" : "mob_small:-translate-x-full")
+            isMobSmall ?
+              (isSidebarOpen ? "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4 mob_small:translate-x-0" : "mob_small:fixed mob_small:inset-y-0 mob_small:z-50 mob_small:bg-black/80 mob_small:w-64 mob_small:p-4 mob_small:-translate-x-full")
+              : // Styles for larger screens (pushing behavior)
+              (isSidebarOpen ? "w-64 p-4" : "w-0 p-0 overflow-hidden") // Changed to w-0 p-0 overflow-hidden for collapsed state
           )}
         >
           <nav className="flex flex-col items-end gap-2 sticky top-[81px]">
-            {/* Sidebar toggle button - now hidden on mob_small */}
+            {/* Sidebar toggle button: hidden on mob_small, visible otherwise */}
             <div className="w-full flex justify-end mb-4">
               <Button
                 variant="ghost"
@@ -203,7 +203,7 @@ const Dashboard = () => {
           className={cn(
             "flex-1 p-4 md:p-6 transition-all duration-300",
             // Apply margin-left only if not mobSmall
-            !isMobSmall && (isSidebarOpen ? "ml-64" : "ml-20")
+            !isMobSmall && (isSidebarOpen ? "ml-64" : "ml-0") // Changed to ml-0 for collapsed state
           )}
         >
           <motion.div
