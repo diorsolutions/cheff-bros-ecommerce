@@ -164,7 +164,7 @@ const AdminProducts = memo(
     };
 
     const handleSave = async () => {
-      if (!currentProduct.name || !currentProduct.price) {
+      if (!currentProduct.name || currentProduct.price === null || currentProduct.price === "") { // Added check for empty price
         toast({
           title: "Xatolik",
           description: "Nom va narxni kiritish majburiy.",
@@ -176,11 +176,12 @@ const AdminProducts = memo(
       if (currentProduct.manual_stock_enabled) {
         if (
           currentProduct.manual_stock_quantity === null ||
-          currentProduct.manual_stock_quantity < 0
+          currentProduct.manual_stock_quantity < 0 ||
+          currentProduct.manual_stock_quantity === "" // Added check for empty manual stock
         ) {
           toast({
             title: "Xatolik",
-            description: "Qo'lda kiritilgan stok miqdori 0 dan kam bo'lishi mumkin emas.",
+            description: "Qo'lda kiritilgan stok miqdori 0 dan kam bo'lishi yoki bo'sh bo'lishi mumkin emas.",
             variant: "destructive",
           });
           return;
@@ -189,12 +190,12 @@ const AdminProducts = memo(
         // Check if any ingredient is selected and has quantity_needed > 0
         if (
           selectedProductIngredients.length > 0 &&
-          selectedProductIngredients.some((pi) => pi.quantity_needed <= 0)
+          selectedProductIngredients.some((pi) => pi.quantity_needed <= 0 || pi.quantity_needed === "") // Added check for empty quantity_needed
         ) {
           toast({
             title: "Xatolik",
             description:
-              "Masalliqlar uchun kerakli miqdor 0 dan katta bo'lishi kerak.",
+              "Masalliqlar uchun kerakli miqdor 0 dan katta bo'lishi yoki bo'sh bo'lishi mumkin emas.",
             variant: "destructive",
           });
           return;
@@ -440,15 +441,9 @@ const AdminProducts = memo(
               <SelectItem value="all" className="text-white">
                 Hammasi
               </SelectItem>
-              <SelectItem value="Hoddog" className="text-white">
-                Hoddog
-              </SelectItem>
-              <SelectItem value="Ichimliklar" className="text-white">
-                Ichimliklar
-              </SelectItem>
-              <SelectItem value="Disertlar" className="text-white">
-                Disertlar
-              </SelectItem>
+              <SelectItem value="Hoddog">Hoddog</SelectItem>
+              <SelectItem value="Ichimliklar">Ichimliklar</SelectItem>
+              <SelectItem value="Disertlar">Disertlar</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -639,7 +634,7 @@ const AdminProducts = memo(
                   id="price"
                   type="number"
                   placeholder="Narxi"
-                  value={formatPrice(currentProduct?.price)}
+                  value={currentProduct?.price || ""} {/* formatPrice olib tashlandi */}
                   onChange={(e) =>
                     setCurrentProduct({
                       ...currentProduct,
@@ -787,7 +782,7 @@ const AdminProducts = memo(
                           type="number"
                           min="0.1"
                           step={pi.unit === "dona" ? "1" : "0.1"}
-                          value={formatQuantity(pi.quantity_needed, pi.unit)}
+                          value={pi.quantity_needed || ""} {/* formatQuantity olib tashlandi */}
                           onChange={(e) =>
                             handleQuantityNeededChange(
                               pi.ingredient_id,
@@ -795,12 +790,6 @@ const AdminProducts = memo(
                             )
                           }
                           // Increment/decrement tugmalarini va klaviatura o'qlarini o'chirish
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                              e.preventDefault();
-                            }
-                          }}
-                          onWheel={(e) => e.currentTarget.blur()} // Scroll bilan o'zgarishni o'chirish
                           className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800 no-spinners"
                         />
                         <span className="text-sm">{pi.unit}</span>
