@@ -215,7 +215,7 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
         case "en_route_to_kitchen":
           statusText = assignedCurierName
             ? `${assignedCurierName} olish uchun yo'lda`
-            : "olish uchun yo'lda";
+            : "Kuryer olish uchun yo'lda";
           break;
         case "picked_up_from_kitchen":
           statusText = assignedCurierName
@@ -229,14 +229,16 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           break;
         default:
           statusText = assignedCurierName
-            ? `${assignedCurierName} olish uchun yo'lda`
-            : "olish uchun yo'lda";
+            ? `${assignedCurierName} buyurtmani boshqarmoqda`
+            : "Kuryer boshqarmoqda";
           break;
       }
     } else if (orderChefId) {
       switch (status) {
         case "preparing":
-          statusText = assignedChefName ? ` Tayyorlayapsiz` : "Tayyorlayapsiz";
+          statusText = assignedChefName
+            ? `${assignedChefName} tayyorlanmoqda`
+            : "Tayyorlanmoqda";
           break;
         case "ready":
           statusText = assignedChefName
@@ -244,7 +246,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
             : "Tayyor";
           break;
         default:
-          statusText = assignedChefName ? ` buyurtma sizda` : " buyurtma sizda";
+          statusText = assignedChefName
+            ? `${assignedChefName} buyurtmani boshqarmoqda`
+            : "Oshpaz boshqarmoqda";
           break;
       }
     } else {
@@ -260,6 +264,9 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     return statusText;
   };
 
+  // formatOrderDateTime funksiyasi olib tashlandi va formatUzbekDateTime bilan almashtirildi
+  // const formatOrderDateTime = (timestamp) => { ... };
+
   const sortedOrders = useMemo(() => {
     if (!orders || !chefId) return [];
 
@@ -270,7 +277,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
       ) {
         return false;
       }
-      // Faqat o'ziga biriktirilgan yoki yangi va biriktirilmagan buyurtmalarni ko'rsatish
       const isAssignedToMe = order.chef_id === chefId;
       const isNewAndUnassigned = !order.chef_id && order.status === "new";
 
@@ -288,40 +294,21 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
     }
 
     return filtered.sort((a, b) => {
-      const statusPriority = {
-        new: 1, // Yangi buyurtmalar, oshpaz uchun eng yuqori ustuvorlik
-        preparing: 2, // Faol tayyorlanmoqda
-        ready: 3, // Kuryer olishi uchun tayyor
-        en_route_to_kitchen: 4, // Kuryer yo'lda (oshpaz ishi tugagan)
-        picked_up_from_kitchen: 5, // Kuryer olib ketdi (oshpaz ishi tugagan)
-        delivered_to_customer: 98, // Yakuniy status
-        cancelled: 99, // Yakuniy status
+      const statusOrder = {
+        preparing: 1,
+        new: 2,
+        ready: 3,
+        en_route_to_kitchen: 4,
+        picked_up_from_kitchen: 5,
+        delivered_to_customer: 6,
+        cancelled: 7,
       };
+      const statusA = statusOrder[a.status] || 99;
+      const statusB = statusOrder[b.status] || 99;
 
-      const aIsAssignedToMe = a.chef_id === chefId;
-      const bIsAssignedToMe = b.chef_id === chefId;
-
-      const aIsNewAndUnassigned = a.status === "new" && !a.chef_id;
-      const bIsNewAndUnassigned = b.status === "new" && !b.chef_id;
-
-      // 1. Yangi va biriktirilmagan buyurtmalarni birinchi o'ringa qo'yish
-      if (aIsNewAndUnassigned && !bIsNewAndUnassigned) return -1;
-      if (!aIsNewAndUnassigned && bIsNewAndUnassigned) return 1;
-
-      // 2. Keyin o'ziga biriktirilgan buyurtmalarni birinchi o'ringa qo'yish
-      if (aIsAssignedToMe && !bIsAssignedToMe) return -1;
-      if (!aIsAssignedToMe && bIsAssignedToMe) return 1;
-
-      // 3. Agar ikkalasi ham yangi/biriktirilmagan bo'lsa, yoki ikkalasi ham o'ziga biriktirilgan bo'lsa,
-      // yoki ikkalasi ham o'ziga biriktirilmagan bo'lsa, status bo'yicha saralash
-      const priorityA = statusPriority[a.status] || 100;
-      const priorityB = statusPriority[b.status] || 100;
-
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
+      if (statusA !== statusB) {
+        return statusA - statusB;
       }
-
-      // 4. Bir xil ustuvorlikdagi buyurtmalarni yaratilish sanasi bo'yicha saralash (eng eskisi birinchi)
       return (
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
@@ -435,10 +422,10 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 nor_tablet:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4">
           <AnimatePresence>
             {sortedOrders.length === 0 ? (
-              <Card className="bg-white/40 border-gray-100 col-span-full">
+              <Card className="bg-white/40 border-gray-100">
                 <CardContent className="p-8 text-center ">
                   <p className="text-gray-600 text-lg">
                     Hozircha buyurtmalar yo'q.
@@ -517,11 +504,11 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
 
                       <CardContent className="space-y-2">
                         <div className="flex justify-between items-center text-sm text-gray-600">
-                          <p className="flex items-center text-sm">
+                          <p className="flex items-center gap-1 text-sm">
                             <span className="font-bold text-gray-800">
                               Mijoz:
                             </span>{" "}
-                            {order.customer_info.name}
+                            <span>{order.customer_info.name}</span>
                           </p>
                           <p className="text-sm">
                             <span className="font-bold text-gray-800">
@@ -535,157 +522,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                             </a>
                           </p>
                         </div>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-bold text-gray-800">
-                            Manzil:
-                          </span>{" "}
-                          {order.coordinates ? ( // If coordinates exist (auto-location)
-                            isMobile ? (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="link"
-                                    className="p-0 h-auto text-blue-600 hover:underline"
-                                  >
-                                    <MapPin className="mr-1 h-4 w-4" />
-                                    (xaritada ochish)
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-white border-gray-300">
-                                  {yandexLink && (
-                                    <DropdownMenuItem asChild>
-                                      <a
-                                        href={yandexLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                      >
-                                        Yandex Mapsda ochish
-                                      </a>
-                                    </DropdownMenuItem>
-                                  )}
-                                  {googleLink && (
-                                    <DropdownMenuItem asChild>
-                                      <a
-                                        href={googleLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                      >
-                                        Google Mapsda ochish
-                                      </a>
-                                    </DropdownMenuItem>
-                                  )}
-                                  {geoUri && (
-                                    <DropdownMenuItem asChild>
-                                      <a
-                                        href={geoUri}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                      >
-                                        Boshqa ilovada ochish
-                                      </a>
-                                    </DropdownMenuItem>
-                                  )}
-                                  {!yandexLink && !googleLink && !geoUri && (
-                                    <DropdownMenuItem
-                                      disabled
-                                      className="text-gray-500"
-                                    >
-                                      Xarita havolalari mavjud emas
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            ) : (
-                              <a
-                                href={yandexLink}
-                                className="text-blue-600 hover:underline"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                (xaritada ochish)
-                              </a>
-                            )
-                          ) : (
-                            // If no coordinates (manual entry)
-                            <>
-                              {order.location}{" "}
-                              {order.location &&
-                                (isMobile ? (
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        variant="link"
-                                        className="p-0 h-auto text-blue-600 hover:underline"
-                                      >
-                                        <MapPin className="mr-1 h-4 w-4" />
-                                        (xaritada ochish)
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="bg-white border-gray-300">
-                                      {yandexLink && (
-                                        <DropdownMenuItem asChild>
-                                          <a
-                                            href={yandexLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                          >
-                                            Yandex Mapsda ochish
-                                          </a>
-                                        </DropdownMenuItem>
-                                      )}
-                                      {googleLink && (
-                                        <DropdownMenuItem asChild>
-                                          <a
-                                            href={googleLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                          >
-                                            Google Mapsda ochish
-                                          </a>
-                                        </DropdownMenuItem>
-                                      )}
-                                      {geoUri && (
-                                        <DropdownMenuItem asChild>
-                                          <a
-                                            href={geoUri}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-gray-800 hover:!bg-gray-100 focus:bg-gray-100 focus:text-gray-800"
-                                          >
-                                            Boshqa ilovada ochish
-                                          </a>
-                                        </DropdownMenuItem>
-                                      )}
-                                      {!yandexLink &&
-                                        !googleLink &&
-                                        !geoUri && (
-                                          <DropdownMenuItem
-                                            disabled
-                                            className="text-gray-500"
-                                          >
-                                            Xarita havolalari mavjud emas
-                                          </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                ) : (
-                                  <a
-                                    href={yandexLink}
-                                    className="text-blue-600 hover:underline"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    (xaritada ochish)
-                                  </a>
-                                ))}
-                            </>
-                          )}
-                        </p>
 
                         <div className="border-t border-gray-300 pt-2 mt-2">
                           <h4 className="font-medium text-gray-800 mb-2 text-base">
@@ -749,6 +585,17 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
                           </span>
                         </div>
 
+                        {order.chef_id && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <ChefHat className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-500">
+                              Oshpaz:
+                            </span>
+                            <span className="text-sm font-medium text-gray-800">
+                              {getChefInfo(order.chef_id)?.name || "Noma'lum"}
+                            </span>
+                          </div>
+                        )}
                         {order.curier_id && (
                           <div className="flex items-center gap-2 mt-2">
                             <Truck className="h-4 w-4 text-gray-500" />
