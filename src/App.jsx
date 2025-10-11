@@ -519,16 +519,32 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData; // coordinates va deliveryOption ni ham qabul qilish
+    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData;
 
-    // Masalliqlar stokini tekshirish
+    // --- Stokni tekshirish mantiqi ---
     for (const item of items) {
-      const availableStock = calculateProductStock(
-        item.id,
-        products,
-        ingredients,
-        productIngredients
-      );
+      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
+      if (!productInState) {
+        toast({
+          title: "Xatolik!",
+          description: `${item.name} mahsuloti topilmadi.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      let availableStock;
+      if (productInState.manual_stock_enabled) {
+        availableStock = productInState.manual_stock_quantity;
+      } else {
+        availableStock = calculateProductStock(
+          item.id,
+          products,
+          ingredients,
+          productIngredients
+        );
+      }
+
       if (availableStock < item.quantity) {
         toast({
           title: "Xatolik!",
@@ -539,24 +555,35 @@ function App() {
       }
     }
 
-    setCustomerInfo(customer); // customerInfo ni App.jsx dagi useLocalStorage ga saqlash
+    setCustomerInfo(customer);
 
-    // Masalliqlar stokini kamaytirish
+    // --- Stokni kamaytirish mantiqi ---
     for (const item of items) {
-      const productIngredientsNeeded = productIngredients.filter(
-        (pi) => pi.product_id === item.id
-      );
-      for (const prodIng of productIngredientsNeeded) {
-        const ingredient = ingredients.find(
-          (ing) => ing.id === prodIng.ingredient_id
+      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
+      if (productInState.manual_stock_enabled) {
+        // Manual stokni kamaytirish
+        const newManualStock = productInState.manual_stock_quantity - item.quantity;
+        await supabase
+          .from("products")
+          .update({ manual_stock_quantity: newManualStock })
+          .eq("id", item.id);
+      } else {
+        // Masalliqlar stokini kamaytirish
+        const productIngredientsNeeded = productIngredients.filter(
+          (pi) => pi.product_id === item.id
         );
-        if (ingredient) {
-          const newStock =
-            ingredient.stock_quantity - prodIng.quantity_needed * item.quantity;
-          await supabase
-            .from("ingredients")
-            .update({ stock_quantity: newStock })
-            .eq("id", ingredient.id);
+        for (const prodIng of productIngredientsNeeded) {
+          const ingredient = ingredients.find(
+            (ing) => ing.id === prodIng.ingredient_id
+          );
+          if (ingredient) {
+            const newStock =
+              ingredient.stock_quantity - prodIng.quantity_needed * item.quantity;
+            await supabase
+              .from("ingredients")
+              .update({ stock_quantity: newStock })
+              .eq("id", ingredient.id);
+          }
         }
       }
     }
