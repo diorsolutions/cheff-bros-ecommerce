@@ -342,13 +342,13 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex justify-between xs:flex-row items-start xs:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        <div className="flex min-w-full justify-between xs:flex-row items-start xs:items-center gap-2 sm:gap-3 sm:w-auto">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
             Buyurtmalar
           </h1>
           <motion.div
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300",
+              "flex rounded-[1rem] items-center gap-2 px-3 py-1.5 border transition-all duration-300",
               newOrdersCount > 0
                 ? "bg-gradient-to-r from-red-500 to-yellow-500 border-red-400 animate-newOrderPulse"
                 : "bg-blue-500/20 border-blue-500/30"
@@ -368,7 +368,7 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
                 newOrdersCount > 0 ? "text-white" : "text-blue-400"
               )}
             >
-              {newOrdersCount} yangi
+              {newOrdersCount} ta yangi
             </span>
           </motion.div>
         </div>
