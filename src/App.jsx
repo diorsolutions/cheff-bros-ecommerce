@@ -39,7 +39,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage im
 // Admin panelining ichki komponentlarini import qilish
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminProducts from "@/components/AdminProducts";
-import AdminIngredients from "@/components/Admin/AdminIngredients";
+import AdminIngredients from "@/components/AdminIngredients";
 import AdminStatistics from "@/components/AdminStatistics";
 import AdminCouriers from "@/components/AdminCouriers";
 import AdminChefs from "@/components/AdminChefs";
@@ -886,9 +886,10 @@ function App() {
     const order = orders.find((o) => o.id === orderId);
     if (order) {
       let message = "";
-      // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
+      const itemNames = order.items.map(item => `*${item.name}*`).join(", "); // itemNames ni bu yerda aniqlash
+
+      // Faqat yetkazilgan, bekor qilingan yoki tayyor (olib ketish) buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const itemNames = order.items.map(item => `*${item.name}*`).join(", ");
         if (order.delivery_option === "o_zim_olib_ketaman") {
           message = `Sizning ${itemNames} nomli buyurtmangiz muvaffaqiyatli topshirildi!`;
         } else {
@@ -896,6 +897,8 @@ function App() {
         }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
+      } else if (newStatus === "ready" && order.delivery_option === "o_zim_olib_ketaman") {
+        message = `Sizning ${itemNames} nomli buyurtmangiz tayyor! Kelib olib ketishingiz mumkin.`;
       }
 
       if (message) {
