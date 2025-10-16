@@ -903,8 +903,26 @@ function App() {
         message = `Sizning ${itemNames} nomli buyurtmangiz tayyor! Kelib olib ketishingiz mumkin.`;
       }
 
+      console.log("Attempting to send message:");
+      console.log("newStatus:", newStatus);
+      console.log("delivery_option:", updatedOrder.delivery_option);
+      console.log("message content:", message);
+      console.log("customer phone:", updatedOrder.customer_info.phone);
+
       if (message) {
-        await handleSendMessage(updatedOrder.customer_info.phone, message);
+        try {
+          await handleSendMessage(updatedOrder.customer_info.phone, message);
+          console.log("Message sent successfully!");
+        } catch (msgError) {
+          console.error("Error sending system message:", msgError);
+          toast({
+            title: "Xatolik!",
+            description: "Tizim xabarini yuborishda xatolik yuz berdi.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.log("No message generated for this status change.");
       }
     }
     toast({
