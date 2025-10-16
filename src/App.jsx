@@ -58,7 +58,7 @@ function App() {
   const [productIngredients, setProductIngredients] = useState([]); // Yangi: Product-Ingredient bog'lanishlari
 
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [productsError, setProductsError] = useState(null);
+  const [productsError, setProductsError] = null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
   const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
@@ -628,6 +628,7 @@ function App() {
 
     setCartItems([]); // Savatni tozalash
     toast({
+      id: `order-success-${insertedOrder.id}`, // Unique ID qo'shildi
       title: "Buyurtma qabul qilindi!",
       description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
     });
