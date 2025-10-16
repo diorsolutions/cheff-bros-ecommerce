@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MapPin,
   Phone,
@@ -46,15 +46,28 @@ const OrderDialog = ({
   removeFromCart,
   decreaseCartItem,
   increaseCartItem,
-  customerInfo, // Prop sifatida qabul qilindi
-  setCustomerInfo, // Prop sifatida qabul qilindi
+  initialCustomerInfo, // Prop sifatida qabul qilindi
 }) => {
+  const [localName, setLocalName] = useState(initialCustomerInfo.name || "");
+  const [localPhone, setLocalPhone] = useState(initialCustomerInfo.phone || "");
   const [location, setLocation] = useState("");
   const [coordinates, setCoordinates] = useState(null); // Yangi holat: { lat, lng } ni saqlash uchun
   const [locationMethod, setLocationMethod] = useState("manual"); // 'manual' or 'auto'
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [deliveryOption, setDeliveryOption] = useState("yetkazib_berilsin"); // Yangi holat
+
+  useEffect(() => {
+    // Dialog ochilganda yoki initialCustomerInfo o'zgarganda mahalliy holatni yangilash
+    if (isOpen) {
+      setLocalName(initialCustomerInfo.name || "");
+      setLocalPhone(initialCustomerInfo.phone || "");
+      setLocation(""); // Har safar dialog ochilganda manzilni tozalash
+      setCoordinates(null);
+      setLocationMethod("manual");
+      setDeliveryOption("yetkazib_berilsin");
+    }
+  }, [initialCustomerInfo, isOpen]);
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -159,7 +172,7 @@ const OrderDialog = ({
   };
 
   const handleSubmitOrder = () => {
-    if (!customerInfo.name || !customerInfo.phone) {
+    if (!localName || !localPhone) {
       toast({
         title: "Ma'lumotlar to'liq emas",
         description: "Iltimos, ism va telefon raqamini to'ldiring",
@@ -190,7 +203,7 @@ const OrderDialog = ({
         price: i.price,
         quantity: i.quantity,
       })),
-      customer: customerInfo,
+      customer: { name: localName, phone: localPhone }, // Mahalliy holatdan foydalanish
       location: finalLocation,
       coordinates: finalCoordinates, // Koordinatalarni ham buyurtma ma'lumotlariga qo'shish
       totalPrice,
@@ -325,13 +338,8 @@ const OrderDialog = ({
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-500 mob:h-3 mob:w-3" />
                   <Input
                     placeholder="Ismingiz"
-                    value={customerInfo.name}
-                    onChange={(e) =>
-                      setCustomerInfo((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
+                    value={localName}
+                    onChange={(e) => setLocalName(e.target.value)}
                     className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 mob:text-sm"
                   />
                 </div>
@@ -339,13 +347,8 @@ const OrderDialog = ({
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500 mob:h-3 mob:w-3" />
                   <Input
                     placeholder="Telefon raqamingiz"
-                    value={customerInfo.phone}
-                    onChange={(e) =>
-                      setCustomerInfo((prev) => ({
-                        ...prev,
-                        phone: e.target.value,
-                      }))
-                    }
+                    value={localPhone}
+                    onChange={(e) => setLocalPhone(e.target.value)}
                     className="pl-10 bg-gray-100 border-gray-300 text-gray-800 placeholder:text-gray-500 mob:text-sm"
                   />
                 </div>

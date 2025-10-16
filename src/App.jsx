@@ -555,7 +555,7 @@ function App() {
       }
     }
 
-    setCustomerInfo(customer);
+    setCustomerInfo(customer); // Buyurtma yuborilganda customerInfo ni yangilash
 
     // --- Stokni kamaytirish mantiqi ---
     for (const item of items) {
@@ -1085,8 +1085,7 @@ function App() {
         removeFromCart={removeFromCart}
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
-        customerInfo={customerInfo} // customerInfo ni prop sifatida uzatish
-        setCustomerInfo={setCustomerInfo} // setCustomerInfo ni prop sifatida uzatish
+        initialCustomerInfo={customerInfo} // customerInfo ni prop sifatida uzatish
       />
       <Toaster />
     </div> // Yopuvchi div

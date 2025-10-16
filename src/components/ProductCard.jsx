@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react"; // memo import qilindi
 import { Link } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,7 +10,7 @@ import { useWindowSize } from "react-use";
 import { calculateProductStock } from "@/utils/stockCalculator"; // Import stock calculator
 import { formatPrice } from "@/lib/utils"; // formatPrice import qilindi
 
-const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allProductIngredients, cartItems }) => {
+const ProductCard = memo(({ product, onAddToCart, allProducts, allIngredients, allProductIngredients, cartItems }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false); // Yangi holat: animatsiya uchun
   
@@ -231,6 +231,6 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
       </Card>
     </motion.div>
   );
-};
+});
 
 export default ProductCard;
