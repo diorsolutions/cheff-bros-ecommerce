@@ -58,7 +58,7 @@ function App() {
   const [productIngredients, setProductIngredients] = useState([]); // Yangi: Product-Ingredient bog'lanishlari
 
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [productsError, setProductsError] = null);
+  const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
   const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
