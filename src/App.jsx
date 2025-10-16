@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react"; // useRef import qilindi
+import { Routes, Route, Outlet } from "react-router-dom"; // Outlet import qilindi
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
@@ -10,7 +10,7 @@ import {
   ListOrdered,
   PanelLeftClose,
   PanelRightClose,
-  Salad,
+  Salad, // Yangi icon
 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
@@ -18,49 +18,51 @@ import OrderDialog from "@/components/OrderDialog";
 import Dashboard from "@/components/Dashboard";
 import AdminLoginPage from "@/components/AdminLoginPage";
 import CurierLoginPage from "@/components/CurierLoginPage";
-import ChefLoginPage from "@/components/ChefLoginPage";
+import ChefLoginPage from "@/components/ChefLoginPage"; // Import new ChefLoginPage
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteCurier from "@/components/ProtectedRouteCurier";
-import ProtectedRouteChef from "@/components/ProtectedRouteChef";
+import ProtectedRouteChef from "@/components/ProtectedRouteChef"; // Import new ProtectedRouteChef
 import MiniChat from "@/components/MiniChat";
-import ClientOrderStatusModal from "@/components/ClientOrderStatusModal";
+import ClientOrderStatusModal from "@/components/ClientOrderStatusModal"; // Yangi modalni import qilish
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/toaster";
-import { toast } from "@/components/ui/use-toast"; // Xato shu yerda edi, to'g'rilandi
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import CurierInterFace from "./components/curier/CurierInterFace";
-import ChefInterface from "./components/chef/ChefInterface";
-import AdminDashboard from "@/components/AdminDashboard";
-import AdminProducts from "@/components/AdminProducts"; // <-- Bu qator qo'shildi
-import AdminIngredients from "@/components/AdminIngredients"; // <-- Bu qator qo'shildi
-import AdminStatistics from "@/components/AdminStatistics"; // <-- Bu qator qo'shildi
-import AdminCouriers from "@/components/AdminCouriers"; // <-- Bu qator qo'shildi
-import AdminChefs from "@/components/AdminChefs"; // <-- Bu qator qo'shildi
+import ChefInterface from "./components/chef/ChefInterface"; // Import new ChefInterface
 import { useWindowSize } from "react-use";
-import { generateShortOrderId, formatPrice } from "@/lib/utils";
-import { calculateProductStock } from "@/utils/stockCalculator";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { generateShortOrderId, formatPrice } from "@/lib/utils"; // formatPrice import qilindi
+import { calculateProductStock } from "@/utils/stockCalculator"; // Yangi import
+import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage import qilindi
+
+// Admin panelining ichki komponentlarini import qilish
+import AdminDashboard from "@/components/AdminDashboard";
+import AdminProducts from "@/components/AdminProducts";
+import AdminIngredients from "@/components/AdminIngredients";
+import AdminStatistics from "@/components/AdminStatistics";
+import AdminCouriers from "@/components/AdminCouriers";
+import AdminChefs from "@/components/AdminChefs";
+
 
 function App() {
-  const [cartItems, setCartItems] = useLocalStorage("cartItems", []);
+  const [cartItems, setCartItems] = useLocalStorage("cartItems", []); // localStorage bilan bog'landi
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
-  const [isMiniChatOpen, setIsMiniChatOpen] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
   const [curiers, setCuriers] = useState([]);
   const [chefs, setChefs] = useState([]);
-  const [ingredients, setIngredients] = useState([]);
-  const [productIngredients, setProductIngredients] = useState([]);
+  const [ingredients, setIngredients] = useState([]); // Yangi: Ingredients ro'yxati
+  const [productIngredients, setProductIngredients] = useState([]); // Yangi: Product-Ingredient bog'lanishlari
 
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [productsError, setProductsError] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
   const [customerInfo, setCustomerInfo] = useLocalStorage("customerInfo", {
+    // localStorage bilan bog'landi
     name: "",
     phone: "",
   });
@@ -68,17 +70,17 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Yangi: Mijozning faol buyurtmasi ID'si
   const [activeCustomerOrderIds, setActiveCustomerOrderIds] = useLocalStorage(
     "activeCustomerOrderIds",
     []
-  );
+  ); // localStorage bilan bog'landi
 
+  // Audio refs
+  // const adminOrderSound = useRef(new Audio("/notification_admin_order.mp3")); // ADMIN SOUND BU YERDAN OLIB TASHLANDI
   const clientMessageSound = useRef(
     new Audio("/notification_client_message.mp3")
   );
-
-  const { requestNotificationPermission, isSubscribed, permissionGranted } =
-    usePushNotifications(customerInfo.phone);
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -214,6 +216,7 @@ function App() {
         console.error("Oshpazlarni yuklashda kutilmagan xatolik:", e);
       }
 
+      // Yangi: Ingredients ro'yxatini yuklash
       try {
         const { data: ingredientsData, error: ingredientsErr } = await supabase
           .from("ingredients")
@@ -227,6 +230,7 @@ function App() {
         console.error("Masalliqlarni yuklashda kutilmagan xatolik:", e);
       }
 
+      // Yangi: Product-Ingredient bog'lanishlarini yuklash
       try {
         const { data: productIngredientsData, error: productIngredientsErr } =
           await supabase.from("product_ingredients").select("*");
@@ -288,10 +292,12 @@ function App() {
           (payload) => {
             if (payload.eventType === "INSERT") {
               setOrders((prev) => [payload.new, ...prev]);
+              // ADMIN SOUND VA TOAST BU YERDAN OLIB TASHLANDI
             } else if (payload.eventType === "UPDATE") {
               setOrders((prev) =>
                 prev.map((o) => (o.id === payload.new.id ? payload.new : o))
               );
+              // Buyurtma statusi o'zgarganda, agar u yetkazilgan yoki bekor qilingan bo'lsa, activeCustomerOrderIds dan olib tashlash
               if (
                 payload.new.status === "delivered_to_customer" ||
                 payload.new.status === "cancelled"
@@ -323,56 +329,12 @@ function App() {
               payload.new.customer_phone === customerInfo.phone
             ) {
               setMessages((prev) => [...prev, payload.new]);
+              // Play sound for client message
               clientMessageSound.current
                 .play()
                 .catch((e) =>
                   console.error("Error playing client message sound:", e)
                 );
-
-              if (!isMiniChatOpen && permissionGranted) {
-                fetch(
-                  `${supabase.url}/functions/v1/send-message-push-notification`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      customer_phone: payload.new.customer_phone,
-                      message_text: payload.new.text,
-                    }),
-                  }
-                )
-                  .then((response) => {
-                    if (!response.ok) {
-                      console.error(
-                        "Failed to send push notification for message:",
-                        response.statusText
-                      );
-                    }
-                  })
-                  .catch((error) => {
-                    console.error(
-                      "Error sending push notification for message:",
-                      error
-                    );
-                  });
-              }
-
-              toast({
-                title: "Yangi xabar!",
-                description: payload.new.text,
-                action: (
-                  <Button
-                    variant="ghost"
-                    className="text-white bg-orange-500 hover:bg-orange-600"
-                    onClick={() => setIsMiniChatOpen(true)}
-                  >
-                    Ko'rish
-                  </Button>
-                ),
-                duration: 5000,
-              });
             }
           }
         )
@@ -425,6 +387,7 @@ function App() {
       console.error("Error subscribing to chef real-time channel:", e);
     }
 
+    // Yangi: Ingredients real-time yangilash
     try {
       ingredientChannel = supabase
         .channel("realtime-ingredients")
@@ -450,6 +413,7 @@ function App() {
       console.error("Error subscribing to ingredient real-time channel:", e);
     }
 
+    // Yangi: Product-Ingredients real-time yangilash
     try {
       productIngredientChannel = supabase
         .channel("realtime-product_ingredients")
@@ -484,7 +448,7 @@ function App() {
         .subscribe();
     } catch (e) {
       console.error(
-        "Mahsulot-masalliq bog'lanishlarini kutilmagan xatolik:",
+        "Error subscribing to product_ingredients real-time channel:",
         e
       );
     }
@@ -499,7 +463,7 @@ function App() {
       if (productIngredientChannel)
         supabase.removeChannel(productIngredientChannel);
     };
-  }, [customerInfo.phone, permissionGranted]);
+  }, [customerInfo.phone]);
 
   useEffect(() => {
     if (customerInfo.phone) {
@@ -522,23 +486,11 @@ function App() {
       if (existingItem) {
         return prev.map((item) =>
           item.id === product.id
-            ? {
-                ...item,
-                quantity: item.quantity + product.quantity,
-                customizations: product.customizations || {},
-                ingredients: product.ingredients || [],
-              }
+            ? { ...item, quantity: item.quantity + product.quantity }
             : item
         );
       }
-      return [
-        ...prev,
-        {
-          ...product,
-          customizations: product.customizations || {},
-          ingredients: product.ingredients || [],
-        },
-      ];
+      return [...prev, product];
     });
   };
 
@@ -567,17 +519,11 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const {
-      customer,
-      items,
-      location,
-      coordinates,
-      totalPrice,
-      deliveryOption,
-    } = orderData;
+    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData;
 
+    // --- Stokni tekshirish mantiqi ---
     for (const item of items) {
-      const productInState = products.find((p) => p.id === item.id);
+      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
       if (!productInState) {
         toast({
           title: "Xatolik!",
@@ -591,23 +537,11 @@ function App() {
       if (productInState.manual_stock_enabled) {
         availableStock = productInState.manual_stock_quantity;
       } else {
-        const tempProductIngredients = productIngredients.map((pi) => {
-          if (
-            item.customizations &&
-            item.customizations[pi.ingredient_id] !== undefined
-          ) {
-            return {
-              ...pi,
-              quantity_needed: item.customizations[pi.ingredient_id],
-            };
-          }
-          return pi;
-        });
         availableStock = calculateProductStock(
           item.id,
           products,
           ingredients,
-          tempProductIngredients
+          productIngredients
         );
       }
 
@@ -623,16 +557,18 @@ function App() {
 
     setCustomerInfo(customer);
 
+    // --- Stokni kamaytirish mantiqi ---
     for (const item of items) {
-      const productInState = products.find((p) => p.id === item.id);
+      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
       if (productInState.manual_stock_enabled) {
-        const newManualStock =
-          productInState.manual_stock_quantity - item.quantity;
+        // Manual stokni kamaytirish
+        const newManualStock = productInState.manual_stock_quantity - item.quantity;
         await supabase
           .from("products")
           .update({ manual_stock_quantity: newManualStock })
           .eq("id", item.id);
       } else {
+        // Masalliqlar stokini kamaytirish
         const productIngredientsNeeded = productIngredients.filter(
           (pi) => pi.product_id === item.id
         );
@@ -641,16 +577,8 @@ function App() {
             (ing) => ing.id === prodIng.ingredient_id
           );
           if (ingredient) {
-            let quantityToDeduct = prodIng.quantity_needed;
-            if (
-              item.customizations &&
-              item.customizations[prodIng.ingredient_id] !== undefined
-            ) {
-              quantityToDeduct = item.customizations[prodIng.ingredient_id];
-            }
-
             const newStock =
-              ingredient.stock_quantity - quantityToDeduct * item.quantity;
+              ingredient.stock_quantity - prodIng.quantity_needed * item.quantity;
             await supabase
               .from("ingredients")
               .update({ stock_quantity: newStock })
@@ -665,18 +593,12 @@ function App() {
       .insert([
         {
           customer_info: customer,
-          items: items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            customizations: item.customizations || {},
-          })),
+          items: items,
           location,
-          coordinates,
+          coordinates, // coordinates ni Supabase ga yuborish
           total_price: totalPrice,
           status: "new",
-          delivery_option: deliveryOption,
+          delivery_option: deliveryOption, // Yangi: delivery_option ni qo'shish
         },
       ])
       .select("id")
@@ -693,9 +615,18 @@ function App() {
 
     const shortOrderId = generateShortOrderId(insertedOrder.id);
 
+    const boldItemNames = items.map((item) => `*${item.name}*`).join(", ");
+
+    // const systemMessage = `Sizning
+    // ${boldItemNames}
+    // nomli buyurtma(lari)ngiz muvaffaqiyatli qabul qilindi. Buyurtma ID: *${shortOrderId}*. Endi tasdiqlashini kuting. Tasdiqlanganida buyurtmangiz allaqachon tayyorlab *kurier* orqali jo'natilganligini anglatadi.`;
+
+    // await handleSendMessage(customer.phone, systemMessage);
+
+    // Yangi: Faol buyurtma ID'sini o'rnatish
     setActiveCustomerOrderIds((prevIds) => [...prevIds, insertedOrder.id]);
 
-    setCartItems([]);
+    setCartItems([]); // Savatni tozalash
     toast({
       title: "Buyurtma qabul qilindi!",
       description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
@@ -705,9 +636,9 @@ function App() {
   const handleUpdateOrderStatus = async (
     orderId,
     newStatus,
-    actorId = null,
-    actorRole = null,
-    cancellationReason = null
+    actorId = null, // curierId yoki chefId bo'lishi mumkin
+    actorRole = null, // 'curier' yoki 'chef'
+    cancellationReason = null // Bekor qilish sababi
   ) => {
     const orderToUpdate = orders.find((o) => o.id === orderId);
 
@@ -721,7 +652,7 @@ function App() {
     }
 
     let canUpdate = false;
-    let updateData = { status: newStatus };
+    let updateData = { status: newStatus }; // Default: statusni yangilash
 
     if (cancellationReason) {
       updateData.cancellation_reason = cancellationReason;
@@ -747,7 +678,7 @@ function App() {
           ) {
             canUpdate = true;
             updateData.curier_id = actorId;
-            delete updateData.status;
+            delete updateData.status; // Statusni o'zgartirmaymiz, faqat kuryerni biriktiramiz
           } else {
             toast({
               title: "Xatolik!",
@@ -848,11 +779,11 @@ function App() {
             return;
           }
           break;
-        case "delivered_to_customer":
+        case "delivered_to_customer": // Oshpaz uchun yangi status
           if (
             orderToUpdate.status === "ready" &&
             orderToUpdate.chef_id === actorId &&
-            orderToUpdate.delivery_option === "o_zim_olib_ketaman"
+            orderToUpdate.delivery_option === "o_zim_olib_ketaman" // Faqat olib ketish buyurtmalari uchun
           ) {
             canUpdate = true;
             updateData.status = newStatus;
@@ -895,6 +826,7 @@ function App() {
           return;
       }
     } else {
+      // Admin tomonidan o'zgartirishlar
       if (orderToUpdate.curier_id || orderToUpdate.chef_id) {
         toast({
           title: "Xatolik!",
@@ -906,12 +838,14 @@ function App() {
       }
       canUpdate = true;
 
+      // Agar admin statusni 'preparing' yoki 'ready' ga o'tkazsa va oshpaz biriktirilmagan bo'lsa,
+      // birinchi oshpazni biriktiramiz.
       if (
         (newStatus === "preparing" || newStatus === "ready") &&
         !orderToUpdate.chef_id
       ) {
         if (chefs.length > 0) {
-          updateData.chef_id = chefs[0].id;
+          updateData.chef_id = chefs[0].id; // Birinchi oshpazni standart sifatida biriktiramiz
         } else {
           toast({
             title: "Xatolik!",
@@ -951,12 +885,11 @@ function App() {
     const order = orders.find((o) => o.id === orderId);
     if (order) {
       let message = "";
+      // Faqat yetkazilgan yoki bekor qilingan buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        const itemNames = order.items
-          .map((item) => `*${item.name}*`)
-          .join(", ");
+        const itemNames = order.items.map(item => `*${item.name}*`).join(", ");
         if (order.delivery_option === "o_zim_olib_ketaman") {
-          message = `Sizning ${itemNames} nomli buyurtmangiz tayyor va topshirildi!`;
+          message = `Sizning ${itemNames} nomli buyurtmangiz muvaffaqiyatli topshirildi!`;
         } else {
           message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
         }
@@ -987,6 +920,8 @@ function App() {
 
   return (
     <div className="app-container">
+      {" "}
+      {/* Fragment o'rniga div ishlatildi */}
       <Helmet>
         <title>Restoran - Online Buyurtma Tizimi</title>
         <meta
@@ -997,7 +932,8 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminLoginPage />} />
         <Route path="/curier-login" element={<CurierLoginPage />} />
-        <Route path="/chef-login" element={<ChefLoginPage />} />
+        <Route path="/chef-login" element={<ChefLoginPage />} />{" "}
+        {/* Yangi: Chef login route */}
         <Route
           path="/curier"
           element={
@@ -1015,21 +951,23 @@ function App() {
           path="/chef"
           element={
             <ProtectedRouteChef>
+              {" "}
+              {/* Yangi: Chef uchun himoyalangan marshrut */}
               <ChefInterface
                 orders={orders}
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 chefs={chefs}
                 curiers={curiers}
-                ingredients={ingredients}
               />
             </ProtectedRouteChef>
           }
         />
+        {/* Dashboard uchun asosiy marshrut va ichki marshrutlar */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Dashboard /> {/* Dashboard endi layout vazifasini bajaradi */}
             </ProtectedRoute>
           }
         >
@@ -1041,7 +979,6 @@ function App() {
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
                 chefs={chefs}
-                ingredients={ingredients}
               />
             }
           />
@@ -1053,7 +990,6 @@ function App() {
                 onUpdateOrderStatus={handleUpdateOrderStatus}
                 curiers={curiers}
                 chefs={chefs}
-                ingredients={ingredients}
               />
             }
           />
@@ -1100,61 +1036,43 @@ function App() {
           />
         </Route>
         <Route
-          path="/product/:slug" /* ID o'rniga slug ni qabul qilamiz */
+          path="/products/:slug"
           element={
             <ProductDetail
               onAddToCart={addToCart}
-              products={products}
-              ingredients={ingredients}
-              productIngredients={productIngredients}
-              cartItems={cartItems}
+              products={products} // products propini uzatish
+              ingredients={ingredients} // ingredients propini uzatish
+              productIngredients={productIngredients} // productIngredients propini uzatish
+              cartItems={cartItems} // Yangi: cartItems propini uzatish
             />
           }
         />
         <Route
           path="/"
           element={
-            <div className="relative">
-              <MemoizedMainLayout // MemoizedMainLayout dan foydalanish
-                cartItems={cartItems}
-                cartItemsCount={cartItemsCount}
-                products={products}
-                addToCart={addToCart}
-                setIsOrderDialogOpen={setIsOrderDialogOpen}
-                categoryFilter={categoryFilter}
-                setCategoryFilter={setCategoryFilter}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                loadingProducts={loadingProducts}
-                productsError={productsError}
-                // messages={messages} // messages propini olib tashladik
-                ingredients={ingredients}
-                productIngredients={productIngredients}
-                activeCustomerOrderIds={activeCustomerOrderIds}
-                orders={orders}
-                chefs={chefs}
-                curiers={curiers}
-                customerInfo={customerInfo}
-                setCustomerInfo={setCustomerInfo}
-                requestNotificationPermission={requestNotificationPermission}
-                isSubscribed={isSubscribed}
-                permissionGranted={permissionGranted}
-              />
-              {isMiniChatOpen && (
-                <div
-                  className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-                  onClick={() => setIsMiniChatOpen(false)}
-                />
-              )}
-              <div className="fixed bottom-6 right-6 z-50">
-                <MiniChat
-                  messages={messages}
-                  isPopoverOpen={isMiniChatOpen}
-                  setIsPopoverOpen={setIsMiniChatOpen}
-                />
-              </div>
-            </div>
+            <MainLayout
+              cartItems={cartItems}
+              cartItemsCount={cartItemsCount}
+              products={products}
+              addToCart={addToCart}
+              setIsOrderDialogOpen={setIsOrderDialogOpen}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              loadingProducts={loadingProducts}
+              productsError={productsError}
+              messages={messages}
+              ingredients={ingredients} // Yangi: ingredients propini uzatish
+              productIngredients={productIngredients} // Yangi: productIngredients propini uzatish
+              activeCustomerOrderIds={activeCustomerOrderIds} // Yangi: activeCustomerOrderIds ni uzatish
+              orders={orders} // Yangi: orders ni uzatish
+              chefs={chefs} // Yangi: chefs ni uzatish
+              curiers={curiers} // Yangi: curiers ni uzatish
+              customerInfo={customerInfo} // Yangi: customerInfo ni uzatish
+              setCustomerInfo={setCustomerInfo} // Yangi: setCustomerInfo ni uzatish
+            />
           }
         />
       </Routes>
@@ -1166,11 +1084,11 @@ function App() {
         removeFromCart={removeFromCart}
         decreaseCartItem={decreaseCartItem}
         increaseCartItem={increaseCartItem}
-        customerInfo={customerInfo}
-        setCustomerInfo={setCustomerInfo}
+        customerInfo={customerInfo} // customerInfo ni prop sifatida uzatish
+        setCustomerInfo={setCustomerInfo} // setCustomerInfo ni prop sifatida uzatish
       />
       <Toaster />
-    </div>
+    </div> // Yopuvchi div
   );
 }
 
@@ -1187,21 +1105,28 @@ function MainLayout({
   itemsPerPage,
   loadingProducts,
   productsError,
-  // messages, // messages propini olib tashladik
-  ingredients,
-  productIngredients,
-  activeCustomerOrderIds,
-  orders,
-  chefs,
-  curiers,
-  customerInfo,
-  requestNotificationPermission,
-  isSubscribed,
-  permissionGranted,
+  messages,
+  ingredients, // Yangi: ingredients propini qabul qilish
+  productIngredients, // Yangi: productIngredients propini qabul qilish
+  activeCustomerOrderIds, // Yangi: activeCustomerOrderIds ni qabul qilish
+  orders, // Yangi: orders ni qabul qilish
+  chefs, // Yangi: chefs ni qabul qilish
+  curiers, // Yangi: curiers ni qabul qilish
+  customerInfo, // Yangi: customerInfo ni qabul qilish
 }) {
+  const [isMiniChatOpen, setIsMiniChatOpen] = useState(false); // MiniChat holati
   const { width } = useWindowSize();
 
-  // isMiniChatOpen ga bog'liq useEffect App.jsx ga ko'chirildi
+  useEffect(() => {
+    if (isMiniChatOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMiniChatOpen]);
 
   const handleAddToCart = (product, quantity) => {
     addToCart(product, quantity);
@@ -1214,12 +1139,10 @@ function MainLayout({
     }
   };
 
-  const handleRequestNotification = () => {
-    requestNotificationPermission();
-  };
-
   return (
     <div className="min-h-screen bg-[#ffffff]">
+      {" "}
+      {/* Fragment o'rniga div ishlatildi */}
       <Helmet>
         <title>Restoran - Online Buyurtma Tizimi</title>
         <meta
@@ -1238,15 +1161,12 @@ function MainLayout({
             </div>
 
             <div className="flex items-center gap-4">
-              {!permissionGranted && (
-                <Button
-                  onClick={handleRequestNotification}
-                  className="bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm px-3 py-1.5 rounded-md"
-                >
-                  Bildirishnomalarni yoqish
-                </Button>
-              )}
-              {/* MiniChat bu yerdan olib tashlandi */}
+              <MiniChat
+                messages={messages}
+                isPopoverOpen={isMiniChatOpen}
+                setIsPopoverOpen={setIsMiniChatOpen}
+              />{" "}
+              {/* MiniChat bu yerga ko'chirildi */}
               <Button
                 onClick={() => setIsOrderDialogOpen(true)}
                 disabled={cartItems.length === 0}
@@ -1264,7 +1184,11 @@ function MainLayout({
           </div>
         </div>
       </header>
-      <main className="w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300">
+      <main
+        className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${
+          isMiniChatOpen ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -1345,10 +1269,10 @@ function MainLayout({
                               key={product.id}
                               product={product}
                               onAddToCart={addToCart}
-                              allProducts={products}
-                              allIngredients={ingredients}
-                              allProductIngredients={productIngredients}
-                              cartItems={cartItems}
+                              allProducts={products} // `products` state ni `allProducts` propiga uzatish
+                              allIngredients={ingredients} // `ingredients` state ni `allIngredients` propiga uzatish
+                              allProductIngredients={productIngredients} // `productIngredients` state ni `allProductIngredients` propiga uzatish
+                              cartItems={cartItems} // Yangi: cartItems propini uzatish
                             />
                           ))}
                         </div>
@@ -1434,13 +1358,12 @@ function MainLayout({
                     <div className="flex justify-between font-bold">
                       <span className="text-gray-800">Jami:</span>
                       <span className="text-orange-500">
-                        {formatPrice(
-                          cartItems.reduce(
+                        {formatPrice(cartItems
+                          .reduce(
                             (sum, item) => sum + item.price * item.quantity,
                             0
-                          )
-                        )}{" "}
-                        so'm
+                          ))}
+                        {" "}so'm
                       </span>
                     </div>
                   </div>
@@ -1455,13 +1378,11 @@ function MainLayout({
         orders={orders}
         chefs={chefs}
         curiers={curiers}
-        customerPhone={customerInfo.phone}
+        customerPhone={customerInfo.phone} // customerInfo.phone ni uzatish
       />
       <Toaster />
-    </div>
+    </div> // Yopuvchi div
   );
 }
-
-const MemoizedMainLayout = React.memo(MainLayout);
 
 export default App;

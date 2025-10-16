@@ -11,7 +11,6 @@ import {
   Search,
   Truck,
   MapPin, // MapPin iconini import qilish
-  Salad, // Yangi: Salad iconini import qilish
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ import {
   generateShortOrderId,
   formatUzbekDateTime,
   getMapLinks,
-  formatQuantity, // formatQuantity import qilindi
 } from "@/lib/utils"; // formatUzbekDateTime va getMapLinks import qilindi
 import {
   AlertDialog,
@@ -103,7 +101,7 @@ const playSound = (
   }
 };
 
-const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers, ingredients }) => { // ingredients propini qabul qilish
+const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers }) => {
   const navigate = useNavigate();
   const [chefName, setChefName] = useState("Oshpaz");
   const [chefPhone, setChefPhone] = useState("");
@@ -178,8 +176,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers, ingredient
   const getCurierInfo = (id) => {
     return curiers.find((c) => c.id === id);
   };
-
-  const getIngredientInfo = (ingredientId) => ingredients.find((i) => i.id === ingredientId); // Yangi: Masalliq ma'lumotini olish
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -718,23 +714,6 @@ const ChefInterface = ({ orders, onUpdateOrderStatus, chefs, curiers, ingredient
                                   ).toLocaleString()}{" "}
                                   so'm
                                 </span>
-                                {item.customizations && Object.keys(item.customizations).length > 0 && (
-                                  <div className="mt-1 text-xs text-gray-700 w-full">
-                                    <p className="font-semibold flex items-center gap-1">
-                                      <Salad className="h-3 w-3" /> Moslashtirishlar:
-                                    </p>
-                                    <ul className="list-disc list-inside ml-4">
-                                      {Object.entries(item.customizations).map(([ingId, qty]) => {
-                                        const ingredient = getIngredientInfo(ingId); // Masalliq ma'lumotini olish
-                                        return ingredient ? (
-                                          <li key={ingId}>
-                                            {ingredient.name}: {formatQuantity(qty, ingredient.unit)} {ingredient.unit}
-                                          </li>
-                                        ) : null;
-                                      })}
-                                    </ul>
-                                  </div>
-                                )}
                               </div>
                             ))}
                           </div>

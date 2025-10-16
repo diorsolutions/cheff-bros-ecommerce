@@ -7,8 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
+  // useRef deklaratsiyalari eng boshida
   const messagesEndRef = useRef(null);
-  const messagesLengthAtLastRenderRef = useRef(0);
+  const messagesLengthAtLastRenderRef = useRef(0); // Dastlab 0 bilan boshlaymiz
 
   const [readMessageIds, setReadMessageIds] = useLocalStorage("readMessageIds", {});
   const [showNewMessageIndicatorId, setShowNewMessageIndicatorId] = useState(null);
@@ -17,22 +18,25 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // messagesLengthAtLastRenderRef ni har doim yangilab turish uchun alohida useEffect
   useEffect(() => {
     messagesLengthAtLastRenderRef.current = messages.length;
   }, [messages.length]);
 
   const currentUnreadCount = useMemo(() => {
-    if (isPopoverOpen) return 0;
+    if (isPopoverOpen) return 0; // Chat ochiq bo'lsa, o'qilmaganlar soni 0
     return messages.filter((msg) => !readMessageIds[msg.id]).length;
   }, [messages, isPopoverOpen, readMessageIds]);
 
   useEffect(() => {
+    // Agar popover ochilgan bo'lsa
     if (isPopoverOpen) {
+      // Barcha joriy xabarlarni o'qilgan deb belgilash
       setReadMessageIds((prev) => {
         const newReadIds = { ...prev };
         let changed = false;
         messages.forEach((msg) => {
-          if (!newReadIds[msg.id]) {
+          if (!newReadIds[msg.id]) { // Faqat o'qilmagan xabarlarni belgilash
             newReadIds[msg.id] = true;
             changed = true;
           }
@@ -40,10 +44,11 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
         if (changed) {
           return newReadIds;
         }
-        return prev;
+        return prev; // O'zgarish bo'lmasa, keraksiz re-renderlardan qochish
       });
-      setShowNewMessageIndicatorId(null);
+      setShowNewMessageIndicatorId(null); // Indikatorni tozalash
     } else {
+      // Agar popover yopiq bo'lsa va yangi xabar kelgan bo'lsa
       const prevMessagesLength = messagesLengthAtLastRenderRef.current;
       if (messages.length > prevMessagesLength) {
         const newMessages = messages.slice(prevMessagesLength);
@@ -55,14 +60,18 @@ const MiniChat = ({ messages, isPopoverOpen, setIsPopoverOpen }) => {
     }
   }, [isPopoverOpen, messages, readMessageIds, setReadMessageIds]);
 
+  // Avtomatik aylantirishni boshqarish uchun alohida useEffect
+  // Endi har safar popover ochilganda ishlaydi
   useEffect(() => {
     if (isPopoverOpen) {
+      // setTimeout orqali scrollni biroz kechiktiramiz,
+      // bu DOM elementlari to'liq render bo'lishini ta'minlaydi.
       const timer = setTimeout(() => {
         scrollToBottom();
       }, 0); 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timer); // Cleanup the timer
     }
-  }, [isPopoverOpen]);
+  }, [isPopoverOpen]); // Faqat isPopoverOpen holati o'zgarganda ishga tushadi
 
 
   return (

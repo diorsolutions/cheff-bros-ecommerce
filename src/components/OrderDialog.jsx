@@ -8,7 +8,6 @@ import {
   Plus,
   Minus,
   X,
-  Salad, // Yangi: Salad iconini import qilish
 } from "lucide-react";
 import {
   Dialog,
@@ -38,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"; // Select komponentlarini import qilish
-import { formatQuantity } from "@/lib/utils"; // formatQuantity import qilindi
 
 const OrderDialog = ({
   isOpen,
@@ -191,7 +189,6 @@ const OrderDialog = ({
         name: i.name,
         price: i.price,
         quantity: i.quantity,
-        customizations: i.customizations || {}, // Moslashtirishlarni buyurtmaga qo'shish
       })),
       customer: customerInfo,
       location: finalLocation,
@@ -262,23 +259,6 @@ const OrderDialog = ({
                         <p className="text-sm text-gray-600 mob:text-xs">
                           {item.quantity} dona
                         </p>
-                        {item.customizations && Object.keys(item.customizations).length > 0 && (
-                          <div className="mt-2 text-xs text-gray-700">
-                            <p className="font-semibold flex items-center gap-1">
-                              <Salad className="h-3 w-3" /> Moslashtirishlar:
-                            </p>
-                            <ul className="list-disc list-inside ml-4">
-                              {Object.entries(item.customizations).map(([ingId, qty]) => {
-                                const ingredient = item.ingredients.find(i => i.id === ingId); // item.ingredients dan topish
-                                return ingredient ? (
-                                  <li key={ingId}>
-                                    {ingredient.name}: {formatQuantity(qty, ingredient.unit)} {ingredient.unit}
-                                  </li>
-                                ) : null;
-                              })}
-                            </ul>
-                          </div>
-                        )}
                       </div>
                       <div className="flex items-center gap-4 mob:gap-2">
                         <div className="flex items-center gap-2">

@@ -117,7 +117,7 @@ const ProductCard = ({ product, onAddToCart, allProducts, allIngredients, allPro
         {" "}
         <CardContent className="p-2 flex-grow flex flex-col">
           <Link
-            to={`/product/${product.slug || product.id}`} 
+            to={`/products/${product.slug || product.id}`} 
             className="aspect-video mb-2 rounded-lg overflow-hidden bg-gradient-to-br from-orange-500 to-red-500 relative group"
           >
             <img

@@ -49,7 +49,7 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import { cn, formatQuantity, formatPrice, generateSlug } from "@/lib/utils";
+import { cn, formatQuantity, formatPrice } from "@/lib/utils"; // formatQuantity va formatPrice import qilindi
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import {
@@ -59,7 +59,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox"; // Checkbox import qilindi
 
 const AdminProducts = memo(
   ({ products, allIngredients, allProductIngredients }) => {
@@ -72,7 +72,7 @@ const AdminProducts = memo(
 
     // State for ingredient selection
     const [selectedProductIngredients, setSelectedProductIngredients] =
-      useState([]); // { ingredient_id, quantity_needed, name, unit, is_customizable }
+      useState([]); // { ingredient_id, quantity_needed, name, unit }
     const [isIngredientsSelectOpen, setIsIngredientsSelectOpen] =
       useState(false);
     const [ingredientSearchTerm, setIngredientSearchTerm] = useState("");
@@ -98,9 +98,8 @@ const AdminProducts = memo(
           price: "",
           image_url: "",
           category: "",
-          manual_stock_enabled: false,
-          manual_stock_quantity: 0,
-          slug: "", // Yangi: slug holatini qo'shish
+          manual_stock_enabled: false, // Yangi holat
+          manual_stock_quantity: 0, // Yangi holat
         }
       );
       setSelectedImage(null);
@@ -119,7 +118,6 @@ const AdminProducts = memo(
               quantity_needed: pi.quantity_needed,
               name: ingredient ? ingredient.name : "Noma'lum masalliq",
               unit: ingredient ? ingredient.unit : "dona",
-              is_customizable: pi.is_customizable || false, // Yangi: is_customizable ni yuklash
             };
           });
         setSelectedProductIngredients(existingProductIngredients);
@@ -166,7 +164,7 @@ const AdminProducts = memo(
     };
 
     const handleSave = async () => {
-      if (!currentProduct.name || currentProduct.price === null || currentProduct.price === "") {
+      if (!currentProduct.name || currentProduct.price === null || currentProduct.price === "") { // Added check for empty price
         toast({
           title: "Xatolik",
           description: "Nom va narxni kiritish majburiy.",
@@ -179,7 +177,7 @@ const AdminProducts = memo(
         if (
           currentProduct.manual_stock_quantity === null ||
           currentProduct.manual_stock_quantity < 0 ||
-          currentProduct.manual_stock_quantity === ""
+          currentProduct.manual_stock_quantity === "" // Added check for empty manual stock
         ) {
           toast({
             title: "Xatolik",
@@ -189,9 +187,10 @@ const AdminProducts = memo(
           return;
         }
       } else {
+        // Check if any ingredient is selected and has quantity_needed > 0
         if (
           selectedProductIngredients.length > 0 &&
-          selectedProductIngredients.some((pi) => pi.quantity_needed <= 0 || pi.quantity_needed === "")
+          selectedProductIngredients.some((pi) => pi.quantity_needed <= 0 || pi.quantity_needed === "") // Added check for empty quantity_needed
         ) {
           toast({
             title: "Xatolik",
@@ -202,6 +201,7 @@ const AdminProducts = memo(
           return;
         }
 
+        // New validation: Check if quantity_needed is an integer for "dona" unit
         for (const pi of selectedProductIngredients) {
           const ingredient = allIngredients.find(
             (ing) => ing.id === pi.ingredient_id
@@ -222,6 +222,7 @@ const AdminProducts = memo(
           }
         }
 
+        // Existing check: Ensure selected quantity needed does not exceed available ingredient stock
         for (const pi of selectedProductIngredients) {
           const ingredient = allIngredients.find(
             (ing) => ing.id === pi.ingredient_id
@@ -258,19 +259,16 @@ const AdminProducts = memo(
           imageUrl = await uploadImage(selectedImage);
         }
 
-        const productSlug = generateSlug(currentProduct.name); // Slug yaratish
-
         const productData = {
           name: currentProduct.name,
           description: currentProduct.description,
           price: Number(currentProduct.price),
           image_url: imageUrl,
           category: currentProduct.category || null,
-          manual_stock_enabled: currentProduct.manual_stock_enabled,
+          manual_stock_enabled: currentProduct.manual_stock_enabled, // Yangi maydon
           manual_stock_quantity: currentProduct.manual_stock_enabled
             ? Number(currentProduct.manual_stock_quantity)
-            : null,
-          slug: productSlug, // Slug'ni saqlash
+            : null, // Yangi maydon
         };
 
         let error;
@@ -289,15 +287,8 @@ const AdminProducts = memo(
             .insert([productData])
             .select("id")
             .single();
-          if (insertError) {
-            // Agar slug noyob bo'lmasa, xato berishi mumkin
-            if (insertError.code === '23505' && insertError.details.includes('slug')) {
-              throw new Error("Bu nomdagi mahsulot (yoki shunga o'xshash URL) allaqachon mavjud. Iltimos, boshqa nom tanlang.");
-            }
-            throw insertError;
-          }
-          productId = data?.id;
           error = insertError;
+          productId = data?.id;
         }
 
         if (error) throw error;
@@ -317,7 +308,6 @@ const AdminProducts = memo(
                 product_id: productId,
                 ingredient_id: pi.ingredient_id,
                 quantity_needed: pi.quantity_needed,
-                is_customizable: pi.is_customizable, // Yangi: is_customizable ni saqlash
               })
             );
             const { error: piError } = await supabase
@@ -389,7 +379,6 @@ const AdminProducts = memo(
               quantity_needed: 1, // Default quantity
               name: ingredient.name,
               unit: ingredient.unit,
-              is_customizable: false, // Yangi: Default false
             },
           ];
         }
@@ -403,17 +392,6 @@ const AdminProducts = memo(
         prev.map((pi) =>
           pi.ingredient_id === ingredientId
             ? { ...pi, quantity_needed: Number(value) }
-            : pi
-        )
-      );
-    };
-
-    // Yangi: is_customizable holatini o'zgartirish funksiyasi
-    const handleCustomizableChange = (ingredientId, checked) => {
-      setSelectedProductIngredients((prev) =>
-        prev.map((pi) =>
-          pi.ingredient_id === ingredientId
-            ? { ...pi, is_customizable: checked }
             : pi
         )
       );
@@ -656,7 +634,7 @@ const AdminProducts = memo(
                   id="price"
                   type="number"
                   placeholder="Narxi"
-                  value={currentProduct?.price || ""}
+                  value={currentProduct?.price || ""} 
                   onChange={(e) =>
                     setCurrentProduct({
                       ...currentProduct,
@@ -664,7 +642,7 @@ const AdminProducts = memo(
                     })
                   }
                   className="col-span-3 bg-gray-100 border-gray-300 text-gray-800"
-                  step="0.01"
+                  step="0.01" // Narx uchun 2 o'nlik kasrga ruxsat berish
                 />
               </div>
 
@@ -734,6 +712,7 @@ const AdminProducts = memo(
                         <X className="h-3 w-3 text-white" />
                       </button>
                     </div>
+                    // first commit
                   )}
                 </div>
               </div>
@@ -747,7 +726,7 @@ const AdminProducts = memo(
                     setCurrentProduct((prev) => ({
                       ...prev,
                       manual_stock_enabled: checked,
-                      manual_stock_quantity: checked ? prev?.manual_stock_quantity || 0 : null,
+                      manual_stock_quantity: checked ? prev?.manual_stock_quantity || 0 : null, // Agar o'chirilgan bo'lsa, miqdorni tozalash
                     }))
                   }
                 />
@@ -810,22 +789,10 @@ const AdminProducts = memo(
                               e.target.value
                             )
                           }
+                          // Increment/decrement tugmalarini va klaviatura o'qlarini o'chirish
                           className="w-20 h-7 p-1 text-center bg-white border-orange-200 text-gray-800 no-spinners"
                         />
                         <span className="text-sm">{pi.unit}</span>
-                        {/* Yangi: is_customizable checkbox */}
-                        <div className="flex items-center space-x-1">
-                          <Checkbox
-                            id={`customizable-${pi.ingredient_id}`}
-                            checked={pi.is_customizable}
-                            onCheckedChange={(checked) =>
-                              handleCustomizableChange(pi.ingredient_id, checked)
-                            }
-                          />
-                          <Label htmlFor={`customizable-${pi.ingredient_id}`} className="text-xs text-orange-700">
-                            Moslashtirish
-                          </Label>
-                        </div>
                         <Button
                           variant="ghost"
                           size="icon"

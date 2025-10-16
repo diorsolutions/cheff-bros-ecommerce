@@ -147,9 +147,6 @@ const AdminLoginPage = () => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: {
-        redirectTo: 'https://cheff-bros-ecommerce.vercel.app/dashboard', // Aniq URL manzilini ko'rsatish
-      },
     });
 
     if (error) {

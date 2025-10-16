@@ -72,17 +72,3 @@ export const getMapLinks = (lat, lng, label = "Manzil") => {
 
   return { yandexLink, googleLink, geoUri };
 };
-
-// Yangi: Slug yaratish funksiyasi
-export const generateSlug = (name) => {
-  if (!name) return '';
-  return name
-    .toString()
-    .normalize('NFD') // Unicode belgilarini ajratish
-    .replace(/[\u0300-\u036f]/g, '') // Diakritik belgilarni olib tashlash
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-') // Bo'shliqlarni defisga almashtirish
-    .replace(/[^\w-]+/g, '') // Harf, raqam, defisdan boshqa belgilarni olib tashlash
-    .replace(/--+/g, '-'); // Ketma-ket defislarni bittaga almashtirish
-};

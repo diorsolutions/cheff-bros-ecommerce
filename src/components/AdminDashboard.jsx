@@ -13,7 +13,6 @@ import {
   Utensils,
   ChefHat,
   MapPin,
-  Salad, // Yangi: Salad iconini import qilish
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateShortOrderId, cn, getMapLinks, formatQuantity } from "@/lib/utils"; // formatQuantity import qilindi
+import { generateShortOrderId, cn, getMapLinks } from "@/lib/utils";
 import InfoModal from "./InfoModal";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useMediaQuery } from "react-responsive";
@@ -93,7 +92,7 @@ const playSound = (
   }
 };
 
-const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs, ingredients }) => { // ingredients propini qabul qilish
+const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs }) => {
   const [prevOrdersCount, setPrevOrdersCount] = useState(orders.length);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
@@ -148,7 +147,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs, ingredien
 
   const getCurierInfo = (curierId) => curiers.find((c) => c.id === curierId);
   const getChefInfo = (chefId) => chefs.find((c) => c.id === chefId);
-  const getIngredientInfo = (ingredientId) => ingredients.find((i) => i.id === ingredientId); // Yangi: Masalliq ma'lumotini olish
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -893,23 +891,6 @@ const AdminDashboard = ({ orders, onUpdateOrderStatus, curiers, chefs, ingredien
                                   ).toLocaleString()}{" "}
                                   so'm
                                 </span>
-                                {item.customizations && Object.keys(item.customizations).length > 0 && (
-                                  <div className="mt-1 text-xs text-gray-400 w-full">
-                                    <p className="font-semibold flex items-center gap-1">
-                                      <Salad className="h-3 w-3" /> Moslashtirishlar:
-                                    </p>
-                                    <ul className="list-disc list-inside ml-4">
-                                      {Object.entries(item.customizations).map(([ingId, qty]) => {
-                                        const ingredient = getIngredientInfo(ingId); // Masalliq ma'lumotini olish
-                                        return (
-                                          <li key={ingId}>
-                                            {ingredient?.name || `Noma'lum masalliq`}: {formatQuantity(qty, ingredient?.unit || 'dona')} {ingredient?.unit || 'dona'}
-                                          </li>
-                                        );
-                                      })}
-                                    </ul>
-                                  </div>
-                                )}
                               </div>
                             ))}
                             <div className="border-t border-white/20 pt-2 mt-2">
