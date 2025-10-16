@@ -79,11 +79,11 @@ const OrderDialog = ({
     setShowLocationAlert(false);
 
     if (!navigator.geolocation) {
-      toast({
-        title: "Xatolik",
-        description: "Brauzeringiz joylashuvni aniqlay olmaydi",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik",
+      //   description: "Brauzeringiz joylashuvni aniqlay olmaydi",
+      //   variant: "destructive",
+      // });
       setLocationMethod("manual");
       setCoordinates(null); // Xato bo'lsa koordinatalarni tozalash
       setIsGettingLocation(false);
@@ -103,28 +103,28 @@ const OrderDialog = ({
 
           if (data && data.display_name) {
             setLocation(data.display_name);
-            toast({
-              title: "Joylashuv aniqlandi!",
-              description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi.",
-            });
+            // toast({
+            //   title: "Joylashuv aniqlandi!",
+            //   description: "Sizning joylashuvingiz muvaffaqiyatli aniqlandi.",
+            // });
           } else {
             setLocation(`${latitude}, ${longitude}`); // Agar API xato qilsa, koordinatalarni matn sifatida ko'rsatish
-            toast({
-              title: "Manzilni aniqlab bo'lmadi",
-              description:
-                "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
-              variant: "destructive",
-            });
+            // toast({
+            //   title: "Manzilni aniqlab bo'lmadi",
+            //   description:
+            //     "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
+            //   variant: "destructive",
+            // });
           }
         } catch (apiError) {
           console.error("Reverse geocoding API xatosi:", apiError);
           setLocation(`${latitude}, ${longitude}`); // API xatosida ham koordinatalarni matn sifatida ko'rsatish
-          toast({
-            title: "Manzilni aniqlab bo'lmadi",
-            description:
-              "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
-            variant: "destructive",
-          });
+          // toast({
+          //   title: "Manzilni aniqlab bo'lmadi",
+          //   description:
+          //     "Joylashuv aniqlandi, ammo manzilni o'qiladigan shaklga o'girishda xatolik yuz berdi. Koordinatalar saqlandi.",
+          //   variant: "destructive",
+          // });
         } finally {
           setIsGettingLocation(false);
         }
@@ -143,11 +143,11 @@ const OrderDialog = ({
         } else if (error.code === error.TIMEOUT) {
           errorMessage = "Joylashuvni aniqlash vaqti tugadi.";
         }
-        toast({
-          title: "Joylashuvni aniqlab bo'lmadi",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Joylashuvni aniqlab bo'lmadi",
+        //   description: errorMessage,
+        //   variant: "destructive",
+        // });
       },
       {
         enableHighAccuracy: true,
@@ -173,11 +173,11 @@ const OrderDialog = ({
 
   const handleSubmitOrder = () => {
     if (!localName || !localPhone) {
-      toast({
-        title: "Ma'lumotlar to'liq emas",
-        description: "Iltimos, ism va telefon raqamini to'ldiring",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Ma'lumotlar to'liq emas",
+      //   description: "Iltimos, ism va telefon raqamini to'ldiring",
+      //   variant: "destructive",
+      // });
       return;
     }
 
@@ -188,11 +188,11 @@ const OrderDialog = ({
       finalLocation = "Mijoz o'zi olib ketadi";
       finalCoordinates = null;
     } else if (!location) {
-      toast({
-        title: "Manzil kiritilmagan",
-        description: "Iltimos, yetkazib berish manzilini kiriting.",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Manzil kiritilmagan",
+      //   description: "Iltimos, yetkazib berish manzilini kiriting.",
+      //   variant: "destructive",
+      // });
       return;
     }
 

@@ -39,7 +39,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage"; // useLocalStorage im
 // Admin panelining ichki komponentlarini import qilish
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminProducts from "@/components/AdminProducts";
-import AdminIngredients from "@/components/AdminIngredients";
+import AdminIngredients from "@/components/Admin/AdminIngredients";
 import AdminStatistics from "@/components/AdminStatistics";
 import AdminCouriers from "@/components/AdminCouriers";
 import AdminChefs from "@/components/AdminChefs";
@@ -133,14 +133,14 @@ function App() {
                 productsErr.message ||
                 "Mahsulotlarni yuklashda xatolik"
             );
-            toast({
-              title: "Xatolik",
-              description:
-                fallbackErr.message ||
-                productsErr.message ||
-                "Mahsulotlarni yuklashda xatolik",
-              variant: "destructive",
-            });
+            // toast({
+            //   title: "Xatolik",
+            //   description:
+            //     fallbackErr.message ||
+            //     productsErr.message ||
+            //     "Mahsulotlarni yuklashda xatolik",
+            //   variant: "destructive",
+            // });
           } else {
             productsData = fallbackData;
             setProducts(fallbackData || []);
@@ -150,11 +150,11 @@ function App() {
         }
       } catch (e) {
         setProductsError(e.message || "Mahsulotlarni yuklashda xatolik");
-        toast({
-          title: "Xatolik",
-          description: e.message,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Xatolik",
+        //   description: e.message,
+        //   variant: "destructive",
+        // });
       } finally {
         setLoadingProducts(false);
       }
@@ -525,11 +525,11 @@ function App() {
     for (const item of items) {
       const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
       if (!productInState) {
-        toast({
-          title: "Xatolik!",
-          description: `${item.name} mahsuloti topilmadi.`,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Xatolik!",
+        //   description: `${item.name} mahsuloti topilmadi.`,
+        //   variant: "destructive",
+        // });
         return;
       }
 
@@ -546,11 +546,11 @@ function App() {
       }
 
       if (availableStock < item.quantity) {
-        toast({
-          title: "Xatolik!",
-          description: `${item.name} mahsulotini tayyorlash uchun yetarli masalliq yo'q. Hozirda ${availableStock} dona tayyorlash mumkin.`,
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Xatolik!",
+        //   description: `${item.name} mahsulotini tayyorlash uchun yetarli masalliq yo'q. Hozirda ${availableStock} dona tayyorlash mumkin.`,
+        //   variant: "destructive",
+        // });
         return;
       }
     }
@@ -605,11 +605,11 @@ function App() {
       .single();
 
     if (orderError) {
-      toast({
-        title: "Xatolik!",
-        description: "Buyurtma yuborishda xatolik yuz berdi.",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: "Buyurtma yuborishda xatolik yuz berdi.",
+      //   variant: "destructive",
+      // });
       return;
     }
 
@@ -627,11 +627,11 @@ function App() {
     setActiveCustomerOrderIds((prevIds) => [...prevIds, insertedOrder.id]);
 
     setCartItems([]); // Savatni tozalash
-    toast({
-      id: `order-success-${insertedOrder.id}`, // Unique ID qo'shildi
-      title: "Buyurtma qabul qilindi!",
-      description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
-    });
+    // toast({
+    //   id: `order-success-${insertedOrder.id}`, // Unique ID qo'shildi
+    //   title: "Buyurtma qabul qilindi!",
+    //   description: `Sizning buyurtmangiz muvaffaqiyatli yuborildi. ID: ${shortOrderId}`,
+    // });
   };
 
   const handleUpdateOrderStatus = async (
@@ -1131,12 +1131,12 @@ function MainLayout({
   const handleAddToCart = (product, quantity) => {
     addToCart(product, quantity);
 
-    if (width >= 1024) {
-      toast({
-        title: "Savatga qo'shildi!mi?",
-        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
-      });
-    }
+    // if (width >= 1024) {
+    //   toast({
+    //     title: "Savatga qo'shildi!mi?",
+    //     description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+    //   });
+    // }
   };
 
   return (

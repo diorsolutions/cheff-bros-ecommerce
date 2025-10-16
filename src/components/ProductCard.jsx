@@ -60,19 +60,19 @@ const ProductCard = memo(({ product, onAddToCart, allProducts, allIngredients, a
   const { width } = useWindowSize();
   const handleAddToCart = () => {
     if (quantity > effectiveStock) {
-      toast({
-        title: "Xatolik!",
-        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
+      //   variant: "destructive",
+      // });
       return;
     }
     if (quantity === 0) {
-      toast({
-        title: "Xatolik!",
-        description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
+      //   variant: "destructive",
+      // });
       return;
     }
 
@@ -82,23 +82,23 @@ const ProductCard = memo(({ product, onAddToCart, allProducts, allIngredients, a
       setIsAdding(false); // Animatsiyani tugatish
     }, 1000); // 1 soniyadan keyin asl holatiga qaytadi
 
-    if (width >= 1024) {
-      toast({
-        title: "Savatga qo'shildi!",
-        description: `${product.name} (${quantity} dona) savatga qo'shildi`,
-      });
-    }
+    // if (width >= 1024) {
+    //   toast({
+    //     title: "Savatga qo'shildi!",
+    //     description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+    //   });
+    // }
   };
 
   const incrementQuantity = () => {
     if (quantity < effectiveStock) {
       setQuantity((prev) => prev + 1);
     } else {
-      toast({
-        title: "Xatolik!",
-        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
+      //   variant: "destructive",
+      // });
     }
   };
   const decrementQuantity = () => setQuantity((prev) => Math.max(1, prev - 1));

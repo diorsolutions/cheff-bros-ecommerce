@@ -28,11 +28,11 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
         .single();
 
       if (error) {
-        toast({
-          title: "Xatolik!",
-          description: "Mahsulot topilmadi",
-          variant: "destructive",
-        });
+        // toast({
+        //   title: "Xatolik!",
+        //   description: "Mahsulot topilmadi",
+        //   variant: "destructive",
+        // });
         navigate("/");
         return;
       }
@@ -99,19 +99,19 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
 
   const handleAddToCart = () => {
     if (quantity > effectiveStock) {
-      toast({
-        title: "Xatolik!",
-        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
+      //   variant: "destructive",
+      // });
       return;
     }
     if (quantity === 0) {
-      toast({
-        title: "Xatolik!",
-        description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Mahsulot miqdori 0 bo'lishi mumkin emas.`,
+      //   variant: "destructive",
+      // });
       return;
     }
 
@@ -121,21 +121,21 @@ const ProductDetail = ({ onAddToCart, products, ingredients, productIngredients,
       setIsAdding(false); // Animatsiyani tugatish
     }, 1000); // 1 soniyadan keyin asl holatiga qaytadi
 
-    toast({
-      title: "Savatga qo'shildi!",
-      description: `${product.name} (${quantity} dona) savatga qo'shildi`,
-    });
+    // toast({
+    //   title: "Savatga qo'shildi!",
+    //   description: `${product.name} (${quantity} dona) savatga qo'shildi`,
+    // });
   };
 
   const incrementQuantity = () => {
     if (quantity < effectiveStock) {
       setQuantity((prev) => prev + 1);
     } else {
-      toast({
-        title: "Xatolik!",
-        description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Xatolik!",
+      //   description: `Faqat ${effectiveStock} ta qo'shishingiz mumkin.`,
+      //   variant: "destructive",
+      // });
     }
   };
 
