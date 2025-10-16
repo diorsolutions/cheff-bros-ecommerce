@@ -883,26 +883,28 @@ function App() {
       return;
     }
 
-    const order = orders.find((o) => o.id === orderId);
-    if (order) {
+    // Yangilangan buyurtma ma'lumotlarini yaratish
+    const updatedOrder = { ...orderToUpdate, ...updateData };
+
+    if (updatedOrder) {
       let message = "";
-      const itemNames = order.items.map(item => `*${item.name}*`).join(", "); // itemNames ni bu yerda aniqlash
+      const itemNames = updatedOrder.items.map(item => `*${item.name}*`).join(", ");
 
       // Faqat yetkazilgan, bekor qilingan yoki tayyor (olib ketish) buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
-        if (order.delivery_option === "o_zim_olib_ketaman") {
+        if (updatedOrder.delivery_option === "o_zim_olib_ketaman") {
           message = `Sizning ${itemNames} nomli buyurtmangiz muvaffaqiyatli topshirildi!`;
         } else {
           message = `Sizning ${itemNames} nomli buyurtmalaringiz muvaffaqiyatli yetkazib berildi!`;
         }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
-      } else if (newStatus === "ready" && order.delivery_option === "o_zim_olib_ketaman") {
+      } else if (newStatus === "ready" && updatedOrder.delivery_option === "o_zim_olib_ketaman") {
         message = `Sizning ${itemNames} nomli buyurtmangiz tayyor! Kelib olib ketishingiz mumkin.`;
       }
 
       if (message) {
-        await handleSendMessage(order.customer_info.phone, message);
+        await handleSendMessage(updatedOrder.customer_info.phone, message);
       }
     }
     toast({
@@ -1186,195 +1188,6 @@ function MainLayout({
             </div>
           </div>
         </div>
-      </header>
-      <main
-        className={`w-full mx-auto max-w-[1376px] bg-white/90 transition-filter duration-300 ${
-          isMiniChatOpen ? "blur-sm pointer-events-none" : ""
-        }`}
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="text-center mob_small:mb-0 mob_xr:mb-0 mid_small:mb-0 extra_small:mb-0 mb-8 sm:mb-12 px-4">
-            <h2 className="mob_small:hidden text-3xl sm:text-4xl mob_xr:text-[1.29rem] font-bold text-gray-800 mb-3 sm:mb-4 extra_small:text-[1.2rem]">
-              Bizning Menyumiz
-            </h2>
-            <p className=" mob_small:hidden text-base sm:text-xl mob_xr:hidden text-gray-600 max-w-2xl mx-auto extra_small:hidden">
-              Eng mazali va sifatli taomlarni tanlang. Barcha taomlar yangi
-              ingredientlar bilan tayyorlanadi.
-            </p>
-          </div>
-
-          <div className="mob_small:bg-white mob_xr:bg-white mid_small:bg-white mob_small:py-[.5rem] mob_xr:py-[.5rem] mid_small:py-[.5rem] extra_small:sticky mob_small:sticky mob_xr:sticky mid_small:sticky mob_small:top-0 mob_xr:top-0 mid_small:top-0  mob_small:z-50 mob_xr:z-50 mid_small:z-50 extra_small:top-0 extra_small:z-30 extra_small:bg-white extra_small:py-2 px-4 extra_small:mb-1 mb-6 mob_xr:gap-1 focus:*:bg-orange-500 *:rounded-[0.3rem] justify-center flex flex-wrap items-center gap-2 extra_small:gap-1 sm:gap-3">
-            {[
-              { key: "all", label: "Barchasi" },
-              { key: "Hoddog", label: "Hoddog" },
-              { key: "Ichimliklar", label: "Ichimliklar" },
-              { key: "Disertlar", label: "Disertlar" },
-            ].map((c) => (
-              <Button
-                key={c.key}
-                variant={categoryFilter === c.key ? "secondary" : "ghost"}
-                className={
-                  categoryFilter === c.key
-                    ? "bg-orange-500 extra_small:p-2 mid_small:text-[0.7rem] text-white extra_small:text-[0.8rem] mob_xr:text-[0.9rem]"
-                    : "text-gray-800 mid_small:text-[0.7rem] hover:bg-gray-300 hover:text-orange-400 border border-gray-300 extra_small:text-[0.7rem] mob_xr:text-[0.8rem]"
-                }
-                onClick={() => {
-                  setCategoryFilter(c.key);
-                  setCurrentPage(1);
-                }}
-              >
-                {c.label}
-              </Button>
-            ))}
-          </div>
-
-          <div className="px-4 mb-10">
-            {productsError ? (
-              <div className="text-center text-red-600 bg-red-100 border border-red-300 rounded-md p-4">
-                {productsError}
-              </div>
-            ) : loadingProducts ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {Array.from({ length: itemsPerPage }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-48 rounded-lg bg-gray-200 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <>
-                {(() => {
-                  const all =
-                    categoryFilter === "all"
-                      ? products
-                      : products.filter((p) => p.category === categoryFilter);
-
-                  const pageItems = all.slice(
-                    (currentPage - 1) * itemsPerPage,
-                    currentPage * itemsPerPage
-                  );
-
-                  return (
-                    <>
-                      {all.length === 0 ? (
-                        <div className="text-center text-gray-300 py-16">
-                          Hozircha mahsulotlar yo'q.
-                        </div>
-                      ) : (
-                        <div className="grid mt-[-13px] extra_small:mt-[0px] mob_small:gap-[0.4rem] grid-cols-2 mob_xr:gap-[0.4rem] md:grid-cols-3 extra_small:gap-[0.5rem] lg:grid-cols-4 sm:gap-2">
-                          {pageItems.map((product) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              onAddToCart={addToCart}
-                              allProducts={products} // `products` state ni `allProducts` propiga uzatish
-                              allIngredients={ingredients} // `ingredients` state ni `allIngredients` propiga uzatish
-                              allProductIngredients={productIngredients} // `productIngredients` state ni `allProductIngredients` propiga uzatish
-                              cartItems={cartItems} // Yangi: cartItems propini uzatish
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {(() => {
-                        const totalPages =
-                          Math.ceil(all.length / itemsPerPage) || 1;
-                        const canPrev = currentPage > 1;
-                        const canNext = currentPage < totalPages;
-                        return (
-                          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-8">
-                            <Button
-                              variant="ghost"
-                              disabled={!canPrev}
-                              onClick={() =>
-                                canPrev && setCurrentPage((p) => p - 1)
-                              }
-                              className="text-gray-800 hover:bg-gray-200"
-                            >
-                              Oldingi
-                            </Button>
-                            <span className="text-gray-600 text-sm sm:text-base">
-                              {currentPage} / {totalPages}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              disabled={!canNext}
-                              onClick={() =>
-                                canNext && setCurrentPage((p) => p + 1)
-                              }
-                              className="text-gray-800 hover:bg-gray-200"
-                            >
-                              Keyingi
-                            </Button>
-                          </div>
-                        );
-                      })()}
-                    </>
-                  );
-                })()}
-              </>
-            )}
-          </div>
-
-          {cartItems.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="fixed bottom-6 left-6 z-20"
-            >
-              <Card className="laptop:hidden w-full max-w-[15rem] mob:max-w-[12rem] extra_small:max-w-[10rem] flex flex-col justify-start bg-white border-orange-500/90">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-gray-800 text-center text-lg">
-                    Savat
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 p-4">
-                  {cartItems.map((item, index) => {
-                    const currentProduct = products.find(
-                      (p) => p.id === item.id
-                    );
-                    return (
-                      <div
-                        key={index}
-                        className="space-y-1 border-b border-gray-300 py-2"
-                      >
-                        <div className="flex gap-4 justify-between items-center text-sm">
-                          <span className="text-gray-900 flex items-center gap-1">
-                            {item.name}
-                            <span className="font-bold text-black/60">
-                              {item.quantity} ta
-                            </span>
-                          </span>
-                          <span className="text-black font-medium">
-                            {formatPrice(item.price * item.quantity)} so'm
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="border-t border-gray-300 pt-2 mt-2">
-                    <div className="flex justify-between font-bold">
-                      <span className="text-gray-800">Jami:</span>
-                      <span className="text-orange-500">
-                        {formatPrice(cartItems
-                          .reduce(
-                            (sum, item) => sum + item.price * item.quantity,
-                            0
-                          ))}
-                        {" "}so'm
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </motion.div>
       </main>
       <ClientOrderStatusModal
         activeOrderIds={activeCustomerOrderIds}
