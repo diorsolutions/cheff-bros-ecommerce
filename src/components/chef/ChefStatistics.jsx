@@ -1,0 +1,111 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+
+const ChefStatistics = ({ chefId, orders }) => {
+  const [stats, setStats] = useState({
+    totalPrepared: 0,
+    todayPrepared: 0,
+    totalCancelled: 0,
+    todayCancelled: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!chefId || !orders) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const calculateStats = () => {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // Bugunning boshlanishi
+
+      let totalPrepared = 0;
+      let todayPrepared = 0;
+      let totalCancelled = 0;
+      let todayCancelled = 0;
+
+      orders.forEach((order) => {
+        if (order.chef_id === chefId) {
+          const orderDate = new Date(order.created_at);
+          orderDate.setHours(0, 0, 0, 0);
+
+          if (order.status === "ready" || order.status === "delivered_to_customer") {
+            totalPrepared++;
+            if (orderDate.getTime() === now.getTime()) {
+              todayPrepared++;
+            }
+          } else if (order.status === "cancelled") {
+            totalCancelled++;
+            if (orderDate.getTime() === now.getTime()) {
+              todayCancelled++;
+            }
+          }
+        }
+      });
+
+      setStats({
+        totalPrepared: totalPrepared,
+        todayPrepared: todayPrepared,
+        totalCancelled: totalCancelled,
+        todayCancelled: todayCancelled,
+      });
+      setLoading(false);
+    };
+
+    calculateStats();
+  }, [chefId, orders]); // Buyurtmalar yoki kuryer ID o'zgarganda qayta hisoblash
+
+  if (loading) {
+    return (
+      <div className="text-center text-gray-600">Statistika yuklanmoqda...</div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-white border-gray-300">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-gray-800 mb-2">
+            Bugungi buyurtmalar
+          </h4>
+          <p className="text-gray-600">
+            Tayyorlangan:{" "}
+            <span className="font-bold text-green-600">
+              {stats.todayPrepared.toLocaleString()}
+            </span>
+          </p>
+          <p className="text-gray-600">
+            Bekor qilingan:{" "}
+            <span className="font-bold text-red-600">
+              {stats.todayCancelled.toLocaleString()}
+            </span>
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white border-gray-300">
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-gray-800 mb-2">
+            Jami tayyorlanganlar
+          </h4>
+          <p className="text-gray-600">
+            Jami tayyorlangan buyurtmalar:{" "}
+            <span className="font-bold text-orange-500">
+              {stats.totalPrepared.toLocaleString()}
+            </span>
+          </p>
+          <p className="text-gray-600">
+            Jami bekor qilingan buyurtmalar:{" "}
+            <span className="font-bold text-red-600">
+              {stats.totalCancelled.toLocaleString()}
+            </span>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ChefStatistics;

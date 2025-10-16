@@ -1,0 +1,10 @@
+{
+  "name": "send-push-notification",
+  "version": "1.0.0",
+  "description": "Supabase Edge Function to send web push notifications",
+  "main": "index.ts",
+  "type": "module",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}
