@@ -228,7 +228,7 @@ const OrderDialog = ({
       p-6 mob:p-4 mob_small:p-3
     "
         >
-          <DialogHeader>
+          {/* <DialogHeader>
             <DialogTitle
               className="
           text-2xl font-bold text-gray-800 
@@ -237,7 +237,7 @@ const OrderDialog = ({
             >
               Buyurtma berish
             </DialogTitle>
-          </DialogHeader>
+          </DialogHeader> */}
 
           <div className="space-y-6">
             {/* CART ITEMS */}
@@ -258,59 +258,52 @@ const OrderDialog = ({
               mob:p-2 mob_small:p-1
             "
                 >
-                  <CardContent className="p-4 mob:p-2">
+                  <CardContent className="bg-white/90 shadow-lg rounded-xl p-4 mob:p-2">
                     <div className="flex justify-between items-center flex-wrap gap-3 mob:gap-2">
                       <div>
-                        <h4
-                          className="
-                      font-medium text-gray-800 
-                      mob:text-sm extra_small:text-xs
-                    "
-                        >
-                          {item.name}
-                        </h4>
+                        <h4 className="font-medium text-gray-800 mob:text-sm extra_small:text-xs">
+                          <span
+                            title={item.name}
+                            className="block truncate"
+                          >
+                            {item.name}
+                          </span>
+                        </h4>{" "}
                         <p className="text-sm text-gray-600 mob:text-xs">
                           {item.quantity} dona
                         </p>
                       </div>
-                      <div className="flex items-center gap-4 mob:gap-2">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between w-full gap-3 mob:gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             size="icon"
-                            variant="outline"
                             onClick={() => decreaseCartItem(item.id)}
-                            className="h-8 w-8 mob:h-6 mob:w-6"
+                            className="h-8 w-8 mob:h-6 bg-gray-200/50 rounded-lg mob:w-6 flex-shrink-0"
                           >
                             <Minus className="h-4 w-4 mob:h-3 mob:w-3" />
                           </Button>
-                          <span className="font-bold text-orange-500 text-lg mob:text-base">
+                          <span className="font-bold text-orange-500 text-lg mob:text-base w-10 text-center">
                             {item.quantity}
                           </span>
                           <Button
                             size="icon"
-                            variant="outline"
                             onClick={() => increaseCartItem(item.id)}
-                            className="h-8 w-8 mob:h-6 mob:w-6"
+                            className="h-8 w-8 mob:h-6 bg-gray-200/50 rounded-lg mob:w-6 flex-shrink-0"
                           >
                             <Plus className="h-4 w-4 mob:h-3 mob:w-3" />
                           </Button>
                         </div>
-                        <span
-                          className="
-                      font-bold text-orange-500 
-                      mob:text-sm extra_small:text-xs
-                    "
-                        >
+                        <span className="font-bold items-center flex text-orange-500 mob:text-sm extra_small:text-xs">
                           {(item.price * item.quantity).toLocaleString()} so'm
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:bg-red-100 mob:h-6 mob:w-6"
+                          >
+                            <X className="h-5 w-5 mob:h-4 mob:w-4" />
+                          </Button>
                         </span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-red-500 hover:bg-red-100 mob:h-6 mob:w-6"
-                        >
-                          <X className="h-5 w-5 mob:h-4 mob:w-4" />
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -365,8 +358,12 @@ const OrderDialog = ({
                   <SelectValue placeholder="Yetkazib berish usulini tanlang" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-gray-300">
-                  <SelectItem value="yetkazib_berilsin">Yetkazib berilsin</SelectItem>
-                  <SelectItem value="o_zim_olib_ketaman">O'zim olib ketaman</SelectItem>
+                  <SelectItem value="yetkazib_berilsin">
+                    Yetkazib berilsin
+                  </SelectItem>
+                  <SelectItem value="o_zim_olib_ketaman">
+                    O'zim olib ketaman
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -393,13 +390,17 @@ const OrderDialog = ({
                     Qo'lda kiritish
                   </Button>
                   <Button
-                    variant={locationMethod === "auto" ? "secondary" : "outline"}
+                    variant={
+                      locationMethod === "auto" ? "secondary" : "outline"
+                    }
                     onClick={handleAutoLocation}
                     disabled={isGettingLocation}
                     className="flex-1 min-w-[140px] mob:text-sm"
                   >
                     <Navigation className="mr-2 h-4 w-4 mob:h-3 mob:w-3" />
-                    {isGettingLocation ? "Aniqlanmoqda..." : "Avtomatik aniqlash"}
+                    {isGettingLocation
+                      ? "Aniqlanmoqda..."
+                      : "Avtomatik aniqlash"}
                   </Button>
                 </div>
                 <div className="relative">

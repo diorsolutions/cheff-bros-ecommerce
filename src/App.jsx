@@ -44,7 +44,6 @@ import AdminStatistics from "@/components/AdminStatistics";
 import AdminCouriers from "@/components/AdminCouriers";
 import AdminChefs from "@/components/AdminChefs";
 
-
 function App() {
   const [cartItems, setCartItems] = useLocalStorage("cartItems", []); // localStorage bilan bog'landi
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
@@ -519,11 +518,18 @@ function App() {
   };
 
   const handleOrderSubmit = async (orderData) => {
-    const { customer, items, location, coordinates, totalPrice, deliveryOption } = orderData;
+    const {
+      customer,
+      items,
+      location,
+      coordinates,
+      totalPrice,
+      deliveryOption,
+    } = orderData;
 
     // --- Stokni tekshirish mantiqi ---
     for (const item of items) {
-      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
+      const productInState = products.find((p) => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
       if (!productInState) {
         // toast({
         //   title: "Xatolik!",
@@ -559,10 +565,11 @@ function App() {
 
     // --- Stokni kamaytirish mantiqi ---
     for (const item of items) {
-      const productInState = products.find(p => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
+      const productInState = products.find((p) => p.id === item.id); // To'liq mahsulot obyektini state'dan olish
       if (productInState.manual_stock_enabled) {
         // Manual stokni kamaytirish
-        const newManualStock = productInState.manual_stock_quantity - item.quantity;
+        const newManualStock =
+          productInState.manual_stock_quantity - item.quantity;
         await supabase
           .from("products")
           .update({ manual_stock_quantity: newManualStock })
@@ -578,7 +585,8 @@ function App() {
           );
           if (ingredient) {
             const newStock =
-              ingredient.stock_quantity - prodIng.quantity_needed * item.quantity;
+              ingredient.stock_quantity -
+              prodIng.quantity_needed * item.quantity;
             await supabase
               .from("ingredients")
               .update({ stock_quantity: newStock })
@@ -851,7 +859,7 @@ function App() {
           toast({
             title: "Xatolik!",
             description:
-            "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
+              "Oshpazlar topilmadi. Buyurtmani tayyorlash uchun oshpaz kerak.",
             variant: "destructive",
           });
           return;
@@ -888,7 +896,9 @@ function App() {
 
     if (updatedOrder) {
       let message = "";
-      const itemNames = updatedOrder.items.map(item => `*${item.name}*`).join(", ");
+      const itemNames = updatedOrder.items
+        .map((item) => `*${item.name}*`)
+        .join(", ");
 
       // Faqat yetkazilgan, bekor qilingan yoki tayyor (olib ketish) buyurtmalar uchun xabar yuborish
       if (newStatus === "delivered_to_customer") {
@@ -899,7 +909,10 @@ function App() {
         }
       } else if (newStatus === "cancelled") {
         message = `Hurmatli mijoz, uzur so'raymiz sizning buyurtmangiz bekor qilindi. Sababini bilishni hohlasangiz quyidagi +998907254545 raqamiga qo'ng'iroq qiling`;
-      } else if (newStatus === "ready" && updatedOrder.delivery_option === "o_zim_olib_ketaman") {
+      } else if (
+        newStatus === "ready" &&
+        updatedOrder.delivery_option === "o_zim_olib_ketaman"
+      ) {
         message = `Sizning ${itemNames} nomli buyurtmangiz tayyor! Kelib olib ketishingiz mumkin.`;
       }
 
@@ -1145,7 +1158,7 @@ function MainLayout({
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
-    };
+    }
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -1195,7 +1208,7 @@ function MainLayout({
                 disabled={cartItems.length === 0}
                 className="mob_small:rounded-full extra_small:text-xs mob_xr:text-[.7rem] rounded-[.4rem] bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white relative"
               >
-                <ShoppingCart className="h-3 w-3 mob_small:scale-x-150" />
+                <ShoppingCart className="h-3 w-3 mr-2 mob_small:scale-x-150" />
                 <span className="mob_small:hidden">Buyurtma berish</span>
                 {cartItemsCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
@@ -1381,12 +1394,13 @@ function MainLayout({
                     <div className="flex justify-between font-bold">
                       <span className="text-gray-800">Jami:</span>
                       <span className="text-orange-500">
-                        {formatPrice(cartItems
-                          .reduce(
+                        {formatPrice(
+                          cartItems.reduce(
                             (sum, item) => sum + item.price * item.quantity,
                             0
-                          ))}
-                        {" "}so'm
+                          )
+                        )}{" "}
+                        so'm
                       </span>
                     </div>
                   </div>
